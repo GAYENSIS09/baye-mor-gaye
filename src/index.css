@@ -1,0 +1,64 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,300&family=Architects+Daughter&family=Indie+Flower&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Playfair Display", serif;
+  --font-sketch: "Architects Daughter", cursive;
+  --font-hand: "Indie Flower", cursive;
+
+  --color-paper: #ffffff;
+  --color-ink: #1e293b;
+  --color-accent: #3b82f6;
+  --color-pencil: #64748b;
+}
+
+@layer base {
+  body {
+    @apply bg-paper text-ink selection:bg-blue-100;
+  }
+}
+
+/* Technical blueprint background with more texture */
+.bg-blueprint {
+  background-image: 
+    linear-gradient(to right, rgba(30, 33, 36, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(30, 33, 36, 0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.sketchy-border {
+  border: 1.5px solid #1e293b;
+  position: relative;
+}
+
+/* Hand-drawn underline effect */
+.hand-underline {
+  background-image: linear-gradient(120deg, rgba(30, 33, 36, 0.1) 0%, rgba(30, 33, 36, 0.1) 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 0.3em;
+  background-position: 0 95%;
+}
+
+.highlight-ink {
+  background: linear-gradient(120deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.08) 100%);
+  background-repeat: no-repeat;
+  background-size: 100% 0.3em;
+  background-position: 0 92%;
+}
+
+::selection {
+  background-color: #e2e8f0;
+  color: #000;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full;
+}
