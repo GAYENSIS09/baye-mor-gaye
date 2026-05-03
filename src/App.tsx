@@ -134,7 +134,7 @@ export default function App() {
                <div className="bg-white border-[1px] border-ink/40 p-1.5 pb-6 shadow-xl relative" style={{ filter: 'url(#hand-drawn)' }}>
                   <div className="aspect-square overflow-hidden border border-ink/10 grayscale contrast-125">
                     <img 
-                      src="/src/profile.jpg" 
+                      src="/168032110.jpg" 
                       alt="Baye Mor Gaye"
                       className="w-full h-full object-cover"
                       onError={(e) => {
