@@ -1,0 +1,37 @@
+@startuml
+title Activité : Modérer les commentaires
+
+start
+
+partition Propriétaire {
+  :Accéder à la file\nd'attente de modération;
+  :Lire le contenu\ndu commentaire;
+  :Vérifier l'auteur\net la date;
+  if (Décision ?) then (Approuver)
+    :Valider la publication;
+  else (Rejeter)
+    :Supprimer le commentaire;
+  endif
+}
+
+partition Système {
+  :Charger commentaires\nnon approuvés;
+  if (Action ?) then (Approuver)
+    :Marquer est_approuve\n= true;
+  else (Rejeter)
+    :Soft delete\n(dateSuppression);
+  endif
+  :Notifier l'auteur\ndu statut;
+}
+
+partition Frontend {
+  :Afficher la file\nd'attente;
+  if (Approuvé ?) then (Oui)
+    :Commentaire visible\nsur la publication;
+  else
+    :Commentaire retiré\nde la file;
+  endif
+}
+
+stop
+@enduml

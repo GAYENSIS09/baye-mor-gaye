@@ -1,0 +1,68 @@
+@startuml
+title Planning – Emploi du temps & Rappels
+
+!include _base-class.wsd
+
+hide empty members
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+package "Planning" as Planning {
+
+  class EmploiDuTemps {
+    + titre: String
+    + description: String
+    + numeroSemaine: Integer
+    + annee: Integer
+  }
+
+EmploiDuTemps --|> Timestamps
+
+  class EvenementEDT {
+    + titre: String
+    + description: String
+    + jourSemaine: Integer
+    + heureDebut: Time
+    + heureFin: Time
+    + couleur: String
+    + lieu: String
+  }
+
+EvenementEDT --|> Timestamps
+
+  class ConversionEDT {
+    + fichierOriginal: String
+    + modeleUtilise: String
+    + resultatJSON: JSON
+    + confiance: Float
+  }
+
+ConversionEDT --|> Timestamps
+
+  class Rappel {
+    + titre: String
+    + message: String
+    + rappelLe: DateTime
+    + estEnvoye: Boolean
+    + envoyeLe: DateTime
+  }
+
+Rappel --|> Timestamps
+}
+
+' ==================================================
+' RELATIONS
+' ==================================================
+Proprietaire "1" -- "0..*" EmploiDuTemps : emplois du temps
+EmploiDuTemps "1" -- "0..*" EvenementEDT : événements
+EmploiDuTemps "1" -- "0..*" ConversionEDT : conversions
+Proprietaire "1" -- "0..*" Rappel : rappels
+EmploiDuTemps "1" -- "0..*" Rappel : rappels
+
+legend bottom
+  |= Notation |= Signification |
+  | "1" -- "0..*" | Un à plusieurs |
+  | --|>  | Héritage |
+end legend
+
+@enduml

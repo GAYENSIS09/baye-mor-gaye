@@ -1,0 +1,42 @@
+@startuml
+title Activité : Filtrer les projets par technologie
+
+start
+
+partition Système {
+  :Charger tous les\nprojets publiés;
+}
+
+partition Frontend {
+  :Afficher la\ngrille interactive;
+}
+
+partition Visiteur {
+  :Parcourir la grille\ndes projets;
+  :Sélectionner un tag\ntechnologie;
+}
+
+partition Système {
+  if (Filtre appliqué ?) then (Oui)
+    :Interroger avec\nfiltre LIKE;
+    :Retourner résultats\nfiltrés;
+  else (Non)
+    :Retourner la\nliste complète;
+  endif
+}
+
+partition Frontend {
+  :Animer la\ntransition des cartes;
+}
+
+partition Visiteur {
+  if (Projet intéressant ?) then (Oui)
+    :Cliquer sur\nle projet;
+    :Consulter détails,\ndémo, médias;
+  else (Non)
+    :Revenir à la\ngrille des projets;
+  endif
+}
+
+stop
+@enduml

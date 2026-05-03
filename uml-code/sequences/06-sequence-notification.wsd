@@ -1,0 +1,41 @@
+@startuml
+title Notification et Rappel Système
+
+actor Propriétaire as Auth
+actor Planificateur as Cron
+participant Frontend as Front
+participant API as API
+participant "File d'attente" as Queue
+database BaseDeDonnees as BD
+
+== Création rappel ==
+Auth -> API: POST /api/rappels
+API -> BD: INSERT
+note right: Validation date
+BD --> API: Rappel créé
+API --> Auth: Confirmation
+
+== Vérification périodique ==
+Cron -> API: executer (toutes les minutes)
+API -> BD: SELECT rappels dus
+note right: est_envoye=false\net rappel_le <= maintenant()
+BD --> API: Liste rappels
+
+alt rappels en attente
+  loop pour chaque rappel
+    API -> Queue: Distribuer job
+    Queue -> API: Traiter
+    API -> BD: Marquer envoyé
+    note right: Évite doublons
+    API -> Front: Push notification\n(WebSocket)
+    Front --> Auth: Afficher notification
+  end
+else aucun rappel
+  API -> API: Attendre prochain cycle
+end
+
+== Temps réel ==
+Front --> Auth: Badge + son
+Auth -> Auth: Consulter
+
+@enduml

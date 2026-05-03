@@ -1,0 +1,34 @@
+@startuml
+title Activité : Gérer les domaines d'intérêt
+
+start
+
+partition Propriétaire {
+  :Accéder à\n"Mes domaines";
+  if (Action ?) then (Créer)
+    :Saisir nom, slug,\ndescription, couleur;
+  elseif (Modifier) then
+    :Sélectionner un\ndomaine existant;
+    :Modifier les infos;
+  elseif (Supprimer) then
+    :Confirmer la\nsuppression;
+  endif
+}
+
+partition Système {
+  if (Action ?) then (Créer)
+    :Insérer Domaine\nen base;
+  elseif (Modifier) then
+    :Mettre à jour\nles champs;
+  elseif (Supprimer) then
+    :Détacher des\npublications liées;
+    :Supprimer le\ndomaine;
+  endif
+}
+
+partition Frontend {
+  :Afficher la\nliste actualisée;
+}
+
+stop
+@enduml

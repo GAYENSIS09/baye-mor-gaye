@@ -1,0 +1,37 @@
+@startuml
+title Filtrage des projets par technologie
+
+actor Visiteur as User
+participant Frontend as Front
+participant API as API
+database BaseDeDonnees as BD
+
+== Navigation ==
+User -> Front: Accéder à la page\n"Projets"
+Front -> API: GET /api/projets
+note right: est_publie = true
+API -> BD: SELECT + tri
+BD --> API: Liste projets
+API --> Front: Projets + technologies
+Front --> User: Grille des projets
+
+== Filtrage ==
+User -> Front: Cliquer sur un\ntechnologie / tag
+Front -> API: GET /api/projets?technologie=React
+note right: Filtrage côté serveur\n(JSON / LIKE)
+API -> BD: SELECT WHERE\ntechnologies LIKE '%React%'
+BD --> API: Projets filtrés
+API --> Front: Résultats
+Front --> User: Projets mis à jour\n(animation transition)
+
+== Consultation projet ==
+opt sélection
+  User -> Front: Cliquer sur un projet
+  Front -> API: GET .../projets/{slug}
+  API -> BD: SELECT + médias
+  BD --> API: Détail projet
+  API --> Front: Projet + médias + démo
+  Front --> User: Page dédiée
+end
+
+@enduml

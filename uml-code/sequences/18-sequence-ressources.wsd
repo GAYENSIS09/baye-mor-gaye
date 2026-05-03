@@ -1,0 +1,59 @@
+@startuml
+title Gestion des ressources / documents
+
+actor Propriétaire as Auth
+participant Frontend as Front
+participant API as API
+participant Stockage as Storage
+database BaseDeDonnees as BD
+
+== Lister ressources ==
+Auth -> Front: Accéder à\n"Mes ressources"
+Front -> API: GET /api/ressources
+API -> BD: SELECT
+BD --> API: Ressources existantes
+API --> Front: Liste (titre, type, date)
+Front --> Auth: Vue d'ensemble
+
+== Upload ==
+opt nouveau fichier
+  Auth -> Front: Sélectionner fichier
+  Front -> API: GET /api/domaines
+  note right: Charger liste\ndes domaines
+  API -> BD: SELECT
+  BD --> API: Domaines disponibles
+  API --> Front: Liste domaines
+  Front --> Auth: Choisir domaine (optionnel)
+  Auth -> Front: Associer un domaine
+  Front -> API: POST /api/ressources
+  note right: Multipart/form-data\n+ domaine_id
+  API -> Storage: Enregistrer fichier
+  Storage --> API: Chemin stockage
+  API -> BD: INSERT Ressource
+  note right: est_publique = true/false\ndomaine_id = optionnel
+  BD --> API: Ressource créée
+  API --> Front: URL + infos
+  Front --> Auth: Ressource disponible
+end
+
+== Mise à jour ==
+opt modification
+  Auth -> Front: Modifier titre, description,\nvisibilité, domaine
+  Front -> API: PUT .../ressources/{id}
+  API -> BD: UPDATE
+  BD --> API: Mis à jour
+  API --> Front: Succès
+end
+
+== Suppression ==
+opt retrait
+  Auth -> Front: Confirmer suppression
+  Front -> API: DELETE .../ressources/{id}
+  API -> BD: Soft delete
+  API -> Storage: Supprimer fichier
+  BD --> API: Supprimé
+  API --> Front: Confirmation
+  Front --> Auth: Ressource retirée
+end
+
+@enduml

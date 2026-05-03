@@ -1,0 +1,49 @@
+@startuml
+title Gestion des expériences professionnelles
+
+actor Visiteur as V
+actor Proprietaire as Auth
+boundary Front as F
+control API as API
+database BD as BD
+
+== Consultation (publique) ==
+V -> F: Navigation page d'accueil / profil
+F -> API: GET /api/experiences
+note right: Accès libre
+API -> BD: SELECT * FROM experiences ORDER BY ordre, date_debut DESC
+BD --> API: Liste des expériences
+API --> F: JSON [{titre, entreprise, date_debut, ...}]
+F --> V: Affichage timeline
+
+== Gestion (authentifié) ==
+Auth -> F: Dashboard expériences
+F -> API: GET /api/experiences
+note right: Proprietaire uniquement
+API -> BD: SELECT ...
+BD --> API: Liste complète
+API --> F: JSON
+F --> Auth: Formulaire de gestion
+
+Auth -> F: Créer une expérience
+F -> API: POST /api/experiences {titre, entreprise, ...}
+note right: Auth requis (Bearer token)
+API -> BD: INSERT INTO experiences
+BD --> API: Nouvelle expérience
+API --> F: 201 Created
+F --> Auth: Confirmation
+
+Auth -> F: Modifier une expérience
+F -> API: PUT /api/experiences/{id} {titre, ...}
+API -> BD: UPDATE experiences
+BD --> API: Expérience modifiée
+API --> F: 200 OK
+F --> Auth: Confirmation
+
+Auth -> F: Supprimer une expérience
+F -> API: DELETE /api/experiences/{id}
+API -> BD: DELETE FROM experiences
+BD --> API: OK
+API --> F: 204 No Content
+F --> Auth: Confirmation
+@enduml

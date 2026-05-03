@@ -1,0 +1,81 @@
+@startuml
+title Services transverses
+
+!include _base-class.wsd
+
+hide empty members
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+package "Notifications" as Notifications {
+
+  class Notification {
+    + type: String
+    + donnees: JSON
+    + lueLe: DateTime
+  }
+
+Notification --|> Timestamps
+}
+
+package "Statistiques" as Stats {
+
+  class VuePage {
+    + adresseIP: String
+    + agentUtilisateur: String
+    + referer: String
+    + visiteLe: DateTime
+  }
+
+VuePage --|> Timestamps
+
+  class Contact {
+    + nom: String
+    + email: String
+    + message: String
+    + estLu: Boolean
+  }
+
+Contact --|> Timestamps
+}
+
+package "Ressources" as Ressources {
+
+  class Ressource {
+    + titre: String
+    + description: String
+    + cheminFichier: String
+    + typeFichier: String
+    + type: TypeRessource
+    + estPublique: Boolean
+    + nombreTelechargements: Integer
+  }
+
+Ressource --|> SoftDeletes
+}
+
+' ==================================================
+' ENUM RELATIONS
+' ==================================================
+Ressource --> TypeRessource
+
+' ==================================================
+' RELATIONS
+' ==================================================
+Proprietaire "1" -- "0..*" Notification : notifications
+Proprietaire "1" -- "0..*" Ressource : ressources
+
+Publication "1" -- "0..*" VuePage : vues
+ProjetPortfolio "1" -- "0..*" VuePage : vues
+
+Ressource "0..*" -- "1" Domaine : domaine
+
+' Contact sans relation (formulaire libre)
+
+legend bottom
+  |= Notation |= Signification |
+  | "1" -- "0..*" | Un à plusieurs |
+  | --|>  | Héritage |
+end legend
+
+@enduml

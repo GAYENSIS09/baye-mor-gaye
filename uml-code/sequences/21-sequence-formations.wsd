@@ -1,0 +1,49 @@
+@startuml
+title Gestion des formations
+
+actor Visiteur as V
+actor Proprietaire as Auth
+boundary Front as F
+control API as API
+database BD as BD
+
+== Consultation (publique) ==
+V -> F: Navigation page compétences / profil
+F -> API: GET /api/formations
+note right: Accès libre
+API -> BD: SELECT * FROM formations ORDER BY ordre, date_debut DESC
+BD --> API: Liste des formations
+API --> F: JSON [{diplome, etablissement, ...}]
+F --> V: Affichage formations
+
+== Gestion (authentifié) ==
+Auth -> F: Dashboard formations
+F -> API: GET /api/formations
+note right: Proprietaire uniquement
+API -> BD: SELECT ...
+BD --> API: Liste complète
+API --> F: JSON
+F --> Auth: Formulaire de gestion
+
+Auth -> F: Ajouter une formation
+F -> API: POST /api/formations {diplome, etablissement, ...}
+note right: Auth requis (Bearer token)
+API -> BD: INSERT INTO formations
+BD --> API: Nouvelle formation
+API --> F: 201 Created
+F --> Auth: Confirmation
+
+Auth -> F: Modifier une formation
+F -> API: PUT /api/formations/{id} {diplome, ...}
+API -> BD: UPDATE formations
+BD --> API: Formation modifiée
+API --> F: 200 OK
+F --> Auth: Confirmation
+
+Auth -> F: Supprimer une formation
+F -> API: DELETE /api/formations/{id}
+API -> BD: DELETE FROM formations
+BD --> API: OK
+API --> F: 204 No Content
+F --> Auth: Confirmation
+@enduml

@@ -1,0 +1,73 @@
+@startuml
+title Diagramme de Composants (Architecture Docker)
+
+skinparam componentStyle rectangle
+
+package "Client Navigateur" as Browser {
+  [Application Next.js\n(React + TypeScript)] as NextApp
+  [Client API (fetch)] as ClientAPI
+}
+
+package "Docker : portfolio" as Docker {
+  package "nginx (reverse proxy)" as Nginx {
+    () "Port 80" as Port80
+    [Proxy PHP-FPM\nCache statique 1 an] as Proxy
+  }
+
+  package "php-fpm (PHP 8.3)" as PHP {
+    [Application Laravel\n(Sanctum, Eloquent)] as Laravel
+    [Jobs & Queues\n(Horizon)] as Jobs
+    [Media Library\n(spatie)] as MediaLib
+  }
+
+  package "workspace (CLI)" as Workspace {
+    [Composer] as Composer
+    [Artisan] as Artisan
+    [Node / NPM] as Node
+  }
+
+  database "MySQL 8.0" as DB {
+    storage "portfolio" as MySQL
+  }
+
+  storage "Stockage local\n(storage/app/public)" as Storage
+}
+
+package "Services Externes" as Ext {
+  [SMTP / Mailhog] as Mail
+  [PaliGemma 2 (Vision 10B)] as PaliGemma
+  [Laravel Echo\n(WebSocket)] as Echo
+}
+
+' === Communications ===
+NextApp --> ClientAPI : appelle
+ClientAPI --> Nginx : HTTPS (localhost:8000)
+Nginx --> Port80
+Port80 --> Proxy : proxy_pass
+Proxy --> Laravel : fastcgi (9000)
+Nginx --> Storage : fichiers statiques
+
+Laravel --> MySQL : PDO (3306)
+Laravel --> Storage : stockage fichiers
+Laravel --> Jobs : file d'attente
+Laravel --> Mail : email
+Laravel --> PaliGemma : API vision IA
+Laravel --> Echo : WebSocket
+
+Workspace --> Laravel : artisan / composer
+Workspace --> Node : npm / npx
+
+Browser --> Echo : WebSocket (6001)
+
+legend bottom
+  |= Conteneur |= Technologie |
+  | nginx | nginx:alpine (port 8000 → Laravel) |
+  | php-fpm | PHP 8.3-FPM Alpine + Xdebug |
+  | workspace | PHP-CLI + Composer + Node |
+  | db | MySQL 8.0 (port 3307) |
+  | frontend | Next.js 16 + Turbopack (port 3000) |
+  | Temps réel | Laravel Echo Server |
+  | Vision IA | PaliGemma 2 10B |
+end legend
+
+@enduml

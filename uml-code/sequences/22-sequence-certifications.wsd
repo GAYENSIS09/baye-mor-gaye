@@ -1,0 +1,49 @@
+@startuml
+title Gestion des certifications
+
+actor Visiteur as V
+actor Proprietaire as Auth
+boundary Front as F
+control API as API
+database BD as BD
+
+== Consultation (publique) ==
+V -> F: Navigation page profil
+F -> API: GET /api/certifications
+note right: Accès libre
+API -> BD: SELECT * FROM certifications ORDER BY ordre, date_obtention DESC
+BD --> API: Liste des certifications
+API --> F: JSON [{titre, organisme, date_obtention, ...}]
+F --> V: Affichage certifications
+
+== Gestion (authentifié) ==
+Auth -> F: Dashboard certifications
+F -> API: GET /api/certifications
+note right: Proprietaire uniquement
+API -> BD: SELECT ...
+BD --> API: Liste complète
+API --> F: JSON
+F --> Auth: Formulaire de gestion
+
+Auth -> F: Ajouter une certification
+F -> API: POST /api/certifications {titre, organisme, ...}
+note right: Auth requis (Bearer token)
+API -> BD: INSERT INTO certifications
+BD --> API: Nouvelle certification
+API --> F: 201 Created
+F --> Auth: Confirmation
+
+Auth -> F: Modifier une certification
+F -> API: PUT /api/certifications/{id} {titre, ...}
+API -> BD: UPDATE certifications
+BD --> API: Certification modifiée
+API --> F: 200 OK
+F --> Auth: Confirmation
+
+Auth -> F: Supprimer une certification
+F -> API: DELETE /api/certifications/{id}
+API -> BD: DELETE FROM certifications
+BD --> API: OK
+API --> F: 204 No Content
+F --> Auth: Confirmation
+@enduml

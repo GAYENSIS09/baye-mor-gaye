@@ -1,0 +1,121 @@
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: portfolio-nginx
+    ports:
+      - "8000:80"
+    volumes:
+      - ./01-portfolio-laravel:/var/www
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php-fpm
+    networks:
+      - portfolio
+
+  php-fpm:
+    build:
+      context: .
+      dockerfile: docker/php-fpm/Dockerfile
+      target: development
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+        XDEBUG_ENABLED: ${XDEBUG_ENABLED:-true}
+    container_name: portfolio-php-fpm
+    volumes:
+      - ./01-portfolio-laravel:/var/www
+    environment:
+      APP_ENV: local
+      APP_DEBUG: true
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: portfolio
+      DB_USERNAME: portfolio
+      DB_PASSWORD: portfolio
+      SANCTUM_STATEFUL_DOMAINS: localhost:3000
+      CORS_ALLOWED_ORIGINS: http://localhost:3000
+      FILESYSTEM_DISK: local
+      SESSION_DRIVER: cookie
+      SESSION_DOMAIN: localhost
+      PROPRIETAIRE_NOM: Baye Mor Gaye
+      PROPRIETAIRE_EMAIL: contact@baye-mor-gaye.dev
+      PROPRIETAIRE_PASSWORD: password
+      PROPRIETAIRE_TITRE: AI & Software Engineer
+      PROPRIETAIRE_BIO: "Enthousiaste en IA & ingénierie logicielle. Curieux. Builder. Dakar → monde."
+      PROPRIETAIRE_LOCALISATION: Dakar, Sénégal
+      PROPRIETAIRE_SITE_WEB: https://baye-mor-gaye.dev
+      PROPRIETAIRE_LINKEDIN: https://linkedin.com/in/gayensis09
+      PROPRIETAIRE_GITHUB: https://github.com/baye-mor-gaye
+      PROPRIETAIRE_PHOTO: photos/168032110.jpg
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - portfolio
+
+  workspace:
+    build:
+      context: .
+      dockerfile: docker/workspace/Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    container_name: portfolio-workspace
+    volumes:
+      - ./01-portfolio-laravel:/var/www
+      - ./02-portfolio-nextJS:/var/www-frontend
+    working_dir: /var/www
+    tty: true
+    stdin_open: true
+    environment:
+      - APP_ENV=local
+    networks:
+      - portfolio
+
+  db:
+    image: mysql:8.0
+    container_name: portfolio-db
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: portfolio
+      MYSQL_USER: portfolio
+      MYSQL_PASSWORD: portfolio
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - portfolio
+
+  frontend:
+    build:
+      context: ./docker/frontend
+      dockerfile: Dockerfile
+    container_name: portfolio-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./02-portfolio-nextJS:/app
+    working_dir: /app
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api
+      NEXT_DISABLE_TURBOPACK: 1
+    command: >
+      sh -c "npm install && npm run build && npm run start"
+    depends_on:
+      - php-fpm
+    networks:
+      - portfolio
+
+networks:
+  portfolio:
+
+volumes:
+  db_data:

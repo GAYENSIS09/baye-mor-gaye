@@ -1,0 +1,83 @@
+@startuml
+title Diagramme de Déploiement (Docker)
+
+skinparam componentStyle rectangle
+
+actor Visiteur as Visiteur
+actor "Utilisateur\nAuthentifié" as User
+actor "Propriétaire\n(Baye Mor Gaye)" as Proprietaire
+
+User -|> Visiteur
+Proprietaire -|> User
+
+node "Hôte" as Host {
+  node "Réseau Docker : portfolio" as DockerNet {
+    node "nginx:alpine\n(port 8000)" as NginxC {
+      artifact "nginx.conf\n(proxy PHP-FPM,\ncache assets 1 an)" as NginxConf
+    }
+
+    node "php-fpm:8.3-alpine" as PHPC {
+      artifact "Laravel 11\n+ Sanctum" as Laravel
+      artifact "Horizon\n(queues)" as Horizon
+      artifact "OPCache + JIT\n(buffer 64M)" as OPCache
+    }
+
+    node "workspace\n(PHP-CLI)" as WSC {
+      artifact "Composer 2" as Composer
+      artifact "Node 22" as NodeJS
+    }
+
+    node "mysql:8.0\n(port 3306/3307)" as DBC {
+      database "portfolio" as MySQL
+    }
+
+    node "frontend\n(node:22-alpine)" as FrontC {
+      artifact "Next.js 16\n(Turbopack)" as NextJS
+    }
+  }
+
+  node "Stockage\n(host volume)" as Volumes {
+    storage "01-portfolio-laravel\n(/var/www)" as LaravelVol
+    storage "02-portfolio-nextJS\n(/app)" as FrontendVol
+    storage "db_data\n(/var/lib/mysql)" as DBVol
+  }
+}
+
+node "Services Externes" as Services {
+  artifact "SMTP / Mailhog" as Mail
+  artifact "PaliGemma 2 10B" as PaliGemma
+  artifact "Laravel Echo\n(WebSocket 6001)" as Echo
+}
+
+' === Communications ===
+Visiteur --> FrontC : HTTP (localhost:3000)
+User --> FrontC : HTTP (localhost:3000)
+Proprietaire --> FrontC : HTTP (localhost:3000)
+
+FrontC --> NginxC : API (localhost:8000)
+NginxC --> PHPC : fastcgi (9000)
+NginxC --> Volumes : assets statiques
+
+PHPC --> DBC : PDO (3306)
+PHPC --> Volumes : stockage fichiers
+PHPC --> PaliGemma : API HTTPS
+PHPC --> Mail : SMTP (587)
+
+WSC --> PHPC : artisan / composer
+WSC --> Volumes : code source
+
+NginxC --> Volumes : sert fichiers publics
+
+FrontC --> Echo : WebSocket (6001)
+
+legend top
+  |= Composant |= Technologie |= Rôle |
+  | nginx | nginx:alpine | Reverse proxy, cache statique |
+  | php-fpm | PHP 8.3-FPM Alpine | Laravel, OPCache JIT |
+  | workspace | PHP-CLI + Node | Composer, npm, artisan |
+  | db | MySQL 8.0 | Base de données relationnelle |
+  | frontend | Node 22 Alpine + Next.js | Application React SSR |
+  | Vision IA | PaliGemma 2 10B | OCR emplois du temps |
+end legend
+
+@enduml

@@ -1,0 +1,37 @@
+@startuml
+title Activité : Gérer les ressources documentaires
+
+start
+
+partition Propriétaire {
+  :Accéder à\n"Mes ressources";
+  if (Action ?) then (Upload)
+    :Sélectionner fichier\n(depuis l'appareil);
+    :Saisir titre, description,\nvisibilité;
+    :Choisir un domaine\n(optionnel);
+  elseif (Modifier) then
+    :Choisir une\nressource existante;
+    :Modifier les\nmétadonnées + domaine;
+  elseif (Supprimer) then
+    :Confirmer la\nsuppression;
+  endif
+}
+
+partition Système {
+  if (Action ?) then (Upload)
+    :Stocker le fichier\nsur le disque;
+    :Créer l'entité\nRessource en base;
+  elseif (Modifier) then
+    :Mettre à jour\nles champs;
+  elseif (Supprimer) then
+    :Soft delete\n(dateSuppression);
+    :Supprimer le\nfichier physique;
+  endif
+}
+
+partition Frontend {
+  :Afficher la\nliste actualisée;
+}
+
+stop
+@enduml

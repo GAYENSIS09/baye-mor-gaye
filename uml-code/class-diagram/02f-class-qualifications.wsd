@@ -1,0 +1,82 @@
+@startuml
+title Qualifications – Expériences, Formations & Certifications
+
+!include _base-class.wsd
+
+hide empty members
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+package "Qualifications" as Qualifications {
+
+  class Experience {
+    + titre: String
+    + entreprise: String
+    + description: Text
+    + dateDebut: Date
+    + dateFin: Date
+    + estActuel: Boolean
+    + lieu: String
+    + ordre: Integer
+  }
+
+  Experience --|> Timestamps
+
+  class Formation {
+    + diplome: String
+    + etablissement: String
+    + description: Text
+    + domaineEtude: String
+    + dateDebut: Date
+    + dateFin: Date
+    + ordre: Integer
+  }
+
+  Formation --|> Timestamps
+
+  class Certification {
+    + titre: String
+    + organisme: String
+    + description: Text
+    + dateObtention: Date
+    + dateExpiration: Date
+    + urlCredential: String
+    + ordre: Integer
+  }
+
+  Certification --|> Timestamps
+
+  class MediaQualification {
+    + type: TypeMedia
+    + cheminFichier: String
+    + titre: String
+    + taille: Integer
+    + ordre: Integer
+  }
+
+  MediaQualification --|> Timestamps
+}
+
+' ==================================================
+' ENUM RELATIONS
+' ==================================================
+MediaQualification --> TypeMedia
+
+' ==================================================
+' RELATIONS
+' ==================================================
+Proprietaire "1" -- "0..*" Experience : experiences
+Proprietaire "1" -- "0..*" Formation : formations
+Proprietaire "1" -- "0..*" Certification : certifications
+
+Experience "1" -- "0..*" MediaQualification : medias
+Formation "1" -- "0..*" MediaQualification : medias
+Certification "1" -- "0..*" MediaQualification : medias
+
+legend bottom
+  |= Notation |= Signification |
+  | "1" -- "0..*" | Un à plusieurs |
+  | --|>  | Héritage |
+end legend
+
+@enduml

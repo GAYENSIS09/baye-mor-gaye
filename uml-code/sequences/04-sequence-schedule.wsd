@@ -1,0 +1,53 @@
+@startuml
+title Gestion native de l'emploi du temps
+
+actor Propriétaire as Auth
+participant Frontend as Front
+participant API as API
+database BaseDeDonnees as BD
+
+== Création EDT ==
+Auth -> Front: Nouvel emploi du temps
+Front -> API: POST /api/emplois-du-temps
+API -> BD: INSERT
+BD --> API: EDT créé
+API --> Front: Confirmation
+Front --> Auth: EDT prêt
+
+== Saisie des événements ==
+loop pour chaque événement
+  Auth -> Front: Saisir titre, jour, heures
+  Front -> API: POST .../evenements
+  API -> BD: INSERT
+  note right: Vérifier chevauchements
+  BD --> API: Événement créé
+  API --> Front: Mise à jour temps réel
+  Front --> Auth: Créneau visible
+end
+
+== Import d'un EDT externe ==
+opt upload image/PDF
+  Auth -> Front: Upload fichier EDT
+  Front -> API: POST .../convertir-edt
+  API -> API: Analyser via PaliGemma
+  note right: Reconnaissance visuelle
+  alt confiance > 0.7
+    API -> BD: Insérer événements
+    BD --> API: Import réussi
+    API --> Front: Aperçu + validation
+    Front --> Auth: Événements importés
+  else échec
+    API --> Front: Erreur
+    Front --> Auth: Format non reconnu
+  end
+end
+
+== Affichage dans le Front ==
+Front -> API: GET /api/emplois-du-temps/{semaine}
+API -> BD: SELECT EDT + événements
+BD --> API: Données
+API --> Front: JSON structuré
+Front -> Front: Rendu natif (grille hebdo)
+Front --> Auth: Emploi du temps affiché
+
+@enduml

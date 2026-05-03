@@ -1,0 +1,80 @@
+@startuml
+title Utilisateurs & Profil
+
+!include _base-class.wsd
+
+hide empty members
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+package "Authentification & Profil" as Auth {
+
+  class Utilisateur {
+    + nom: String
+    + email: String
+    + photo: String
+    + emailVerifieLe: DateTime
+    + derniereConnexionLe: DateTime
+  }
+
+  Utilisateur --|> Timestamps
+
+  class Proprietaire {
+    + bio: String
+    + titreProfessionnel: String
+    + localisation: String
+    + siteWeb: String
+    + urlLinkedin: String
+    + urlGithub: String
+  }
+
+  Utilisateur "1" -- "0..1" Proprietaire : proprietaire
+
+  class Competence {
+    + nom: String
+    + categorie: String
+    + icone: String
+  }
+
+  Competence --|> Timestamps
+
+  class Domaine {
+    + nom: String
+    + slug: String
+    + description: String
+    + couleur: String
+  }
+
+  Domaine --|> Timestamps
+
+  class NiveauCompetence {
+    + niveau: Niveau
+    + estSurligne: Boolean
+  }
+
+  NiveauCompetence --|> Timestamps
+}
+
+' ==================================================
+' ENUM RELATIONS
+' ==================================================
+NiveauCompetence --> Niveau
+
+' ==================================================
+' RELATIONS
+' ==================================================
+Proprietaire "1" -- "0..*" NiveauCompetence : compétences
+Competence "1" -- "0..*" NiveauCompetence : niveaux
+Proprietaire "1" -- "0..*" Domaine : domaines
+
+note "Singleton :\nau plus un Proprietaire\ndans le système" as N_SINGLETON
+N_SINGLETON .. Proprietaire
+
+legend bottom
+  |= Notation |= Signification |
+  | "1" -- "0..*" | Un à plusieurs |
+  | "1" -- "0..1" | Un à un (optionnel) |
+  | "--|>  | Héritage |
+end legend
+
+@enduml

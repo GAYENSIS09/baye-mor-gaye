@@ -1,0 +1,51 @@
+@startuml
+title Gestion des compétences
+
+actor Propriétaire as Auth
+participant Frontend as Front
+participant API as API
+database BaseDeDonnees as BD
+
+== Lister compétences ==
+Auth -> Front: Accéder à\n"Mes compétences"
+Front -> API: GET /api/competences
+API -> BD: SELECT + jointure\nNiveauCompetence
+BD --> API: Compétences + niveaux
+API --> Front: Données structurées
+Front --> Auth: Tableau (nom, catégorie, niveau)
+
+== Ajouter une compétence ==
+opt nouvelle compétence
+  Auth -> Front: Saisir nom, catégorie, icône
+  Front -> API: POST /api/competences
+  API -> BD: INSERT Competence
+  BD --> API: Compétence créée
+  Front -> API: POST .../niveaux
+  note right: Lier Proprietaire\n+ niveau
+  API -> BD: INSERT NiveauCompetence
+  BD --> API: Niveau enregistré
+  API --> Front: Compétence ajoutée
+  Front --> Auth: Visible dans la liste
+end
+
+== Modifier niveau ==
+opt ajustement
+  Auth -> Front: Changer niveau
+  Front -> API: PUT .../niveaux/{id}
+  API -> BD: UPDATE niveau
+  BD --> API: Niveau mis à jour
+  API --> Front: Succès
+  Front --> Auth: Niveau mis à jour
+end
+
+== Supprimer ==
+opt retrait
+  Auth -> Front: Supprimer compétence
+  Front -> API: DELETE .../competences/{id}
+  API -> BD: Supprimer compétence\n+ niveaux liés
+  BD --> API: Supprimé
+  API --> Front: Succès
+  Front --> Auth: Retirée de la liste
+end
+
+@enduml

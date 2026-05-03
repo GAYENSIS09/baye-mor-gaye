@@ -1,0 +1,41 @@
+@startuml
+title Activité : Gestion des notifications et rappels
+
+start
+
+partition Propriétaire {
+  :Configurer préférences\nde notification;
+  :Activer/Désactiver\ntypes de notifications;
+  :Créer des rappels\npour événements;
+}
+
+partition Système {
+  :Planificateur exécute\ntoutes les minutes;
+  :Vérifier les rappels dus;
+  
+  if (Rappels en attente ?) then (Oui)
+    :Distribuer jobs\nvers la file d'attente;
+    
+    fork
+      :Notification\nbase de données;
+    fork again
+      :Notification\nemail (SMTP);
+    fork again
+      :Notification\nWebSocket (Echo);
+    end fork
+    
+    :Marquer rappels\ncomme envoyés;
+  else (Non)
+    :Attendre le\nprochain cycle;
+  endif
+}
+
+partition "Propriétaire\n(réception)" {
+  :Recevoir notification\n(badge + son);
+  :Cliquer sur\nla notification;
+  :Consulter la\nressource ciblée;
+  :Marquer comme lue;
+}
+
+stop
+@enduml

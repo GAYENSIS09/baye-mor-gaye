@@ -1,0 +1,29 @@
+@startuml
+title Formulaire de contact
+
+actor Visiteur as User
+participant Frontend as Front
+participant API as API
+database BaseDeDonnees as BD
+
+== Saisie ==
+User -> Front: Accéder à\n"Me contacter"
+Front --> User: Formulaire (nom, email, message)
+
+User -> Front: Remplir et soumettre
+Front -> API: POST /api/contact
+note right: Validation coté serveur\n(sanitize, anti-spam)
+
+alt validation OK
+  API -> BD: INSERT Contact
+  note right: est_lu = false
+  BD --> API: Message enregistré
+  API -> BD: Notifier propriétaire
+  API --> Front: Message envoyé
+  Front --> User: Confirmation + message\nde remerciement
+else erreur
+  API --> Front: Erreur validation
+  Front --> User: Corriger le formulaire
+end
+
+@enduml

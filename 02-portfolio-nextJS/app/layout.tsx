@@ -1,0 +1,93 @@
+import type { Metadata } from "next";
+import "@/app/globals.css";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { QueryProvider } from "@/lib/query-client";
+import { Bebas_Neue, DM_Sans, JetBrains_Mono } from 'next/font/google';
+
+const fontDisplay = Bebas_Neue({
+  subsets: ['latin'],
+  weight: '400',
+  variable: '--font-display',
+});
+
+const fontBody = DM_Sans({
+  subsets: ['latin'],
+  weight: ['300', '400', '500'],
+  variable: '--font-body',
+});
+
+const fontMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-mono',
+});
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+const STORAGE_URL = API_BASE.replace('/api', '/storage');
+
+interface ProfileData {
+  nom: string;
+  titre_professionnel: string | null;
+  bio: string | null;
+  photo: string | null;
+  site_web: string | null;
+}
+
+async function fetchProfile(): Promise<ProfileData | null> {
+  try {
+    const res = await fetch(`${API_BASE}/profile/public`, { next: { revalidate: 3600 } });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const profile = await fetchProfile();
+  if (!profile) return { title: '', description: '' };
+
+  const title = `${profile.nom} — ${profile.titre_professionnel}`;
+  const description = profile.bio ?? '';
+  const photoUrl = profile.photo ? `${STORAGE_URL}/${profile.photo}` : null;
+  const url = profile.site_web ?? undefined;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url,
+      ...(photoUrl && { images: [{ url: photoUrl, width: 400, height: 400, alt: profile.nom }] }),
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+      ...(photoUrl && { images: [photoUrl] }),
+    },
+  };
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="fr" className={`${fontDisplay.variable} ${fontBody.variable} ${fontMono.variable}`} style={{ colorScheme: 'dark' }}>
+      <head>
+        <meta name="theme-color" content="#0A0A0A" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
+      <body>
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[999] focus:px-4 focus:py-2 focus:bg-acid focus:text-black focus:rounded focus:font-mono focus:text-sm">
+          Aller au contenu
+        </a>
+        <QueryProvider><AuthProvider><div id="main-content">{children}</div></AuthProvider></QueryProvider>
+      </body>
+    </html>
+  );
+}

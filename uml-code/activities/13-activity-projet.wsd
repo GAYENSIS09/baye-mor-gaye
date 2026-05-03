@@ -1,0 +1,45 @@
+@startuml
+title Activité : Gérer un projet portfolio
+
+start
+
+partition Propriétaire {
+  if (Action ?) then (Nouveau projet)
+    :Remplir le formulaire\n(titre, description, dates,\ntechnologies, médias);
+  else (Modifier)
+    :Sélectionner un\nprojet existant;
+  endif
+
+  if (Démo en direct ?) then (Oui)
+    :Fournir URL de\nla démo hébergée;
+  endif
+
+  if (Projet vedette ?) then (Oui)
+    :Marquer comme\n"en vedette";
+  endif
+
+  :Choisir statut final\n(Publier / Brouillon);
+}
+
+partition Système {
+  if (Nouveau ?) then (Oui)
+    :Créer en base\nde données;
+  else
+    :Charger données\nexistantes;
+  endif
+
+  :Traiter médias et\ndémo (upload / validation);
+
+  if (Publier ?) then (Oui)
+    :Rendre visible sur\nle portfolio;
+  else (Brouillon)
+    :Garder en brouillon;
+  endif
+}
+
+partition Frontend {
+  :Visualiser le rendu\nfinal du projet;
+}
+
+stop
+@enduml

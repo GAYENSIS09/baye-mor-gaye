@@ -1,0 +1,77 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap'); */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Fonts (Google Fonts CDN) ── */
+
+:root {
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0A0A0A;
+  color: #F5F5F0;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ── Sélection de texte avec la couleur acid ── */
+::selection {
+  background: #AAFF00;
+  color: #0A0A0A;
+}
+
+/* ── Scrollbar personnalisée ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #111; }
+::-webkit-scrollbar-thumb { background: #AAFF00; border-radius: 2px; }
+
+/* ── Utilitaires custom ── */
+@layer utilities {
+  .font-display { font-family: var(--font-display); }
+  .font-body    { font-family: var(--font-body); }
+  .font-mono    { font-family: var(--font-mono); }
+
+  /* Masque de dégradé pour les bords flous */
+  .fade-bottom {
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+  }
+
+  /* Badge tag */
+  .tag {
+    @apply inline-block px-3 py-1 text-xs font-mono uppercase tracking-widest
+           border border-[#333] text-muted rounded-full;
+  }
+
+  /* Slide-up animation pour les toasts */
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(1rem); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-slide-up {
+    animation: slide-up 0.25s ease-out;
+  }
+
+  /* Lien avec underline acid */
+  .link-acid {
+    @apply relative inline-block after:absolute after:bottom-0 after:left-0
+           after:h-[1px] after:w-0 after:bg-acid after:transition-all
+           hover:after:w-full;
+  }
+}

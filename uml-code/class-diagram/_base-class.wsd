@@ -1,0 +1,35 @@
+@startuml
+' ========== ENUMS ==========
+enum Niveau {
+  Débutant
+  Intermédiaire
+  Avancé
+  Expert
+}
+
+enum TypeMedia {
+  Image
+  Vidéo
+  Document
+  Lien
+}
+
+enum TypeRessource {
+  Document
+  Image
+  Archive
+  Lien
+}
+
+' ========== TRAIT DATES ==========
+abstract class Timestamps {
+  + dateCreation: DateTime
+  + dateModif: DateTime
+}
+
+abstract class SoftDeletes {
+  + dateSuppression: DateTime
+}
+
+SoftDeletes --|> Timestamps
+@enduml

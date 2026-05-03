@@ -1,0 +1,34 @@
+@startuml
+title Activité : Gérer les compétences
+
+start
+
+partition Propriétaire {
+  :Accéder à\n"Mes compétences";
+  if (Action ?) then (Ajouter)
+    :Saisir nom,\ncatégorie, icône;
+    :Choisir niveau\n(Débutant à Expert);
+  elseif (Modifier) then
+    :Sélectionner une\ncompétence existante;
+    :Ajuster le niveau\nou les infos;
+  elseif (Supprimer) then
+    :Confirmer la\nsuppression;
+  endif
+}
+
+partition Système {
+  if (Action ?) then (Ajouter)
+    :Créer Competence\n+ NiveauCompetence;
+  elseif (Modifier) then
+    :Mettre à jour\nl'entrée;
+  elseif (Supprimer) then
+    :Supprimer Compétence\n+ niveaux liés (CASCADE);
+  endif
+}
+
+partition Frontend {
+  :Afficher la\nliste actualisée;
+}
+
+stop
+@enduml

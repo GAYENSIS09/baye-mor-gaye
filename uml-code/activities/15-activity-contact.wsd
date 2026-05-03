@@ -1,0 +1,32 @@
+@startuml
+title Activité : Me contacter
+
+start
+
+partition Visiteur {
+  :Accéder à la page\n"Me contacter";
+  :Remplir le formulaire\n(nom, email, message);
+  :Soumettre;
+}
+
+partition Système {
+  :Valider les champs\n(côté serveur);
+  if (Valide ?) then (Oui)
+    :Enregistrer en base\n(est_lu = false);
+    :Notifier le propriétaire\npar notification;
+  else (Non)
+    :Retourner erreur\nde validation;
+  endif
+}
+
+partition Frontend {
+  if (Validation OK ?) then (Oui)
+    :Afficher message\nde confirmation;
+  else
+    :Afficher erreur\nchamps invalides;
+    :Permettre la\ncorrection;
+  endif
+}
+
+stop
+@enduml

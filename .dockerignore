@@ -1,0 +1,46 @@
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Laravel
+01-portfolio-laravel/vendor
+01-portfolio-laravel/bootstrap/cache
+01-portfolio-laravel/storage/*
+!01-portfolio-laravel/storage/app/public
+01-portfolio-laravel/public/storage
+01-portfolio-laravel/.env*
+01-portfolio-laravel/.phpunit.result.cache
+01-portfolio-laravel/phpunit.xml
+
+# Docker
+docker-compose.yml
+docker-compose.override.yml
+.dockerignore
+Dockerfile*
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test
+coverage
+.phpunit.result.cache
+
+# Frontend
+02-portfolio-nextJS/.next
+02-portfolio-nextJS/out
+02-portfolio-nextJS/build

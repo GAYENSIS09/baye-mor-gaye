@@ -1,0 +1,35 @@
+@startuml
+title Activité : Gérer l'emploi du temps (natif)
+
+start
+
+partition Propriétaire {
+  :Accéder à\n"Mon emploi du temps";
+  if (Source ?) then (Nouveau)
+    :Créer EDT\n(semaine, année);
+  elseif (Importer) then
+    :Upload image/PDF\nd'EDT externe;
+    :Valider via\nPaliGemma 2;
+  else (Charger)
+    :Sélectionner EDT\nexistant;
+  endif
+  repeat
+    :Ajouter / modifier\nun événement;
+  repeat while () is (Encore ?)
+}
+
+partition Système {
+  if (Import réussi ?) then (Oui)
+    :Insérer événements\ndepuis PaliGemma;
+  endif
+  :Valider et\npersister en base;
+}
+
+partition Frontend {
+  :Requêter EDT\nvia API REST;
+  :Rendre la grille\nhebdomadaire (natif);
+  :Afficher en\ntemps réel;
+}
+
+stop
+@enduml

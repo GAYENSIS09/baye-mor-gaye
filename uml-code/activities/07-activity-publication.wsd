@@ -1,0 +1,28 @@
+@startuml
+title Activité : Créer une publication (éditeur enrichi)
+
+start
+
+partition Propriétaire {
+  :Remplir le formulaire\n(titre, contenu, domaines);
+  :Éditer contenu enrichi\n(TipTap: code, maths, médias);
+  :Choisir statut\n(Publier / Brouillon);
+}
+
+partition Système {
+  :Recevoir contenuJson\ndepuis TipTap;
+  if (Statut = Publier ?) then (Oui)
+    :Enregistrer (publié);
+    :Notifier abonnés;
+  else (Brouillon)
+    :Enregistrer (brouillon);
+  endif
+}
+
+partition Frontend {
+  :Rediriger vers\nla publication;
+  :Afficher le résultat\n(KaTeX, Prism, médias);
+}
+
+stop
+@enduml

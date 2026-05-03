@@ -1,0 +1,62 @@
+@startuml
+title Interactions : Commentaire et Like
+
+actor Visiteur as User
+participant Frontend as Front
+participant API as API
+database BaseDeDonnees as BD
+
+== Consultation (anonyme) ==
+User -> Front: Navigation /publications/{slug}
+Front -> API: GET /api/publications/{slug}
+API -> BD: SELECT + incrémenter vues
+note right: Accès libre,\naucune auth requise
+BD --> API: Publication + domaines
+API --> Front: Détail publication
+Front --> User: Affichage
+
+== Authentification (Visiteur → Utilisateur) ==
+opt besoin de commenter / liker
+  User -> Front: Identifiants
+  Front -> API: POST /api/connexion
+  API -> BD: Vérifier credentials
+  BD --> API: Utilisateur valide
+  API --> Front: Jeton + profil
+  Front --> User: Session active
+  note right: Visiteur devient\nUtilisateur authentifié
+end
+
+== Commentaire (Utilisateur) ==
+opt session active
+  User -> Front: Saisir commentaire
+  Front -> API: POST .../commentaires
+  API -> BD: INSERT
+  note right: Statut selon modération
+  BD --> API: Commentaire créé
+
+  alt modération désactivée
+    API -> BD: Notifier propriétaire
+    API --> Front: Notification push
+  else modération activée
+    API --> Front: En attente validation
+  end
+
+  Front --> User: Commentaire affiché
+end
+
+== Like (bascule) ==
+opt session active
+  User -> Front: Cliquer "J'aime"
+  Front -> API: POST .../like
+  alt déjà liké
+    API -> BD: DELETE like
+    BD --> API: Like retiré
+  else nouveau like
+    API -> BD: INSERT like
+    BD --> API: Like ajouté
+  end
+  API --> Front: { aLikes, total }
+  Front --> User: Icône mise à jour
+end
+
+@enduml

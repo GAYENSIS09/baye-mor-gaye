@@ -1,0 +1,78 @@
+@startuml
+title Blog – Publications & Interactions
+
+!include _base-class.wsd
+
+hide empty members
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+package "Publications & Interactions" as Posts {
+
+  class Publication {
+    + titre: String
+    + slug: String
+    + contenu: String
+    + contenuJson: JSON
+    + contenuHtml: LongText
+    + extrait: String
+    + imageUne: String
+    + estPubliee: Boolean
+    + publieeLe: DateTime
+    + nombreVues: Integer
+  }
+
+Publication --|> SoftDeletes
+
+  class Commentaire {
+    + contenu: String
+    + estApprouve: Boolean
+  }
+
+Commentaire --|> SoftDeletes
+
+  class Like {
+    + estAime: Boolean
+  }
+
+Like --|> Timestamps
+
+  class MediaPublication {
+    + type: TypeMedia
+    + cheminFichier: String
+    + taille: Integer
+    + largeur: Integer
+    + hauteur: Integer
+    + titre: String
+    + ordre: Integer
+  }
+
+MediaPublication --|> Timestamps
+
+}
+
+' ==================================================
+' ENUM RELATIONS
+' ==================================================
+MediaPublication --> TypeMedia
+
+' ==================================================
+' RELATIONS
+' ==================================================
+Utilisateur "1" -- "0..*" Commentaire : auteur
+Utilisateur "1" -- "0..*" Like : auteur
+Proprietaire "1" -- "0..*" Publication : publications
+Proprietaire "1" -- "0..*" Domaine : domaines
+Publication "1" -- "0..*" Commentaire : commentaires
+Publication "1" -- "0..*" Like : likes
+Publication "1" -- "0..*" MediaPublication : médias
+Publication "*" -- "*" Domaine : domaines
+
+legend bottom
+  |= Notation |= Signification |
+  | "1" -- "0..*" | Un à plusieurs |
+  | "*" -- "*" | Plusieurs à plusieurs |
+  | --|>  | Héritage |
+end legend
+
+@enduml

@@ -1,0 +1,52 @@
+@startuml
+title Création d'un projet portfolio
+
+actor Propriétaire as Auth
+participant Frontend as Front
+participant API as API
+participant Stockage as Storage
+database BaseDeDonnees as BD
+
+== Création projet ==
+Auth -> Front: Remplir formulaire
+Front -> API: POST /api/projets
+API -> BD: INSERT
+note right: Validation champs
+BD --> API: Projet créé
+
+== Upload médias ==
+loop pour chaque fichier
+  Auth -> Front: Sélectionner fichier
+  Front -> API: POST .../medias
+  
+  alt fichier valide
+    API -> Storage: Upload
+    note right: Local ou S3
+    Storage --> API: URL stockage
+    API -> BD: INSERT média
+    BD --> API: Média enregistré
+    API --> Front: Aperçu
+  else type non autorisé
+    API --> Front: Erreur format
+  end
+end
+
+== Lien démo (optionnel) ==
+opt URL démo fournie
+  Auth -> Front: Saisir URL démo
+  Front -> API: PUT .../projet
+  note right: Validation URL externe
+  API -> BD: UPDATE url_demo
+  BD --> API: Projet mis à jour
+  API --> Front: Lien visible
+end
+
+== Publication ==
+Auth -> Front: Publier le projet
+Front -> API: PUT .../publier
+API -> BD: UPDATE est_publie=true
+BD --> API: Projet publié
+API --> Front: Projet visible
+Front --> Auth: Succès
+
+@enduml

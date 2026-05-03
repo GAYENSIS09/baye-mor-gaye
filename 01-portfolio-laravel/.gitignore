@@ -1,0 +1,16 @@
+/vendor
+/node_modules
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
+/storage/app/public/*
+/public/storage
+/.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+.env
+.env.example
+.php_cs.cache
+.DS_Store
+Thumbs.db

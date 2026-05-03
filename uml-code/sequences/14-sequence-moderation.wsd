@@ -1,0 +1,47 @@
+@startuml
+title Modération des commentaires
+
+actor Propriétaire as Auth
+participant Frontend as Front
+participant API as API
+database BaseDeDonnees as BD
+
+== Consultation des commentaires ==
+Auth -> Front: Accéder à la file\nd'attente modération
+Front -> API: GET /api/commentaires/en-attente
+API -> BD: SELECT est_approuve=false
+BD --> API: Liste commentaires
+API --> Front: Triés par date
+Front --> Auth: Aperçu (contenu, auteur, date)
+
+== Modération ==
+loop pour chaque commentaire
+  Auth -> Front: Examiner contenu
+  Auth -> Front: Approuver / Rejeter
+
+  alt approuvé
+    Front -> API: PUT .../commentaires/{id}/approuver
+    API -> BD: UPDATE est_approuve=true
+    BD --> API: Commentaire visible
+    API --> Front: Succès
+    Front --> Auth: Commentaire publié
+  else rejeté
+    Front -> API: DELETE .../commentaires/{id}
+    API -> BD: Soft delete
+    note right: dateSuppression = now
+    BD --> API: Supprimé
+    API --> Front: Succès
+    Front --> Auth: Commentaire retiré
+  end
+end
+
+== Notification réponse (optionnel) ==
+opt réponse
+  Auth -> Front: Rédiger réponse
+  Front -> API: POST .../commentaires/{id}/repondre
+  API -> BD: INSERT réponse
+  BD --> API: Réponse créée
+  API --> Front: Confirmation
+end
+
+@enduml

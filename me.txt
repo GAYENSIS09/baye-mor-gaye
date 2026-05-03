@@ -1,0 +1,370 @@
+Coordonnées
+adounake@gmail.com
+www.linkedin.com/in/gayensis09
+(LinkedIn)
+Principales compétences
+Analyse numérique
+Modbus RTU/TCP
+MQTT TLS
+Baye Mor Gaye
+AI & Software Engineering Enthusiast | Computer Science Student
+Dakar, Région de Dakar, Sénégal
+Résumé
+Curious mind exploring AI, brain–computer interfaces (BCI),
+computer vision, real-time GPU computing, 3D generation, and
+renewable energy, IOT, Mathematics.
+Expérience
+Beta Energy Afrique
+Full-Stack IoT & Energy Data Engineer
+février 2026 - avril 2026 (3 mois)
+work across the full stack with a focus on backend architecture, designing and
+implementing robust systems that connect devices, process data streams, and
+deliver actionable insights through modern interfaces.
+Core competencies:
+Backend Development
+Building high-performance services with FastAPI (Python), designing REST
+and WebSocket APIs, handling database migrations (SQL), and integrating
+MQTT brokers for real-time communication.
+Frontend Development
+Developing interactive dashboards with React, including real-time data
+visualization using Recharts and intuitive admin interfaces.
+IoT / Edge Engineering
+Working with industrial protocols like Modbus RTU/TCP, configuring devices
+via YAML, and implementing edge data acquisition pipelines.
+Data Engineering
+Designing time-series data models in InfluxDB, writing efficient queries with
+Flux, building aggregation pipelines, and optimizing performance with caching
+strategies.
+DevOps & Systems Integration
+Setting up secure MQTT communication (TLS), managing environment
+configurations, automating deployments, and implementing observability
+(metrics & logging).
+Page 1 of 2
+Beta Energy Afrique
+Ingénieur Full Stack
+juin 2025 - novembre 2025 (6 mois)
+Région de Dakar, Sénégal
+Responsible for developing a responsive web application for comprehensive
+enterprise management, integrating modules such as inventory, project, cash
+flow, client and supplier, bank account, and financial management.
+Formation
+Université Cheikh Anta Diop de Dakar (UCAD)
+Licence, Computer Science · (décembre 2023 - juillet 2026)
+Lycée Lamine Gueye
+Baccalauréat S1, Mathématiques et physique · (octobre 2022 - juillet 2023)
+Page 2 of 2
+1 notification
+PDF en cours de préparation, votre téléchargement commencera sous peu.
+
+
+
+Search
+
+
+
+
+
+
+Home
+My Network
+Jobs
+Messaging
+Notifications
+
+
+Me
+
+For Business
+Try Premium for F CFA 0
+
+
+Baye Mor Gaye
+
+AI & Software Engineering Enthusiast | Computer Science Student
+
+
+
+Améliorer le profil
+Ajouter une section
+
+Mes objectifs
+Compétences
+
+
+
+Tout
+
+Connaissances du secteur
+
+Outils et technologie
+
+Langues
+Analyse numérique
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Modbus RTU/TCP
+
+Full-Stack IoT & Energy Data Engineer chez Beta Energy Afrique
+
+MQTT TLS
+
+Full-Stack IoT & Energy Data Engineer chez Beta Energy Afrique
+
+InfluxDB
+
+Full-Stack IoT & Energy Data Engineer chez Beta Energy Afrique
+
+FastAPI
+
+Full-Stack IoT & Energy Data Engineer chez Beta Energy Afrique
+
+Architecture event-driven, multi-device
+
+Full-Stack IoT & Energy Data Engineer chez Beta Energy Afrique
+
+WebSocket
+
+Full-Stack IoT & Energy Data Engineer chez Beta Energy Afrique
+
+Python
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Théorie de l’information
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Algèbre linéaire
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Théorie des probabilités
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Développement Android
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Administration de bases de données
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Langage de modélisation unifié (UML)
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Statistiques
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Administration réseau
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+XML
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Feuilles de style en cascade (CSS)
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Django
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Next.js
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+PHP
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Physics
+
+
+2 formations à Université Cheikh Anta Diop de Dakar (UCAD) et dans 1 autre école
+
+C++
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+C 
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+SQL
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Mathematics
+
+
+2 formations à Université Cheikh Anta Diop de Dakar (UCAD) et dans 1 autre école
+
+HTML5
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+OOP
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+JavaScript
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Algorithmes
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Bash
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Anglais
+
+
+2 formations à Université Cheikh Anta Diop de Dakar (UCAD) et dans 1 autre école
+
+développements personnel
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+React
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Laravel
+
+Ingénieur Full Stack chez Beta Energy Afrique
+
+API REST
+
+Ingénieur Full Stack chez Beta Energy Afrique
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+MySQL
+
+Ingénieur Full Stack chez Beta Energy Afrique
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+LAMP
+
+PhpMyAdmin
+
+Ingénieur Full Stack chez Beta Energy Afrique
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+PostgreSQL
+
+
+Université Cheikh Anta Diop de Dakar (UCAD)
+
+Autres pages consultées par vos visiteurs
+Privé
+
+
+Une personne chez Jumia Sénégal
+
+
+Voir
+
+Une personne du secteur Technologie, information et Internet (Département de Keur Massar)
+
+
+Voir
+
+Une personne du secteur Organisations à but non lucratif (Dakar)
+
+
+Voir
+
+Une personne du secteur Produits de réseaux informatiques (Dakar)
+
+
+Voir
+
+À propos
+
+Accessibilité
+
+Talent Solutions
+
+Directives de la communauté
+
+Carrières
+
+Marketing Solutions 
+
+Conditions générales et confidentialité
+
+Préférences Pubs
+
+Publicité
+
+Sales Solutions
+
+Mobile
+
+Petites entreprises
+
+Centre de sécurité
+
+LinkedIn Corporation © 2026
+
+Des questions ?
+
+Consultez notre assistance clientèle.
+
+Gérez votre compte et votre confidentialité
+
+Accédez à vos préférences.
+
+Transparence des recommandations
+
+En savoir plus sur le contenu recommandé.
+
+Select language
+
+
+Français (Français)
+Baye Mor GayeLe statut est : en ligne
+MessagerieVous êtes dans la fenêtre de messagerie. Appuyez sur Entrée pour ouvrir la liste de conversations.
+
+Rédiger un message
+Vous êtes dans la fenêtre de messagerie. Appuyez sur Entrée pour ouvrir la liste de conversations.

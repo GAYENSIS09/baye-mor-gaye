@@ -1,0 +1,57 @@
+@startuml
+title Portfolio – Projets
+
+!include _base-class.wsd
+
+hide empty members
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+package "Projets Portfolio" as Projets {
+
+  class ProjetPortfolio {
+    + titre: String
+    + slug: String
+    + description: String
+    + courteDescription: String
+    + urlDemo: String
+    + urlSource: String
+    + technologies: List
+    + dateRealisation: Date
+    + estEnVedette: Boolean
+    + estPublie: Boolean
+  }
+
+ProjetPortfolio --|> SoftDeletes
+
+  class MediaProjet {
+    + type: TypeMedia
+    + cheminFichier: String
+    + urlExterne: String
+    + vignette: String
+    + titre: String
+    + estPrincipal: Boolean
+    + ordre: Integer
+  }
+
+MediaProjet --|> Timestamps
+}
+
+' ==================================================
+' ENUM RELATIONS
+' ==================================================
+MediaProjet --> TypeMedia
+
+' ==================================================
+' RELATIONS
+' ==================================================
+Proprietaire "1" -- "0..*" ProjetPortfolio : projets
+ProjetPortfolio "1" -- "0..*" MediaProjet : medias
+
+legend bottom
+  |= Notation |= Signification |
+  | "1" -- "0..*" | Un à plusieurs |
+  | --|>  | Héritage |
+end legend
+
+@enduml

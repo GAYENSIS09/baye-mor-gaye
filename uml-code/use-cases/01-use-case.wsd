@@ -1,0 +1,120 @@
+@startuml
+title Diagramme de Cas d'Utilisation (Version Révisée & Complète)
+
+' === Style & Configuration ===
+skinparam useCaseFontSize 12
+skinparam actorFontSize 12
+skinparam packageStyle rectangle
+skinparam roundcorner 15
+skinparam stereotypeCColor #ADD1B2
+skinparam legendFontSize 11
+
+left to right direction
+
+' === Acteurs ===
+actor "Visiteur" as Visiteur
+actor "Utilisateur\nAuthentifié" as User
+actor "Propriétaire\n(Baye Mor Gaye)" as Proprietaire
+
+' === Héritage des Acteurs ===
+User -|> Visiteur
+Proprietaire -|> User
+
+' === Cas d'Utilisation ===
+rectangle "Espace Public (Consultation & Interactions)" {
+  usecase UCV as "Visualiser les publications\navec filtres"
+  usecase UCC as "Consulter une publication\n(Détail)"
+  usecase UCA as "Commenter une publication"
+  usecase UCL as "Liker une publication"
+  
+  usecase UCP as "Consulter le profil public"
+  usecase UCTIMELINE as "Consulter le parcours\n(Timeline interactive)"
+  usecase UCJ as "Consulter un projet portfolio"
+  usecase UCJF as "Filtrer les projets\npar technologie"
+  usecase UCJD as "Lancer une démo en direct"
+  
+  usecase UCDR as "Télécharger des ressources\npubliques"
+  usecase UCO as "Envoyer un message\nde contact"
+}
+
+rectangle "Authentification & Profil" {
+  usecase UCAUTH as "S'authentifier\n(Connexion / Déconnexion)"
+  usecase UCMP as "Gérer mon profil\n(bio, photo, coordonnées)"
+  usecase UCEXP as "Gérer mes expériences\nprofessionnelles"
+  usecase UCFOR as "Gérer mes formations\nacadémiques"
+  usecase UCCER as "Gérer mes certifications"
+  usecase UCSK as "Gérer mes compétences"
+  usecase UCDM as "Gérer mes domaines\nd'intérêt"
+}
+
+rectangle "Gestion des Contenus & Administration" {
+  usecase UCRP as "Gérer les publications\n(Blog CRUD)"
+  usecase UCRJ as "Gérer les projets\n(Portfolio CRUD)"
+  usecase UCRS as "Gérer les ressources\ndocumentaires"
+}
+
+rectangle "Interactions & Messagerie" {
+  usecase UCMD as "Modérer les commentaires"
+  usecase UCO_VIEW as "Consulter les messages\nde contact"
+  usecase UCST as "Consulter les statistiques\net rapports d'audience"
+}
+
+rectangle "Planning, Rappels & Notifications" {
+  usecase UCEDT as "Gérer l'emploi du temps"
+  usecase UCCONV as "Importer un emploi du\ntemps externe (Vision IA)"
+  usecase UCRM as "Gérer mes rappels"
+  usecase UCNT as "Recevoir des notifications\n(Temps réel / Email)"
+}
+
+' === Associations Acteurs ===
+Visiteur --> UCV
+Visiteur --> UCP
+Visiteur --> UCO
+
+User --> UCAUTH
+User --> UCA
+User --> UCL
+User --> UCDR
+
+Proprietaire --> UCMP
+Proprietaire --> UCEXP
+Proprietaire --> UCFOR
+Proprietaire --> UCCER
+Proprietaire --> UCSK
+Proprietaire --> UCDM
+Proprietaire --> UCRP
+Proprietaire --> UCRJ
+Proprietaire --> UCRS
+Proprietaire --> UCMD
+Proprietaire --> UCO_VIEW
+Proprietaire --> UCST
+Proprietaire --> UCEDT
+Proprietaire --> UCRM
+Proprietaire --> UCNT
+
+' === Relations d'Extension (Extend) ===
+
+' 1. Flux Blog (Hiérarchie d'Extension demandée par l'utilisateur)
+' Consulter une publication est une extension optionnelle de la visualisation de la liste avec filtres
+UCC ..> UCV : <<extend>>
+' Commenter et Liker sont des extensions optionnelles de la consultation détaillée d'une publication
+UCA ..> UCC : <<extend>>
+UCL ..> UCC : <<extend>>
+
+' 2. Flux Portfolio & Timeline
+UCTIMELINE ..> UCP : <<extend>>
+UCJ ..> UCP : <<extend>>
+UCJF ..> UCJ : <<extend>>
+UCJD ..> UCJ : <<extend>>
+
+' 3. Flux Emploi du Temps
+UCCONV ..> UCEDT : <<extend>>
+
+legend bottom
+  |= Flèche |= Type de Relation |= Signification |
+  | --|> | Héritage | L'acteur hérite de tous les droits de l'autre |
+  | --> | Association | L'acteur déclenche ou interagit avec le cas d'utilisation |
+  | ..> | Extension | Le cas d'utilisation source prolonge facultativement le cas cible (extend) |
+end legend
+
+@enduml

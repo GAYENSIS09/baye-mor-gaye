@@ -1,0 +1,48 @@
+@startuml
+title Gestion des domaines d'intérêt
+
+actor Propriétaire as Auth
+participant Frontend as Front
+participant API as API
+database BaseDeDonnees as BD
+
+== Lister domaines ==
+Auth -> Front: Accéder à\n"Mes domaines"
+Front -> API: GET /api/domaines
+API -> BD: SELECT
+BD --> API: Domains existants
+API --> Front: Liste (nom, couleur)
+Front --> Auth: Aperçu
+
+== Créer domaine ==
+opt nouveau
+  Auth -> Front: Saisir nom, slug,\ndescription, couleur
+  Front -> API: POST /api/domaines
+  note right: Génération auto\ndu slug
+  API -> BD: INSERT
+  BD --> API: Domaine créé
+  API --> Front: Confirmation
+  Front --> Auth: Ajouté à la liste
+end
+
+== Modifier ==
+opt édition
+  Auth -> Front: Modifier champs
+  Front -> API: PUT /api/domaines/{id}
+  API -> BD: UPDATE
+  BD --> API: Mis à jour
+  API --> Front: Succès
+end
+
+== Supprimer ==
+opt retrait
+  Auth -> Front: Confirmer suppression
+  note right: Dissocier des\npublications liées
+  Front -> API: DELETE .../domaines/{id}
+  API -> BD: Supprimer + détacher
+  BD --> API: Supprimé
+  API --> Front: Confirmation
+  Front --> Auth: Retiré
+end
+
+@enduml

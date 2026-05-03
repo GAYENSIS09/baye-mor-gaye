@@ -1,0 +1,39 @@
+@startuml
+title Création d'une publication (éditeur enrichi)
+
+actor Propriétaire as Auth
+participant Frontend as Front
+participant API as API
+database BaseDeDonnees as BD
+
+== Édition enrichie ==
+Auth -> Front: Éditer contenu\n(TipTap: code, maths, médias)
+note right: contenuJson produit\npar l'éditeur
+
+== Upload médias ==
+opt image / fichier
+  Auth -> Front: Glisser-déposer
+  Front -> API: POST /api/medias
+  API -> BD: INSERT media
+  BD --> API: URL
+  API --> Front: { url, type }
+end
+
+== Création ==
+Front -> API: POST /api/publications\n{ contenuJson, titre, ... }
+API -> API: Purifier → générer HTML
+API -> BD: INSERT publication\n(JSON + HTML)
+BD --> API: Publication créée
+
+== Notification ==
+alt abonnés existent
+  API -> BD: Notifier abonnés
+  BD --> API: OK
+else aucun
+  API -> API: Skip
+end
+
+== Retour ==
+API --> Front: { publication, html }
+Front --> Auth: Rendu enrichi
+@enduml

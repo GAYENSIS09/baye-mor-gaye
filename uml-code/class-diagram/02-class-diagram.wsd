@@ -1,0 +1,376 @@
+@startuml
+title Diagramme de classes
+
+hide empty members
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+' ========== ENUMS ==========
+enum Niveau {
+  Débutant
+  Intermédiaire
+  Avancé
+  Expert
+}
+
+enum TypeMedia {
+  Image
+  Vidéo
+  Document
+  Lien
+}
+
+enum TypeRessource {
+  Document
+  Image
+  Archive
+  Lien
+}
+
+' ========== TRAIT DATES ==========
+abstract class Timestamps {
+  + dateCreation: DateTime
+  + dateModif: DateTime
+}
+
+abstract class SoftDeletes {
+  + dateSuppression: DateTime
+}
+
+SoftDeletes --|> Timestamps
+
+' ========== PACKAGE AUTH & PROFIL ==========
+package "Authentification & Profil" as Auth {
+
+  class Utilisateur {
+    + nom: String
+    + email: String
+    + photo: String
+    + emailVerifieLe: DateTime
+    + derniereConnexionLe: DateTime
+  }
+
+  Utilisateur --|> Timestamps
+
+  class Proprietaire {
+    + bio: String
+    + titreProfessionnel: String
+    + localisation: String
+    + siteWeb: String
+    + urlLinkedin: String
+    + urlGithub: String
+  }
+
+  Utilisateur "1" -- "0..1" Proprietaire : proprietaire
+
+  class Competence {
+    + nom: String
+    + categorie: String
+    + icone: String
+  }
+
+  Competence --|> Timestamps
+
+  class Domaine {
+    + nom: String
+    + slug: String
+    + description: String
+    + couleur: String
+  }
+
+  Domaine --|> Timestamps
+
+  class NiveauCompetence {
+    + niveau: Niveau
+    + estSurligne: Boolean
+  }
+
+  NiveauCompetence --|> Timestamps
+}
+
+' ========== PACKAGE PUBLICATIONS ==========
+package "Publications & Interactions" as Posts {
+
+  class Publication {
+    + titre: String
+    + slug: String
+    + contenu: String
+    + contenuJson: JSON
+    + contenuHtml: LongText
+    + extrait: String
+    + imageUne: String
+    + estPubliee: Boolean
+    + publieeLe: DateTime
+    + nombreVues: Integer
+  }
+
+  Publication --|> SoftDeletes
+
+  class Commentaire {
+    + contenu: String
+    + estApprouve: Boolean
+  }
+
+  Commentaire --|> SoftDeletes
+
+  class Like {
+    + estAime: Boolean
+  }
+
+  Like --|> Timestamps
+
+  class MediaPublication {
+    + type: TypeMedia
+    + cheminFichier: String
+    + taille: Integer
+    + largeur: Integer
+    + hauteur: Integer
+    + titre: String
+    + ordre: Integer
+  }
+
+  MediaPublication --|> Timestamps
+}
+
+' ========== PACKAGE PROJETS ==========
+package "Projets Portfolio" as Projets {
+
+  class ProjetPortfolio {
+    + titre: String
+    + slug: String
+    + description: String
+    + courteDescription: String
+    + urlDemo: String
+    + urlSource: String
+    + technologies: List
+    + dateRealisation: Date
+    + estEnVedette: Boolean
+    + estPublie: Boolean
+  }
+
+  ProjetPortfolio --|> SoftDeletes
+
+  class MediaProjet {
+    + type: TypeMedia
+    + cheminFichier: String
+    + urlExterne: String
+    + vignette: String
+    + titre: String
+    + estPrincipal: Boolean
+    + ordre: Integer
+  }
+
+  MediaProjet --|> Timestamps
+}
+
+' ========== PACKAGE PLANNING ==========
+package "Planning" as Planning {
+
+  class EmploiDuTemps {
+    + titre: String
+    + description: String
+    + numeroSemaine: Integer
+    + annee: Integer
+  }
+
+  EmploiDuTemps --|> Timestamps
+
+  class EvenementEDT {
+    + titre: String
+    + description: String
+    + jourSemaine: Integer
+    + heureDebut: Time
+    + heureFin: Time
+    + couleur: String
+    + lieu: String
+  }
+
+  EvenementEDT --|> Timestamps
+
+  class ConversionEDT {
+    + fichierOriginal: String
+    + modeleUtilise: String
+    + resultatJSON: JSON
+    + confiance: Float
+  }
+
+  ConversionEDT --|> Timestamps
+
+  class Rappel {
+    + titre: String
+    + message: String
+    + rappelLe: DateTime
+    + estEnvoye: Boolean
+    + envoyeLe: DateTime
+  }
+
+  Rappel --|> Timestamps
+}
+
+' ========== PACKAGE RESSOURCES ==========
+package "Ressources" as Ressources {
+
+  class Ressource {
+    + titre: String
+    + description: String
+    + cheminFichier: String
+    + typeFichier: String
+    + type: TypeRessource
+    + estPublique: Boolean
+    + nombreTelechargements: Integer
+  }
+
+  Ressource --|> SoftDeletes
+}
+
+' ========== PACKAGE NOTIFICATIONS & STATS ==========
+package "Notifications & Statistiques" as Notifications {
+
+  class Notification {
+    + type: String
+    + donnees: JSON
+    + lueLe: DateTime
+  }
+
+  Notification --|> Timestamps
+
+  class VuePage {
+    + adresseIP: String
+    + agentUtilisateur: String
+    + referer: String
+    + visiteLe: DateTime
+  }
+
+  VuePage --|> Timestamps
+
+  class Contact {
+    + nom: String
+    + email: String
+    + message: String
+    + estLu: Boolean
+  }
+
+  Contact --|> Timestamps
+}
+
+' ==================================================
+' ENUM RELATIONS
+' ==================================================
+NiveauCompetence --> Niveau
+MediaProjet --> TypeMedia
+MediaPublication --> TypeMedia
+Ressource --> TypeRessource
+
+' ========== PACKAGE QUALIFICATIONS ==========
+package "Qualifications" as Qualifications {
+
+  class Experience {
+    + titre: String
+    + entreprise: String
+    + description: Text
+    + dateDebut: Date
+    + dateFin: Date
+    + estActuel: Boolean
+    + lieu: String
+    + ordre: Integer
+  }
+
+  Experience --|> Timestamps
+
+  class Formation {
+    + diplome: String
+    + etablissement: String
+    + description: Text
+    + domaineEtude: String
+    + dateDebut: Date
+    + dateFin: Date
+    + ordre: Integer
+  }
+
+  Formation --|> Timestamps
+
+  class Certification {
+    + titre: String
+    + organisme: String
+    + description: Text
+    + dateObtention: Date
+    + dateExpiration: Date
+    + urlCredential: String
+    + ordre: Integer
+  }
+
+  Certification --|> Timestamps
+
+  class MediaQualification {
+    + type: TypeMedia
+    + cheminFichier: String
+    + titre: String
+    + taille: Integer
+    + ordre: Integer
+  }
+
+  MediaQualification --|> Timestamps
+}
+
+' ==================================================
+' RELATIONS - UTILISATEUR
+' ==================================================
+Utilisateur "1" -- "0..*" Commentaire : auteur
+Utilisateur "1" -- "0..*" Like : auteur
+
+' ==================================================
+' RELATIONS - PROPRIETAIRE
+' ==================================================
+Proprietaire "1" -- "0..*" NiveauCompetence : compétences
+Competence "1" -- "0..*" NiveauCompetence : niveaux
+Proprietaire "1" -- "0..*" Domaine : domaines
+Proprietaire "1" -- "0..*" Publication : publications
+Proprietaire "1" -- "0..*" ProjetPortfolio : projets
+Proprietaire "1" -- "0..*" EmploiDuTemps : emplois du temps
+Proprietaire "1" -- "0..*" Rappel : rappels
+Proprietaire "1" -- "0..*" Notification : notifications
+Proprietaire "1" -- "0..*" Ressource : ressources
+
+' ==================================================
+' RELATIONS - ENTITÉS
+' ==================================================
+Publication "1" -- "0..*" Commentaire : commentaires
+Publication "1" -- "0..*" Like : likes
+Publication "*" -- "*" Domaine : domaines
+Publication "1" -- "0..*" MediaPublication : médias
+
+ProjetPortfolio "1" -- "0..*" MediaProjet : medias
+
+EmploiDuTemps "1" -- "0..*" EvenementEDT : événements
+EmploiDuTemps "1" -- "0..*" ConversionEDT : conversions
+EmploiDuTemps "1" -- "0..*" Rappel : rappels
+
+Ressource "0..*" -- "1" Domaine : domaine
+
+Proprietaire "1" -- "0..*" Experience : experiences
+Proprietaire "1" -- "0..*" Formation : formations
+Proprietaire "1" -- "0..*" Certification : certifications
+
+Experience "1" -- "0..*" MediaQualification : medias
+Formation "1" -- "0..*" MediaQualification : medias
+Certification "1" -- "0..*" MediaQualification : medias
+
+MediaQualification --> TypeMedia
+
+Publication "1" -- "0..*" VuePage : vues
+ProjetPortfolio "1" -- "0..*" VuePage : vues
+
+' Contact sans relation (formulaire libre)
+
+note "Singleton :\nau plus un Proprietaire\ndans le système" as N_SINGLETON
+N_SINGLETON .. Proprietaire
+
+legend bottom
+  |= Notation |= Signification |
+  | "1" -- "0..*" | Un à plusieurs |
+  | "1" -- "0..1" | Un à un (optionnel) |
+  | "*" -- "*" | Plusieurs à plusieurs |
+  | --|>  | Héritage |
+end legend
+
+@enduml
