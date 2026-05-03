@@ -138,7 +138,7 @@ export default function App() {
                       alt="Baye Mor Gaye"
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300";
+                         (e.target as HTMLImageElement).src = "../168032110.jpg";
                       }}
                     />
                   </div>
