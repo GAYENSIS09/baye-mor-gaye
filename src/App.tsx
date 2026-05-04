@@ -137,9 +137,6 @@ export default function App() {
                       src="/168032110.jpg" 
                       alt="Baye Mor Gaye"
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                         (e.target as HTMLImageElement).src = "../168032110.jpg";
-                      }}
                     />
                   </div>
                   <div className="absolute bottom-1 left-0 w-full text-center">
