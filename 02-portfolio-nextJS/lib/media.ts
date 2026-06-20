@@ -3,7 +3,7 @@ const STORAGE_URL = API_BASE.replace('/api', '/storage');
 
 export function getMediaUrl(path: string | null | undefined): string | null {
   if (!path) return null;
-  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:') || path.startsWith('data:')) return path;
   return `${STORAGE_URL}/${path.replace(/^\//, '')}`;
 }
 

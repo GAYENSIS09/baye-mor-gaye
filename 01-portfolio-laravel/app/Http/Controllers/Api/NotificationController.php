@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\NotificationResource;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,7 @@ class NotificationController extends Controller
             $query->where('est_lue', false);
         }
 
-        return $query->orderBy('created_at', 'desc')->paginate(20);
+        return NotificationResource::collection($query->orderBy('created_at', 'desc')->paginate(20));
     }
 
     public function markAsRead(Request $request, Notification $notification)
@@ -28,7 +29,7 @@ class NotificationController extends Controller
             'lue_le' => now(),
         ]);
 
-        return $notification;
+        return NotificationResource::make($notification);
     }
 
     public function markAllAsRead(Request $request)

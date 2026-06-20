@@ -3,8 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateProfileRequest;
+use App\Http\Resources\ProprietaireResource;
+use App\Http\Resources\UtilisateurResource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ProfileController extends Controller
 {
@@ -16,7 +21,7 @@ class ProfileController extends Controller
             return response()->json(['message' => 'Profil proprietaire introuvable.'], 404);
         }
 
-        return $proprietaire;
+        return ProprietaireResource::make($proprietaire);
     }
 
     public function publicProfile()
@@ -36,7 +41,11 @@ class ProfileController extends Controller
             }
 
             $photo = $proprietaire->utilisateur->photo;
-            $photoUrl = $photo ? url("storage/$photo") : null;
+            $photoUrl = $photo
+                ? (str_starts_with($photo, 'http://') || str_starts_with($photo, 'https://')
+                    ? $photo
+                    : url("storage/$photo"))
+                : null;
 
             return [
                 'nom' => $proprietaire->utilisateur->nom,
@@ -64,18 +73,9 @@ class ProfileController extends Controller
         return response()->json($data);
     }
 
-    public function update(Request $request)
+    public function update(UpdateProfileRequest $request)
     {
-        $data = $request->validate([
-            'bio' => 'nullable|string',
-            'titre_professionnel' => 'nullable|string|max:255',
-            'localisation' => 'nullable|string|max:255',
-            'site_web' => 'nullable|url|max:255',
-            'url_linkedin' => 'nullable|url|max:255',
-            'url_github' => 'nullable|url|max:255',
-            'nom' => 'nullable|string|max:255',
-            'photo' => 'nullable|string',
-        ]);
+        $data = $request->validated();
 
         $utilisateur = $request->user();
 
@@ -84,7 +84,12 @@ class ProfileController extends Controller
         }
 
         if (isset($data['photo'])) {
-            $utilisateur->update(['photo' => $data['photo']]);
+            if (str_starts_with($data['photo'], 'data:image/')) {
+                $path = $this->saveBase64Image($data['photo'], 'profils');
+                $utilisateur->update(['photo' => $path]);
+            } else {
+                $utilisateur->update(['photo' => $data['photo']]);
+            }
         }
 
         $proprietaire = $utilisateur->proprietaire;
@@ -93,6 +98,21 @@ class ProfileController extends Controller
             $proprietaire->update($data);
         }
 
-        return $utilisateur->load('proprietaire');
+        Cache::forget('profile.public');
+        return UtilisateurResource::make($utilisateur->load('proprietaire'));
+    }
+
+    private function saveBase64Image(string $base64, string $folder = 'profils'): string
+    {
+        $suffix = str_starts_with($base64, 'data:image/png') ? 'png' : 'jpg';
+        $filename = 'photo-' . now()->format('YmdHis') . '-' . Str::random(10) . '.' . $suffix;
+        $relativePath = "uploads/{$folder}/{$filename}";
+
+        $imageData = substr($base64, strpos($base64, ',') + 1);
+        $decoded = base64_decode($imageData);
+
+        Storage::disk('public')->put($relativePath, $decoded);
+
+        return $relativePath;
     }
 }

@@ -34,22 +34,7 @@ export default function Dropzone({ onUpload, accept = 'image/*', label = 'Glisse
     formData.append('folder', 'publications');
 
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null;
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/upload/image`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: 'application/json',
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const err = await response.json().catch(() => null);
-        throw new Error(err?.message || `Upload failed: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await api.post<{ url: string }>('/upload/image', formData);
       onUpload(data.url);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors du téléchargement');

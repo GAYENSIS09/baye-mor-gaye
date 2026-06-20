@@ -1,3 +1,5 @@
+import { z } from 'zod/v4';
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 const TIMEOUT_MS = 15_000;
 
@@ -17,8 +19,25 @@ class ApiError extends Error {
   }
 }
 
-async function request<T = unknown>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { params, ...fetchOptions } = options;
+function isWrappedResponse(data: unknown): data is { data: unknown; meta?: unknown; links?: unknown } {
+  if (typeof data !== 'object' || data === null) return false;
+  if (!('data' in data)) return false;
+  if ('meta' in data || 'links' in data) return false;
+  return true;
+}
+
+function normalizePaginatedResponse(raw: unknown): unknown {
+  if (typeof raw !== 'object' || raw === null) return raw;
+  if (!('data' in raw) || !('meta' in raw)) return raw;
+  const { data, meta } = raw as { data: unknown; meta: Record<string, unknown> };
+  return { data, ...meta };
+}
+
+async function request<T = unknown>(
+  endpoint: string,
+  options: RequestOptions & { schema?: z.ZodType<T> } = {},
+): Promise<T> {
+  const { params, schema, ...fetchOptions } = options;
 
   let url = `${API_BASE}${endpoint}`;
   if (params) {
@@ -54,9 +73,9 @@ async function request<T = unknown>(endpoint: string, options: RequestOptions = 
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
     throw new ApiError(
-      errorData?.message || `HTTP ${response.status}`,
+      errorData?.error?.message || `HTTP ${response.status}`,
       response.status,
-      errorData
+      errorData,
     );
   }
 
@@ -64,7 +83,15 @@ async function request<T = unknown>(endpoint: string, options: RequestOptions = 
     return undefined as T;
   }
 
-  return response.json();
+  const raw: unknown = await response.json();
+  let data = isWrappedResponse(raw) ? raw.data : raw;
+  data = normalizePaginatedResponse(data);
+
+  if (schema) {
+    return schema.parse(data);
+  }
+
+  return data as T;
 }
 
 function serializeBody(body?: unknown): BodyInit | undefined {
@@ -74,17 +101,21 @@ function serializeBody(body?: unknown): BodyInit | undefined {
   return JSON.stringify(body);
 }
 
+function opts(options?: RequestOptions): RequestOptions {
+  return { ...options };
+}
+
 export const api = {
-  get: <T = unknown>(endpoint: string, options?: RequestOptions) =>
-    request<T>(endpoint, { ...options, method: 'GET' }),
-  post: <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions) =>
-    request<T>(endpoint, { ...options, method: 'POST', body: serializeBody(body) }),
-  put: <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions) =>
-    request<T>(endpoint, { ...options, method: 'PUT', body: serializeBody(body) }),
-  patch: <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions) =>
-    request<T>(endpoint, { ...options, method: 'PATCH', body: serializeBody(body) }),
-  delete: <T = unknown>(endpoint: string, options?: RequestOptions) =>
-    request<T>(endpoint, { ...options, method: 'DELETE' }),
+  get: <T = unknown>(endpoint: string, options?: RequestOptions & { schema?: z.ZodType<T> }) =>
+    request<T>(endpoint, { ...opts(options), method: 'GET' }),
+  post: <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions & { schema?: z.ZodType<T> }) =>
+    request<T>(endpoint, { ...opts(options), method: 'POST', body: serializeBody(body) }),
+  put: <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions & { schema?: z.ZodType<T> }) =>
+    request<T>(endpoint, { ...opts(options), method: 'PUT', body: serializeBody(body) }),
+  patch: <T = unknown>(endpoint: string, body?: unknown, options?: RequestOptions & { schema?: z.ZodType<T> }) =>
+    request<T>(endpoint, { ...opts(options), method: 'PATCH', body: serializeBody(body) }),
+  delete: <T = unknown>(endpoint: string, options?: RequestOptions & { schema?: z.ZodType<T> }) =>
+    request<T>(endpoint, { ...opts(options), method: 'DELETE' }),
 };
 
 export { ApiError };

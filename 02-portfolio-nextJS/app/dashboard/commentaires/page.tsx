@@ -7,6 +7,8 @@ import { useApprouverCommentaire, useDeleteCommentaire, useCreateCommentaire } f
 import { Commentaire } from '@/types/api';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { useToast } from '@/contexts/ToastContext';
+import { Icons } from '@/components/ui/Icons';
 
 export default function CommentairesDashboardPage() {
   const { utilisateur, loading: authLoading } = useAuth();
@@ -18,20 +20,23 @@ export default function CommentairesDashboardPage() {
   const [replyTo, setReplyTo] = useState<number | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const toast = useToast();
 
   async function approve(id: number) {
     try {
       await approveCommentaire.mutateAsync(id);
+      toast.success('Commentaire approuvé');
     } catch {
-      console.error('Erreur');
+      toast.error("Erreur lors de l'approbation");
     }
   }
 
   async function remove(id: number) {
     try {
       await deleteCommentaire.mutateAsync(id);
+      toast.success('Commentaire supprimé');
     } catch {
-      console.error('Erreur');
+      toast.error('Erreur lors de la suppression');
     }
   }
 
@@ -46,8 +51,9 @@ export default function CommentairesDashboardPage() {
       });
       setReplyContent('');
       setReplyTo(null);
+      toast.success('Réponse envoyée');
     } catch {
-      console.error('Erreur envoi réponse');
+      toast.error("Erreur lors de l'envoi de la réponse");
     }
   }
 
@@ -80,8 +86,8 @@ export default function CommentairesDashboardPage() {
                   Approuver
                 </button>
                 <button onClick={() => setConfirmDelete(c.id)}
-                  className="bg-red-900/20 text-red-400 px-4 py-1 rounded text-sm hover:bg-red-900/40">
-                  Supprimer
+                  className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10" aria-label="Supprimer">
+                  <Icons.trash className="w-4 h-4" />
                 </button>
                 <button onClick={() => setReplyTo(replyTo === c.id ? null : c.id)}
                   className="bg-blue-900/20 text-blue-400 px-4 py-1 rounded text-sm hover:bg-blue-900/40">
@@ -114,7 +120,7 @@ export default function CommentairesDashboardPage() {
         </div>
       )}
 
-      <ConfirmDialog open={confirmDelete !== null} title="Supprimer le commentaire" message="Cette action est irréversible." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDelete) { try { await deleteCommentaire.mutateAsync(confirmDelete); } catch { console.error('Erreur'); } setConfirmDelete(null); } } } onCancel={() => setConfirmDelete(null)} />
+      <ConfirmDialog open={confirmDelete !== null} title="Supprimer le commentaire" message="Cette action est irréversible." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDelete) { try { await deleteCommentaire.mutateAsync(confirmDelete); toast.success('Commentaire supprimé'); } catch { toast.error('Erreur lors de la suppression'); } setConfirmDelete(null); } } } onCancel={() => setConfirmDelete(null)} />
     </div>
   );
 }

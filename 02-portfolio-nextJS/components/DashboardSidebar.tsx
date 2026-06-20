@@ -6,6 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback, useRef, useMemo, useId } from 'react';
 import { Icons, NavIcon } from '@/components/ui/Icons';
+import MediaViewer from '@/components/MediaViewer';
+import { getMediaUrl } from '@/lib/media';
 
 const navGroups = [
   {
@@ -265,7 +267,7 @@ export default function DashboardSidebar({ open, onClose }: DashboardSidebarProp
         <div className={`border-t border-[#222] mt-auto ${isExpandedVisual ? 'p-3' : 'p-2'}`}>
           <div className={`flex items-center gap-3 px-2 py-2 ${isExpandedVisual ? '' : 'justify-center'}`}>
             {utilisateur?.photo ? (
-              <img src={utilisateur.photo} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+              <MediaViewer src={getMediaUrl(utilisateur.photo) || ''} alt="" width={32} height={32} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
             ) : (
               <div className="w-8 h-8 rounded-full bg-[#222] flex items-center justify-center text-acid font-mono text-xs flex-shrink-0" aria-hidden="true">
                 {utilisateur?.nom?.[0]?.toUpperCase() || 'U'}

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import NotificationBell from '@/components/NotificationBell';
 import DashboardSidebar from '@/components/DashboardSidebar';
+import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs';
 import { Icons } from '@/components/ui/Icons';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -60,6 +61,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* Page content */}
           <div className="flex-1 p-4 md:p-8 overflow-y-auto">
+            <DashboardBreadcrumbs />
             {children}
           </div>
         </main>

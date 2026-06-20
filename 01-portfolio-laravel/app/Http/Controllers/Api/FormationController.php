@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreFormationRequest;
+use App\Http\Requests\UpdateFormationRequest;
+use App\Http\Resources\FormationResource;
 use App\Models\Formation;
 use App\Models\Proprietaire;
 use Illuminate\Http\Request;
@@ -19,54 +22,65 @@ class FormationController extends Controller
                 return response()->json(['message' => 'Aucun profil trouve.'], 404);
             }
 
-            return $proprietaire->formations()->orderBy('ordre')->orderByDesc('date_debut')->get();
+            return FormationResource::collection($proprietaire->formations()->with('medias')->orderBy('ordre')->orderByDesc('date_debut')->get());
         });
     }
 
     public function show(Formation $formation)
     {
-        return $formation->load('medias');
+        return FormationResource::make($formation->load('medias'));
     }
 
-    public function store(Request $request)
+    public function store(StoreFormationRequest $request)
     {
-        $data = $request->validate([
-            'diplome' => 'required|string|max:255',
-            'etablissement' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'domaine_etude' => 'nullable|string|max:255',
-            'date_debut' => 'required|date',
-            'date_fin' => 'nullable|date|after_or_equal:date_debut',
-            'ordre' => 'integer|min:0',
-        ]);
-
+        $data = $request->validated();
         $data['proprietaire_id'] = $request->user()->proprietaire->id;
 
-        return Formation::create($data);
+        $formation = Formation::create($data);
+
+        if ($request->hasFile('media')) {
+            $path = $request->file('media')->store('uploads/formations', 'public');
+            $formation->medias()->create([
+                'type' => 'image',
+                'chemin_fichier' => $path,
+                'titre' => $data['diplome'] ?? null,
+                'ordre' => 0,
+            ]);
+        }
+
+        Cache::forget('profile.public');
+        Cache::forget('formations.public');
+        return FormationResource::make($formation->load('medias'));
     }
 
-    public function update(Request $request, Formation $formation)
+    public function update(UpdateFormationRequest $request, Formation $formation)
     {
         $this->authorizeOwnershipOrFail($request, $formation);
 
-        $data = $request->validate([
-            'diplome' => 'sometimes|string|max:255',
-            'etablissement' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
-            'domaine_etude' => 'nullable|string|max:255',
-            'date_debut' => 'sometimes|date',
-            'date_fin' => 'nullable|date|after_or_equal:date_debut',
-            'ordre' => 'integer|min:0',
-        ]);
+        $formation->update($request->validated());
 
-        $formation->update($data);
-        return $formation;
+        if ($request->hasFile('media')) {
+            $formation->medias()->delete();
+            $path = $request->file('media')->store('uploads/formations', 'public');
+            $formation->medias()->create([
+                'type' => 'image',
+                'chemin_fichier' => $path,
+                'titre' => $formation->diplome,
+                'ordre' => 0,
+            ]);
+        }
+
+        Cache::forget('profile.public');
+        Cache::forget('formations.public');
+        return FormationResource::make($formation->load('medias'));
     }
 
     public function destroy(Request $request, Formation $formation)
     {
         $this->authorizeOwnershipOrFail($request, $formation);
         $formation->delete();
+        Cache::forget('profile.public');
+        Cache::forget('formations.public');
         return response()->noContent();
     }
 }

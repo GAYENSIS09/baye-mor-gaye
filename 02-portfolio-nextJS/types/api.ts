@@ -193,15 +193,11 @@ export interface Notification {
 export interface Ressource {
   id: number;
   titre: string;
-  type: string;
-  fichier: string | null;
-  url_externe: string | null;
-  taille: number | null;
-  type_fichier: string | null;
-  nombre_telechargements: number;
+  description: string | null;
   est_publique: boolean;
   created_at: string;
   domaine: Domaine | null;
+  media?: MediaQualification[];
 }
 
 export interface Rappel {

@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import MediaViewer from '@/components/MediaViewer';
 
 interface CompetenceBarProps {
   name: string;
@@ -18,7 +19,7 @@ const NIVEAU_ORDER: Record<string, number> = {
 function IconDisplay({ icone }: { icone?: string | null }) {
   if (!icone) return null;
   if (icone.startsWith('http://') || icone.startsWith('https://') || icone.startsWith('/')) {
-    return <img src={icone} alt="" className="w-5 h-5 object-contain shrink-0" />;
+    return <MediaViewer src={icone} alt="" width={20} height={20} className="shrink-0" />;
   }
   return <span className="text-base shrink-0">{icone}</span>;
 }

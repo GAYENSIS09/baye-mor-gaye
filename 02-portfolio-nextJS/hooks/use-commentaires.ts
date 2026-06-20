@@ -38,6 +38,18 @@ export function useRejeterCommentaire() {
   });
 }
 
+export function useUpdateCommentaire() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, contenu }: { id: number; contenu: string }) =>
+      api.put(`/commentaires/${id}`, { contenu }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.publications() });
+      queryClient.invalidateQueries({ queryKey: qk.commentaires() });
+    },
+  });
+}
+
 export function useDeleteCommentaire() {
   const queryClient = useQueryClient();
   return useMutation({

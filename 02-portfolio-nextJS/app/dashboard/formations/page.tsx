@@ -2,22 +2,19 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { FormationFormSchema, type FormationFormData } from '@/schemas/forms';
 import { useFormations } from '@/hooks/queries';
 import { useCreateFormation, useUpdateFormation, useDeleteFormation } from '@/hooks/mutations';
 import { Formation } from '@/types/api';
 import { useToast } from '@/contexts/ToastContext';
+import MediaViewer from '@/components/MediaViewer';
+import Link from 'next/link';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import EmptyState from '@/components/EmptyState';
 import { LoadingScreen } from '@/components/LoadingScreen';
-
-interface FormData {
-  diplome: string; etablissement: string; description: string;
-  domaine_etude: string; date_debut: string; date_fin: string; ordre: number;
-}
-
-const emptyForm = (): FormData => ({
-  diplome: '', etablissement: '', description: '', domaine_etude: '', date_debut: '', date_fin: '', ordre: 0,
-});
+import { Icons } from '@/components/ui/Icons';
 
 export default function FormationsPage() {
   const { utilisateur, loading: authLoading } = useAuth();
@@ -28,13 +25,37 @@ export default function FormationsPage() {
   const toast = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  const [form, setForm] = useState<FormData>(emptyForm());
   const [saving, setSaving] = useState(false);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
 
-  function resetForm() { setForm(emptyForm()); setEditId(null); setShowForm(false); setMediaFile(null); setMediaPreview(''); }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<FormationFormData>({
+    resolver: zodResolver(FormationFormSchema),
+    defaultValues: {
+      diplome: '',
+      etablissement: '',
+      description: '',
+      domaine: '',
+      date_debut: '',
+      date_fin: '',
+    },
+  });
+
+  function resetForm() {
+    reset({
+      diplome: '', etablissement: '', description: '', domaine: '', date_debut: '', date_fin: '',
+    });
+    setEditId(null);
+    setShowForm(false);
+    setMediaFile(null);
+    setMediaPreview('');
+  }
 
   function handleMediaChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
@@ -45,20 +66,21 @@ export default function FormationsPage() {
     reader.readAsDataURL(f);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function onSubmit(data: FormationFormData) {
     setSaving(true);
     try {
-      const payload = { ...form, description: form.description || undefined, domaine_etude: form.domaine_etude || undefined, date_fin: form.date_fin || undefined };
+      const { domaine, ...rest } = data;
+      const payload = { ...rest, domaine_etude: domaine || undefined, description: data.description || undefined, date_fin: data.date_fin || undefined };
       if (mediaFile) {
         const fd = new FormData();
         Object.entries(payload).forEach(([k, v]) => { if (v !== undefined) fd.append(k, String(v)); });
         fd.append('media', mediaFile);
         if (editId) {
           fd.append('_method', 'PUT');
-          await updateForm.mutateAsync(fd as any);
+          fd.append('id', String(editId));
+          await updateForm.mutateAsync(fd);
         } else {
-          await createForm.mutateAsync(fd as any);
+          await createForm.mutateAsync(fd);
         }
       } else {
         if (editId) {
@@ -73,11 +95,31 @@ export default function FormationsPage() {
     finally { setSaving(false); }
   }
 
+  const STORAGE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '/storage') || 'http://localhost:8000/storage';
+
+  function getMediaUrl(path: string | null | undefined): string | null {
+    if (!path) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return `${STORAGE_URL}/${path.replace(/^\//, '')}`;
+  }
+
   function startEdit(f: Formation) {
-    const ext = f as Formation & { ordre?: number };
-    setForm({ diplome: f.diplome, etablissement: f.etablissement, description: f.description || '', domaine_etude: f.domaine_etude || '', date_debut: f.date_debut?.split('T')[0] || '', date_fin: f.date_fin?.split('T')[0] || '', ordre: ext.ordre ?? 0 });
+    reset({
+      diplome: f.diplome,
+      etablissement: f.etablissement,
+      description: f.description || '',
+      domaine: f.domaine_etude || '',
+      date_debut: f.date_debut?.split('T')[0] || '',
+      date_fin: f.date_fin?.split('T')[0] || '',
+    });
     setEditId(f.id);
     setShowForm(true);
+    if (f.medias?.length > 0) {
+      setMediaPreview(getMediaUrl(f.medias[0].chemin_fichier) || '');
+    } else {
+      setMediaPreview('');
+    }
+    setMediaFile(null);
   }
 
   if (authLoading) return <LoadingScreen />;
@@ -93,45 +135,44 @@ export default function FormationsPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
           <h2 className="font-semibold text-off-white">{editId ? 'Modifier' : 'Nouvelle'} formation</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label htmlFor="form-diplome" className="sr-only">Diplôme</label>
-              <input id="form-diplome" name="diplome" value={form.diplome} onChange={(e) => setForm({ ...form, diplome: e.target.value })} placeholder="Diplôme *" required autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              <input id="form-diplome" {...register("diplome")} placeholder="Diplôme *" required autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              {errors.diplome && <p className="text-red-400 text-xs mt-1">{errors.diplome.message}</p>}
             </div>
             <div>
               <label htmlFor="form-etablissement" className="sr-only">Établissement</label>
-              <input id="form-etablissement" name="etablissement" value={form.etablissement} onChange={(e) => setForm({ ...form, etablissement: e.target.value })} placeholder="Établissement *" required autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              <input id="form-etablissement" {...register("etablissement")} placeholder="Établissement *" required autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              {errors.etablissement && <p className="text-red-400 text-xs mt-1">{errors.etablissement.message}</p>}
             </div>
             <div>
               <label htmlFor="form-domaine" className="sr-only">Domaine d'étude</label>
-              <input id="form-domaine" name="domaine_etude" value={form.domaine_etude} onChange={(e) => setForm({ ...form, domaine_etude: e.target.value })} placeholder="Domaine d'étude" autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-            </div>
-            <div>
-              <label htmlFor="form-ordre" className="sr-only">Ordre</label>
-              <input id="form-ordre" name="ordre" type="number" min="0" value={form.ordre} onChange={(e) => setForm({ ...form, ordre: parseInt(e.target.value) || 0 })} placeholder="Ordre" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              <input id="form-domaine" {...register("domaine")} placeholder="Domaine d'étude" autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
             </div>
             <div>
               <label htmlFor="form-date-debut" className="sr-only">Date début</label>
-              <input id="form-date-debut" name="date_debut" type="date" value={form.date_debut} onChange={(e) => setForm({ ...form, date_debut: e.target.value })} required className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              <input id="form-date-debut" type="date" {...register("date_debut")} required className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              {errors.date_debut && <p className="text-red-400 text-xs mt-1">{errors.date_debut.message}</p>}
             </div>
             <div>
               <label htmlFor="form-date-fin" className="sr-only">Date fin</label>
-              <input id="form-date-fin" name="date_fin" type="date" value={form.date_fin} onChange={(e) => setForm({ ...form, date_fin: e.target.value })} className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              <input id="form-date-fin" type="date" {...register("date_fin")} className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
             </div>
           </div>
           <div>
             <label htmlFor="form-description" className="sr-only">Description</label>
-            <textarea id="form-description" name="description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" rows={3} autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+            <textarea id="form-description" {...register("description")} placeholder="Description" rows={3} autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
           </div>
           <div>
             <label htmlFor="form-media" className="block text-sm font-medium text-off-white mb-1">Image (optionnel)</label>
             <input id="form-media" type="file" accept="image/*" onChange={handleMediaChange} className="w-full text-sm text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-[#222] file:text-off-white file:text-xs file:font-mono hover:file:bg-[#333]" />
             {mediaPreview && <img src={mediaPreview} alt="" className="mt-2 max-h-32 rounded object-contain border border-[#222]" />}
           </div>
-          <button type="submit" disabled={saving} className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
-            {saving ? 'Enregistrement...' : (editId ? 'Modifier' : 'Ajouter')}
+          <button type="submit" disabled={saving || isSubmitting} className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
+            {saving || isSubmitting ? 'Enregistrement...' : (editId ? 'Modifier' : 'Ajouter')}
           </button>
         </form>
       )}
@@ -154,18 +195,22 @@ export default function FormationsPage() {
                   <h3 className="font-semibold text-off-white">{f.diplome}</h3>
                   <span className="text-sm text-muted">{f.etablissement}</span>
                 </div>
-                {f.domaine_etude && <p className="text-sm text-muted">{f.domaine_etude}</p>}
+                {f.domaine_etude && (
+                  <Link href="/dashboard/domaines" className="text-sm text-acid hover:underline">
+                    {f.domaine_etude}
+                  </Link>
+                )}
                 <p className="text-xs text-muted mt-1">
                   {new Date(f.date_debut).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' })} — {f.date_fin ? new Date(f.date_fin).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' }) : 'En cours'}
                 </p>
                 {f.description && <p className="text-sm text-muted mt-2 line-clamp-2">{f.description}</p>}
                 {f.medias?.length > 0 && (
-                  <img src={f.medias[0].chemin_fichier} alt="" className="mt-2 max-h-24 rounded object-contain border border-[#222]" />
+                  <MediaViewer src={f.medias[0].chemin_fichier} alt="" width={200} height={96} className="mt-2 max-h-24 rounded object-contain border border-[#222]" />
                 )}
               </div>
               <div className="flex gap-2 shrink-0">
-                <button onClick={() => startEdit(f)} className="text-sm text-acid hover:text-acid/80" aria-label="Modifier">Modifier</button>
-                <button onClick={() => setConfirmDelete(f.id)} className="text-sm text-red-400 hover:text-red-300" aria-label="Supprimer">Supprimer</button>
+                <button onClick={() => startEdit(f)} className="p-2 text-acid hover:text-acid/80 transition-colors rounded hover:bg-acid/10" aria-label="Modifier"><Icons.edit className="w-4 h-4" /></button>
+                <button onClick={() => setConfirmDelete(f.id)} className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10" aria-label="Supprimer"><Icons.trash className="w-4 h-4" /></button>
               </div>
             </div>
           ))}

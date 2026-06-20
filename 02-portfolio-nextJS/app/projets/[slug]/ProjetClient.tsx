@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useProject } from '@/hooks/queries';
 import { useParams, notFound } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import MediaViewer from '@/components/MediaViewer';
 import { LikeButton } from '@/components/LikeButton';
 import ReadingProgress from '@/components/ReadingProgress';
 import CommentSection from '@/components/CommentSection';
@@ -46,7 +47,7 @@ export default function ProjetClient() {
         <article className="max-w-3xl mx-auto">
           {projet.image_couverture && (
             <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-8">
-              <img src={projet.image_couverture} alt={projet.titre} className="object-cover w-full h-full" />
+              <MediaViewer src={projet.image_couverture} alt={projet.titre} fill className="object-cover" />
             </div>
           )}
 

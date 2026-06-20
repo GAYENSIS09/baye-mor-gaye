@@ -2,11 +2,15 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { RappelFormSchema, type RappelFormData } from '@/schemas/forms';
 import { useRappels } from '@/hooks/queries';
 import { useCreateRappel, useDeleteRappel, useUpdateRappel } from '@/hooks/mutations';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import type { Rappel } from '@/types/api';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { Icons } from '@/components/ui/Icons';
 
 function formatDatetimeLocal(date: string | null) {
   if (!date) return '';
@@ -21,30 +25,37 @@ export default function RappelsDashboardPage() {
   const deleteRappel = useDeleteRappel();
   const updateRappel = useUpdateRappel();
   const [showForm, setShowForm] = useState(false);
-  const [titre, setTitre] = useState('');
-  const [message, setMessage] = useState('');
   const [notifieLe, setNotifieLe] = useState('');
-  const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTitre, setEditTitre] = useState('');
   const [editMessage, setEditMessage] = useState('');
   const [editNotifieLe, setEditNotifieLe] = useState('');
 
-  async function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<RappelFormData>({
+    resolver: zodResolver(RappelFormSchema),
+    defaultValues: {
+      titre: '',
+      message: '',
+    },
+  });
+
+  async function handleCreate(data: RappelFormData) {
     try {
-      const payload: Record<string, unknown> = { titre, message: message || undefined };
+      const payload: Record<string, unknown> = { ...data, message: data.message || undefined };
       if (notifieLe) payload.notifie_le = new Date(notifieLe).toISOString();
       await createRappel.mutateAsync(payload);
-      setTitre('');
-      setMessage('');
+      reset({ titre: '', message: '' });
       setNotifieLe('');
       setShowForm(false);
     } catch {
       console.error('Erreur création');
-    } finally { setSaving(false); }
+    }
   }
 
   function startEdit(r: Rappel) {
@@ -80,18 +91,23 @@ export default function RappelsDashboardPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleCreate} className="bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
-          <input name="titre" value={titre} onChange={(e) => setTitre(e.target.value)} placeholder="Titre" required autoComplete="off"
-            className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-          <textarea name="message" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Message" autoComplete="off"
-            className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" rows={3} />
+        <form onSubmit={handleSubmit(handleCreate)} noValidate className="bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
+          <div>
+            <input {...register("titre")} placeholder="Titre" required autoComplete="off"
+              className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+            {errors.titre && <p className="text-red-400 text-xs mt-1">{errors.titre.message}</p>}
+          </div>
+          <div>
+            <textarea {...register("message")} placeholder="Message" autoComplete="off"
+              className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" rows={3} />
+          </div>
           <div>
             <label htmlFor="rappel-notifie" className="block text-sm text-muted mb-1">Rappeler le</label>
             <input id="rappel-notifie" type="datetime-local" value={notifieLe} onChange={(e) => setNotifieLe(e.target.value)}
               className="w-full border border-[#333] rounded px-3 py-2 bg-[#111] text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
           </div>
-          <button type="submit" disabled={saving} className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
-            {saving ? 'Création...' : 'Créer'}
+          <button type="submit" disabled={isSubmitting} className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
+            {isSubmitting ? 'Création...' : 'Créer'}
           </button>
         </form>
       )}
@@ -133,8 +149,8 @@ export default function RappelsDashboardPage() {
                 <div className="flex items-center gap-2 ml-4 flex-shrink-0">
                   {!isEditing && (
                     <>
-                      <button onClick={() => startEdit(r)} className="text-xs text-muted hover:text-off-white font-mono transition-colors">Modifier</button>
-                      <button onClick={() => setConfirmDelete(r.id)} className="text-xs text-red-400 hover:text-red-300 font-mono transition-colors">Supprimer</button>
+                      <button onClick={() => startEdit(r)} className="p-2 text-acid hover:text-acid/80 transition-colors rounded hover:bg-acid/10" aria-label="Modifier"><Icons.edit className="w-4 h-4" /></button>
+                      <button onClick={() => setConfirmDelete(r.id)} className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10" aria-label="Supprimer"><Icons.trash className="w-4 h-4" /></button>
                     </>
                   )}
                 </div>

@@ -13,7 +13,7 @@ export function useExperiences() {
 export function useCreateExperience() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => api.post('/experiences', data),
+    mutationFn: (data: unknown) => api.post('/experiences', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.experiences() });
       queryClient.invalidateQueries({ queryKey: qk.profile() });
@@ -24,7 +24,16 @@ export function useCreateExperience() {
 export function useUpdateExperience() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: number } & Record<string, unknown>) => api.put(`/experiences/${id}`, data),
+    mutationFn: (arg: ({ id: number } & Record<string, unknown>) | FormData) => {
+      if (arg instanceof FormData) {
+        const id = Number(arg.get('id'));
+        arg.delete('_method');
+        arg.delete('id');
+        return api.put(`/experiences/${id}`, arg);
+      }
+      const { id, ...data } = arg;
+      return api.put(`/experiences/${id}`, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.experiences() });
       queryClient.invalidateQueries({ queryKey: qk.profile() });

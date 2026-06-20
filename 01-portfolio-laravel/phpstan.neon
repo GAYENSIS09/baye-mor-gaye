@@ -1,0 +1,18 @@
+parameters:
+    level: 6
+    paths:
+        - app/
+        - routes/
+    excludePaths:
+        - app/Providers/RouteServiceProvider.php
+    checkUninitializedProperties: true
+    checkMissingIterableValueType: true
+    checkGenericClassInNonGenericObjectType: false
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        - '#Call to an undefined method .*Illuminate.*#'
+        - '#Method App\\Exceptions\\Handler::register\(\) has no return type specified#'
+    databaseMigrationsPath:
+        - database/migrations/
+    tmpDir: storage/framework/cache/phpstan

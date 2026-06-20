@@ -2,6 +2,9 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { CompetenceFormSchema, type CompetenceFormData } from '@/schemas/forms';
 import { useCompetences } from '@/hooks/queries';
 import { useCreateCompetence, useDeleteCompetence, useUpdateCompetence } from '@/hooks/mutations';
 import { useToast } from '@/contexts/ToastContext';
@@ -9,14 +12,12 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import CompetenceBar from '@/components/CompetenceBar';
 import type { Competence } from '@/types/api';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { Icons } from '@/components/ui/Icons';
 
 const NIVEAUX = ['debutant', 'intermediaire', 'avance', 'expert'];
 
 export default function SkillsPage() {
   const { utilisateur, loading: authLoading } = useAuth();
-  const [nom, setNom] = useState('');
-  const [categorie, setCategorie] = useState('');
-  const [niveau, setNiveau] = useState('debutant');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editNiveau, setEditNiveau] = useState('');
   const { data: competences = [], isLoading, isError, refetch } = useCompetences();
@@ -26,14 +27,25 @@ export default function SkillsPage() {
   const toast = useToast();
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<CompetenceFormData>({
+    resolver: zodResolver(CompetenceFormSchema),
+    defaultValues: {
+      nom: '',
+      categorie: '',
+      niveau: 'debutant',
+    },
+  });
+
+  async function onSubmit(data: CompetenceFormData) {
     try {
-      await createCompetence.mutateAsync({ nom, categorie: categorie || undefined, niveau });
+      await createCompetence.mutateAsync(data);
       toast.success('Compétence ajoutée');
-      setNom('');
-      setCategorie('');
-      setNiveau('debutant');
+      reset({ nom: '', categorie: '', niveau: 'debutant' });
     } catch {
       toast.error("Erreur lors de l'ajout");
     }
@@ -61,19 +73,27 @@ export default function SkillsPage() {
     <div className="max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-6 text-off-white">Compétences</h1>
 
-      <form onSubmit={handleSubmit} className="bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
         <h2 className="font-semibold text-off-white">Nouvelle compétence</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <input id="skills-nom" name="nom" value={nom} onChange={(e) => setNom(e.target.value)} placeholder="Nom" required autoComplete="off"
-            className="border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-          <input id="skills-categorie" name="categorie" value={categorie} onChange={(e) => setCategorie(e.target.value)} placeholder="Catégorie (optionnelle)" autoComplete="off"
-            className="border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-          <select id="skills-niveau" name="niveau" value={niveau} onChange={(e) => setNiveau(e.target.value)}
-            className="border border-[#333] rounded px-3 py-2 bg-[#111] text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50">
-            {NIVEAUX.map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
+          <div>
+            <input id="skills-nom" {...register("nom")} placeholder="Nom" required autoComplete="off"
+              className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+            {errors.nom && <p className="text-red-400 text-xs mt-1">{errors.nom.message}</p>}
+          </div>
+          <div>
+            <input id="skills-categorie" {...register("categorie")} placeholder="Catégorie (optionnelle)" autoComplete="off"
+              className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+          </div>
+          <div>
+            <select id="skills-niveau" {...register("niveau")}
+              className="w-full border border-[#333] rounded px-3 py-2 bg-[#111] text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50">
+              {NIVEAUX.map((n) => <option key={n} value={n}>{n}</option>)}
+            </select>
+            {errors.niveau && <p className="text-red-400 text-xs mt-1">{errors.niveau.message}</p>}
+          </div>
         </div>
-        <button type="submit" className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 font-mono text-xs uppercase tracking-widest">
+        <button type="submit" disabled={isSubmitting} className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
           Ajouter
         </button>
       </form>
@@ -122,8 +142,8 @@ export default function SkillsPage() {
                       Niveau
                     </button>
                     <button onClick={() => setConfirmDelete(c.id)}
-                      className="text-xs text-red-400 hover:text-red-300 font-mono transition-colors">
-                      Supprimer
+                      className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10" aria-label="Supprimer">
+                      <Icons.trash className="w-4 h-4" />
                     </button>
                   </div>
                 )}

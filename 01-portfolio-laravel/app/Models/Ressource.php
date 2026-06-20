@@ -2,35 +2,28 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Ressource extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'proprietaire_id',
         'domaine_id',
         'titre',
-        'fichier',
-        'url_externe',
-        'type',
-        'type_fichier',
+        'description',
         'est_publique',
-        'nombre_telechargements',
-        'taille',
     ];
 
     protected function casts(): array
     {
         return [
             'est_publique' => 'boolean',
-            'nombre_telechargements' => 'integer',
         ];
     }
-
-    const TYPES = ['fichier', 'lien'];
 
     public function proprietaire()
     {
@@ -40,5 +33,10 @@ class Ressource extends Model
     public function domaine()
     {
         return $this->belongsTo(Domaine::class);
+    }
+
+    public function mediaQualifications()
+    {
+        return $this->morphMany(MediaQualification::class, 'qualifiable');
     }
 }

@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreConversionRequest;
+use App\Http\Requests\UpdateConversionRequest;
+use App\Http\Requests\ImportConversionRequest;
+use App\Http\Resources\ConversionResource;
 use App\Models\Conversion;
 use Illuminate\Http\Request;
 
@@ -16,42 +20,25 @@ class ConversionController extends Controller
             $query->where('evenement_id', $request->evenement_id);
         }
 
-        return $query->paginate(20);
+        return ConversionResource::collection($query->paginate(20));
     }
 
-    public function store(Request $request)
+    public function store(StoreConversionRequest $request)
     {
-        $data = $request->validate([
-            'evenement_id' => 'required|exists:evenements,id',
-            'titre' => 'required|string|max:255',
-            'url_externe' => 'nullable|url|max:500',
-            'type' => 'nullable|string|max:255',
-        ]);
-
-        return Conversion::create($data);
+        return ConversionResource::make(Conversion::create($request->validated()));
     }
 
-    public function update(Request $request, Conversion $conversion)
+    public function update(UpdateConversionRequest $request, Conversion $conversion)
     {
         $this->authorizeOwnershipOrFail($request, $conversion->evenement->emploiDuTemps);
 
-        $data = $request->validate([
-            'titre' => 'sometimes|string|max:255',
-            'url_externe' => 'nullable|url|max:500',
-            'type' => 'nullable|string|max:255',
-        ]);
-
-        $conversion->update($data);
-        return $conversion;
+        $conversion->update($request->validated());
+        return ConversionResource::make($conversion);
     }
 
-    public function importedt(Request $request)
+    public function importedt(ImportConversionRequest $request)
     {
-        $data = $request->validate([
-            'url_externe' => 'required_without:fichier|url|max:500',
-            'fichier' => 'required_without:url_externe|file|mimes:json,ics,csv|max:2048',
-            'emploi_du_temps_id' => 'nullable|exists:emploi_du_temps,id',
-        ]);
+        $data = $request->validated();
 
         $conversion = Conversion::create([
             'titre' => 'Import ' . now()->format('Y-m-d H:i'),
@@ -72,7 +59,7 @@ class ConversionController extends Controller
         }
 
         $conversion->load('evenement');
-        return response()->json($conversion, 201);
+        return response()->json(ConversionResource::make($conversion), 201);
     }
 
     public function destroy(Request $request, Conversion $conversion)

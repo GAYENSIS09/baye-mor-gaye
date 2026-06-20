@@ -10,6 +10,7 @@ return Illuminate\Foundation\Application::configure(basePath: dirname(__DIR__))
     })
     ->withMiddleware(function (Illuminate\Foundation\Configuration\Middleware $middleware) {
         $middleware->validateCsrfTokens(except: ['api/*']);
+        $middleware->append(\App\Http\Middleware\ContentSecurityPolicy::class);
     })
     ->withExceptions(function (Illuminate\Foundation\Configuration\Exceptions $exceptions) {
         $exceptions->shouldRenderJsonWhen(function (Illuminate\Http\Request $request) {

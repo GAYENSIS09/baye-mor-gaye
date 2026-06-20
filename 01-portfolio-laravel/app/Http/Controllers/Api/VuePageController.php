@@ -3,19 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreVuePageRequest;
 use App\Models\ProjetPortfolio;
 use App\Models\Publication;
 use App\Models\VuePage;
-use Illuminate\Http\Request;
 
 class VuePageController extends Controller
 {
-    public function enregistrer(Request $request)
+    public function enregistrer(StoreVuePageRequest $request)
     {
-        $data = $request->validate([
-            'page'    => 'required|string|in:publication,projet',
-            'page_id' => 'required|integer|min:1',
-        ]);
+        $data = $request->validated();
 
         VuePage::create([
             'page'              => $data['page'],

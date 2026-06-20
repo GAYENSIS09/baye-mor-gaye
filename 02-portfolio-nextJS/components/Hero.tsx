@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { useProfile } from "@/hooks/useProfile";
+import { getMediaUrl } from "@/lib/media";
 
 function ProprietaireAvatar({ photo, nom }: { photo: string | null; nom: string }) {
   if (!photo) return null;
@@ -121,7 +122,7 @@ export default function Hero() {
           </div>
         ) : (
           <div className="flex items-center gap-8 mb-8">
-            <ProprietaireAvatar photo={photo ?? null} nom={profile?.nom || ""} />
+            <ProprietaireAvatar photo={getMediaUrl(photo)} nom={profile?.nom || ""} />
             <div>
               <ProprietaireTitre prenom={prenom} nom={nom} />
             </div>

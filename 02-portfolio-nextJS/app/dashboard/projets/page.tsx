@@ -12,6 +12,7 @@ import Pagination from '@/components/Pagination';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import type { Projet } from '@/types/api';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { Icons } from '@/components/ui/Icons';
 
 export default function ProjetsDashboardPage() {
   const { utilisateur, loading: authLoading } = useAuth();
@@ -113,12 +114,12 @@ export default function ProjetsDashboardPage() {
                   {p.est_publie ? 'Archiver' : 'Publier'}
                 </button>
                 <Link href={`/dashboard/projets/${p.id}/edit`}
-                  className="text-xs text-muted hover:text-off-white font-mono transition-colors">
-                  Modifier
+                  className="p-2 text-acid hover:text-acid/80 transition-colors rounded hover:bg-acid/10" aria-label="Modifier">
+                  <Icons.edit className="w-4 h-4" />
                 </Link>
                 <button onClick={() => setDeleteTarget(p.id)}
-                  className="text-xs text-red-400 hover:text-red-300 font-mono transition-colors">
-                  Supprimer
+                  className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10" aria-label="Supprimer">
+                  <Icons.trash className="w-4 h-4" />
                 </button>
               </div>
             </div>

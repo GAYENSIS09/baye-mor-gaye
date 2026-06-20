@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCompetenceRequest;
+use App\Http\Requests\UpdateCompetenceRequest;
+use App\Http\Resources\CompetenceResource;
 use App\Models\Competence;
 use App\Models\NiveauCompetence;
 use Illuminate\Http\Request;
@@ -17,30 +20,25 @@ class CompetenceController extends Controller
         if ($user && $user->proprietaire) {
             $proprietaireId = $user->proprietaire->id;
             return Cache::remember("competences.user.{$proprietaireId}", 3600, function () use ($proprietaireId) {
-                return Competence::with(['niveaux' => function ($q) use ($proprietaireId) {
+                return CompetenceResource::collection(Competence::with(['niveaux' => function ($q) use ($proprietaireId) {
                     $q->where('proprietaire_id', $proprietaireId);
-                }])->get();
+                }])->get());
             });
         }
 
         return Cache::remember('competences.public', 3600, function () {
-            return Competence::with('niveaux')->get();
+            return CompetenceResource::collection(Competence::with('niveaux')->get());
         });
     }
 
     public function show(Competence $competence)
     {
-        return $competence->load('niveaux');
+        return CompetenceResource::make($competence->load('niveaux'));
     }
 
-    public function store(Request $request)
+    public function store(StoreCompetenceRequest $request)
     {
-        $data = $request->validate([
-            'nom' => 'required|string|max:255',
-            'categorie' => 'nullable|string|max:255',
-            'icone' => 'nullable|string|max:255',
-            'niveau' => 'nullable|in:debutant,intermediaire,avance,expert',
-        ]);
+        $data = $request->validated();
 
         $competence = Competence::create([
             'nom' => $data['nom'],
@@ -49,27 +47,26 @@ class CompetenceController extends Controller
         ]);
 
         $proprietaire = $request->user()->proprietaire;
+        $proprietaireId = $proprietaire->id;
 
         NiveauCompetence::create([
-            'proprietaire_id' => $proprietaire->id,
+            'proprietaire_id' => $proprietaireId,
             'competence_id' => $competence->id,
             'niveau' => $data['niveau'] ?? 'debutant',
         ]);
 
+        Cache::forget("competences.user.{$proprietaireId}");
+        Cache::forget('competences.public');
         return $competence->load('niveaux');
     }
 
-    public function update(Request $request, Competence $competence)
+    public function update(UpdateCompetenceRequest $request, Competence $competence)
     {
         $proprietaireId = $this->getProprietaireId($request);
         if (!$proprietaireId || !NiveauCompetence::where('proprietaire_id', $proprietaireId)->where('competence_id', $competence->id)->exists()) {
             abort(403, 'Action non autorisée.');
         }
-        $data = $request->validate([
-            'nom' => 'sometimes|string|max:255',
-            'categorie' => 'nullable|string|max:255',
-            'icone' => 'nullable|string|max:255',
-        ]);
+        $data = $request->validated();
 
         $competence->update($data);
 
@@ -82,7 +79,9 @@ class CompetenceController extends Controller
             );
         }
 
-        return $competence->load('niveaux');
+        Cache::forget("competences.user.{$proprietaireId}");
+        Cache::forget('competences.public');
+        return CompetenceResource::make($competence->load('niveaux'));
     }
 
     public function destroy(Request $request, Competence $competence)
@@ -92,6 +91,8 @@ class CompetenceController extends Controller
             abort(403, 'Action non autorisée.');
         }
         $competence->delete();
+        Cache::forget("competences.user.{$proprietaireId}");
+        Cache::forget('competences.public');
         return response()->noContent();
     }
 }

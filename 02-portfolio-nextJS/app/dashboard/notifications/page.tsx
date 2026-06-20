@@ -8,6 +8,7 @@ import { useToast } from '@/contexts/ToastContext';
 import Pagination from '@/components/Pagination';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { Icons } from '@/components/ui/Icons';
 
 export default function NotificationsDashboardPage() {
   const { utilisateur, loading: authLoading } = useAuth();
@@ -103,8 +104,8 @@ export default function NotificationsDashboardPage() {
                   </button>
                 )}
                 <button onClick={() => setConfirmDelete(n.id)}
-                  className="text-xs text-red-400 hover:text-red-300">
-                  Supprimer
+                  className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10" aria-label="Supprimer">
+                  <Icons.trash className="w-4 h-4" />
                 </button>
               </div>
             </div>

@@ -43,8 +43,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const token = localStorage.getItem('auth-token');
     if (token) {
-      api.get<{ utilisateur: Utilisateur }>('/me')
-        .then((res) => setUtilisateur(res.utilisateur))
+      api.get<Utilisateur>('/me')
+        .then((res) => setUtilisateur(res))
         .catch((err) => {
           if (err instanceof ApiError && err.status === 401) {
             clearToken();

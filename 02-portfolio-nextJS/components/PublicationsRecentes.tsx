@@ -4,6 +4,7 @@ import DomaineBadge from "@/components/DomaineBadge";
 import Link from "next/link";
 import type { Publication, Commentaire, Domaine } from "@/types/api";
 import { Icons } from '@/components/ui/Icons';
+import MediaViewer from '@/components/MediaViewer';
 
 function PublicationCardLarge({ pub }: { pub: Publication }) {
   return (
@@ -11,7 +12,7 @@ function PublicationCardLarge({ pub }: { pub: Publication }) {
       className="group relative bg-[#111] border border-[#222] rounded-lg overflow-hidden hover:border-acid/40 transition-colors md:col-span-2">
       {pub.image_couverture && (
         <div className="aspect-video md:aspect-[2.4/1] overflow-hidden relative">
-          <img src={pub.image_couverture} alt={pub.titre} className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
+          <MediaViewer src={pub.image_couverture} alt={pub.titre} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
         </div>
       )}
       <div className="p-6">

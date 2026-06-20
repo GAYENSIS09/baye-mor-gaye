@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreEvenementRequest;
+use App\Http\Requests\UpdateEvenementRequest;
+use App\Http\Resources\EvenementResource;
 use App\Models\Evenement;
 use Illuminate\Http\Request;
 
@@ -24,31 +27,20 @@ class EvenementController extends Controller
             $query->where('date_debut', '<=', $request->to);
         }
 
-        return $query->orderBy('date_debut')->paginate(50);
+        return EvenementResource::collection($query->orderBy('date_debut')->paginate(50));
     }
 
     public function show(Evenement $evenement)
     {
-        return $evenement->load(['emploiDuTemps', 'conversions', 'rappels']);
+        return EvenementResource::make($evenement->load(['emploiDuTemps', 'conversions', 'rappels']));
     }
 
-    public function update(Request $request, Evenement $evenement)
+    public function update(UpdateEvenementRequest $request, Evenement $evenement)
     {
         $this->authorizeOwnershipOrFail($request, $evenement->emploiDuTemps);
 
-        $data = $request->validate([
-            'titre' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
-            'date_debut' => 'sometimes|date',
-            'date_fin' => 'nullable|date|after_or_equal:date_debut',
-            'lieu' => 'nullable|string|max:255',
-            'couleur' => 'nullable|string|max:7',
-            'est_journee_complete' => 'boolean',
-            'statut' => 'in:planifie,confirme,annule,termine',
-        ]);
-
-        $evenement->update($data);
-        return $evenement;
+        $evenement->update($request->validated());
+        return EvenementResource::make($evenement);
     }
 
     public function destroy(Request $request, Evenement $evenement)
@@ -58,23 +50,11 @@ class EvenementController extends Controller
         return response()->noContent();
     }
 
-    public function store(Request $request)
+    public function store(StoreEvenementRequest $request)
     {
-        $emploiDuTemps = \App\Models\EmploiDuTemps::findOrFail($request->emploi_du_temps_id);
+        $emploiDuTemps = \App\Models\EmploiDuTemps::findOrFail($request->validated('emploi_du_temps_id'));
         $this->authorizeOwnershipOrFail($request, $emploiDuTemps);
 
-        $data = $request->validate([
-            'emploi_du_temps_id' => 'required|exists:emploi_du_temps,id',
-            'titre' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'date_debut' => 'required|date',
-            'date_fin' => 'nullable|date|after_or_equal:date_debut',
-            'lieu' => 'nullable|string|max:255',
-            'couleur' => 'nullable|string|max:7',
-            'est_journee_complete' => 'boolean',
-            'statut' => 'in:planifie,confirme,annule,termine',
-        ]);
-
-        return Evenement::create($data);
+        return EvenementResource::make(Evenement::create($request->validated()));
     }
 }

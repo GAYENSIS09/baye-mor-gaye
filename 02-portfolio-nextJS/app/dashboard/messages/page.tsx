@@ -8,6 +8,7 @@ import { useToast } from '@/contexts/ToastContext';
 import Pagination from '@/components/Pagination';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { Icons } from '@/components/ui/Icons';
 
 export default function ContactsDashboardPage() {
   const { utilisateur, loading: authLoading } = useAuth();
@@ -116,8 +117,8 @@ export default function ContactsDashboardPage() {
                     </button>
                   )}
                   <button onClick={() => setConfirmDelete(selected.id)}
-                    className="bg-red-900/20 text-red-400 px-4 py-2 rounded text-sm font-mono text-xs uppercase tracking-widest hover:bg-red-900/40">
-                    Supprimer
+                    className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10" aria-label="Supprimer">
+                    <Icons.trash className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -131,7 +132,7 @@ export default function ContactsDashboardPage() {
       )}
 
       <Pagination currentPage={currentPage} lastPage={lastPage} total={total} onPageChange={setCurrentPage} />
-      <ConfirmDialog open={confirmDelete !== null} title="Supprimer le message" message="Cette action est irréversible." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDelete) { try { await deleteContactMutation.mutateAsync(confirmDelete); setSelected(null); } catch { console.error('Erreur'); } setConfirmDelete(null); } } } onCancel={() => setConfirmDelete(null)} />
+      <ConfirmDialog open={confirmDelete !== null} title="Supprimer le message" message="Cette action est irréversible." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDelete) { try { await deleteContactMutation.mutateAsync(confirmDelete); setSelected(null); toast.success('Message supprimé'); } catch { toast.error('Erreur lors de la suppression'); } setConfirmDelete(null); } } } onCancel={() => setConfirmDelete(null)} />
     </div>
   );
 }

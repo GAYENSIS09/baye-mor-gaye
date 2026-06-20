@@ -3,6 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreEdtRequest;
+use App\Http\Requests\UpdateEdtRequest;
+use App\Http\Requests\ImportEdtRequest;
+use App\Http\Resources\ConversionResource;
+use App\Http\Resources\EmploiDuTempsResource;
 use App\Models\Conversion;
 use App\Models\EmploiDuTemps;
 use App\Services\Contracts\VisionServiceInterface;
@@ -18,35 +23,23 @@ class EdtController extends Controller
             $query->where('est_actif', true);
         }
 
-        return $query->get();
+        return EmploiDuTempsResource::collection($query->get());
     }
 
-    public function store(Request $request)
+    public function store(StoreEdtRequest $request)
     {
-        $data = $request->validate([
-            'titre' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'type' => 'required|in:professionnel,academique,personnel',
-        ]);
-
+        $data = $request->validated();
         $data['proprietaire_id'] = $request->user()->proprietaire->id;
 
-        return EmploiDuTemps::create($data);
+        return EmploiDuTempsResource::make(EmploiDuTemps::create($data));
     }
 
-    public function update(Request $request, EmploiDuTemps $emploiDuTemp)
+    public function update(UpdateEdtRequest $request, EmploiDuTemps $emploiDuTemp)
     {
         $this->authorizeOwnershipOrFail($request, $emploiDuTemp);
 
-        $data = $request->validate([
-            'titre' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
-            'type' => 'sometimes|in:professionnel,academique,personnel',
-            'est_actif' => 'boolean',
-        ]);
-
-        $emploiDuTemp->update($data);
-        return $emploiDuTemp;
+        $emploiDuTemp->update($request->validated());
+        return EmploiDuTempsResource::make($emploiDuTemp);
     }
 
     public function destroy(Request $request, EmploiDuTemps $emploiDuTemp)
@@ -56,12 +49,9 @@ class EdtController extends Controller
         return response()->noContent();
     }
 
-    public function import(Request $request)
+    public function import(ImportEdtRequest $request)
     {
-        $data = $request->validate([
-            'fichier' => 'required|file|mimes:jpg,jpeg,png,pdf|max:10240',
-            'edt_id'  => 'required|exists:emploi_du_temps,id',
-        ]);
+        $data = $request->validated();
 
         $chemin = $request->file('fichier')->store('edt-imports', 'local');
 
@@ -77,6 +67,6 @@ class EdtController extends Controller
             'type'               => 'image',
         ]);
 
-        return response()->json($conversion, 201);
+        return response()->json(ConversionResource::make($conversion), 201);
     }
 }

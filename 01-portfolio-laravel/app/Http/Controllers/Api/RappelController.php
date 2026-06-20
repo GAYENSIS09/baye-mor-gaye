@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreRappelRequest;
+use App\Http\Requests\UpdateRappelRequest;
+use App\Http\Resources\RappelResource;
 use App\Models\Rappel;
 use Illuminate\Http\Request;
 
@@ -16,35 +19,23 @@ class RappelController extends Controller
             $query->where('est_notifie', false);
         }
 
-        return $query->orderBy('created_at', 'desc')->paginate(20);
+        return RappelResource::collection($query->orderBy('created_at', 'desc')->paginate(20));
     }
 
-    public function store(Request $request)
+    public function store(StoreRappelRequest $request)
     {
-        $data = $request->validate([
-            'evenement_id' => 'nullable|exists:evenements,id',
-            'titre' => 'required|string|max:255',
-            'message' => 'nullable|string',
-            'notifie_le' => 'nullable|date',
-        ]);
-
+        $data = $request->validated();
         $data['proprietaire_id'] = $request->user()->proprietaire->id;
 
-        return Rappel::create($data);
+        return RappelResource::make(Rappel::create($data));
     }
 
-    public function update(Request $request, Rappel $rappel)
+    public function update(UpdateRappelRequest $request, Rappel $rappel)
     {
         $this->authorizeOwnershipOrFail($request, $rappel);
 
-        $data = $request->validate([
-            'titre' => 'sometimes|string|max:255',
-            'message' => 'nullable|string',
-            'notifie_le' => 'nullable|date',
-        ]);
-
-        $rappel->update($data);
-        return $rappel;
+        $rappel->update($request->validated());
+        return RappelResource::make($rappel);
     }
 
     public function destroy(Request $request, Rappel $rappel)

@@ -2,22 +2,18 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { CertificationFormSchema, type CertificationFormData } from '@/schemas/forms';
 import { useCertifications } from '@/hooks/queries';
 import { useCreateCertification, useUpdateCertification, useDeleteCertification } from '@/hooks/mutations';
 import { Certification } from '@/types/api';
 import { useToast } from '@/contexts/ToastContext';
+import MediaViewer from '@/components/MediaViewer';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import EmptyState from '@/components/EmptyState';
 import { LoadingScreen } from '@/components/LoadingScreen';
-
-interface FormData {
-  titre: string; organisme: string; description: string;
-  date_obtention: string; date_expiration: string; url_credential: string; ordre: number;
-}
-
-const emptyForm = (): FormData => ({
-  titre: '', organisme: '', description: '', date_obtention: '', date_expiration: '', url_credential: '', ordre: 0,
-});
+import { Icons } from '@/components/ui/Icons';
 
 export default function CertificationsPage() {
   const { utilisateur, loading: authLoading } = useAuth();
@@ -28,13 +24,37 @@ export default function CertificationsPage() {
   const toast = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
-  const [form, setForm] = useState<FormData>(emptyForm());
   const [saving, setSaving] = useState(false);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
 
-  function resetForm() { setForm(emptyForm()); setEditId(null); setShowForm(false); setMediaFile(null); setMediaPreview(''); }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<CertificationFormData>({
+    resolver: zodResolver(CertificationFormSchema),
+    defaultValues: {
+      titre: '',
+      organisme: '',
+      description: '',
+      url_credential: '',
+      date_obtention: '',
+      date_expiration: '',
+    },
+  });
+
+  function resetForm() {
+    reset({
+      titre: '', organisme: '', description: '', url_credential: '', date_obtention: '', date_expiration: '',
+    });
+    setEditId(null);
+    setShowForm(false);
+    setMediaFile(null);
+    setMediaPreview('');
+  }
 
   function handleMediaChange(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
@@ -45,20 +65,20 @@ export default function CertificationsPage() {
     reader.readAsDataURL(f);
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function onSubmit(data: CertificationFormData) {
     setSaving(true);
     try {
-      const payload = { ...form, description: form.description || undefined, url_credential: form.url_credential || undefined };
+      const payload = { ...data, description: data.description || undefined, url_credential: data.url_credential || undefined };
       if (mediaFile) {
         const fd = new FormData();
         Object.entries(payload).forEach(([k, v]) => { if (v !== undefined) fd.append(k, String(v)); });
         fd.append('media', mediaFile);
         if (editId) {
           fd.append('_method', 'PUT');
-          await updateCert.mutateAsync(fd as any);
+          fd.append('id', String(editId));
+          await updateCert.mutateAsync(fd);
         } else {
-          await createCert.mutateAsync(fd as any);
+          await createCert.mutateAsync(fd);
         }
       } else {
         if (editId) {
@@ -73,11 +93,31 @@ export default function CertificationsPage() {
     finally { setSaving(false); }
   }
 
+  const STORAGE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '/storage') || 'http://localhost:8000/storage';
+
+  function getMediaUrl(path: string | null | undefined): string | null {
+    if (!path) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return `${STORAGE_URL}/${path.replace(/^\//, '')}`;
+  }
+
   function startEdit(c: Certification) {
-    const exp = c as Certification & { date_expiration?: string; ordre?: number };
-    setForm({ titre: c.titre, organisme: c.organisme, description: c.description || '', date_obtention: c.date_obtention?.split('T')[0] || '', date_expiration: exp.date_expiration?.split('T')[0] || '', url_credential: c.url_credential || '', ordre: exp.ordre ?? 0 });
+    reset({
+      titre: c.titre,
+      organisme: c.organisme,
+      description: c.description || '',
+      date_obtention: c.date_obtention?.split('T')[0] || '',
+      date_expiration: c.date_expiration?.split('T')[0] || '',
+      url_credential: c.url_credential || '',
+    });
     setEditId(c.id);
     setShowForm(true);
+    if (c.medias?.length > 0) {
+      setMediaPreview(getMediaUrl(c.medias[0].chemin_fichier) || '');
+    } else {
+      setMediaPreview('');
+    }
+    setMediaFile(null);
   }
 
   if (authLoading) return <LoadingScreen />;
@@ -93,45 +133,45 @@ export default function CertificationsPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
           <h2 className="font-semibold text-off-white">{editId ? 'Modifier' : 'Nouvelle'} certification</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label htmlFor="cert-titre" className="sr-only">Titre</label>
-              <input id="cert-titre" name="titre" value={form.titre} onChange={(e) => setForm({ ...form, titre: e.target.value })} placeholder="Titre *" required autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              <input id="cert-titre" {...register("titre")} placeholder="Titre *" required autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              {errors.titre && <p className="text-red-400 text-xs mt-1">{errors.titre.message}</p>}
             </div>
             <div>
               <label htmlFor="cert-organisme" className="sr-only">Organisme</label>
-              <input id="cert-organisme" name="organisme" value={form.organisme} onChange={(e) => setForm({ ...form, organisme: e.target.value })} placeholder="Organisme *" required autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              <input id="cert-organisme" {...register("organisme")} placeholder="Organisme *" required autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              {errors.organisme && <p className="text-red-400 text-xs mt-1">{errors.organisme.message}</p>}
             </div>
             <div>
               <label htmlFor="cert-date" className="sr-only">Date d'obtention</label>
-              <input id="cert-date" name="date_obtention" type="date" value={form.date_obtention} onChange={(e) => setForm({ ...form, date_obtention: e.target.value })} required className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              <input id="cert-date" type="date" {...register("date_obtention")} required className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              {errors.date_obtention && <p className="text-red-400 text-xs mt-1">{errors.date_obtention.message}</p>}
             </div>
             <div>
               <label htmlFor="cert-url" className="sr-only">URL du credential</label>
-              <input id="cert-url" name="url_credential" type="url" value={form.url_credential} onChange={(e) => setForm({ ...form, url_credential: e.target.value })} placeholder="URL du justificatif" autoComplete="url" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              <input id="cert-url" type="url" {...register("url_credential")} placeholder="URL du justificatif" autoComplete="url" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              {errors.url_credential && <p className="text-red-400 text-xs mt-1">{errors.url_credential.message}</p>}
             </div>
             <div>
               <label htmlFor="cert-expiration" className="sr-only">Date d'expiration</label>
-              <input id="cert-expiration" name="date_expiration" type="date" value={form.date_expiration} onChange={(e) => setForm({ ...form, date_expiration: e.target.value })} placeholder="Date d'expiration" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-            </div>
-            <div>
-              <label htmlFor="cert-ordre" className="sr-only">Ordre</label>
-              <input id="cert-ordre" name="ordre" type="number" min="0" value={form.ordre} onChange={(e) => setForm({ ...form, ordre: parseInt(e.target.value) || 0 })} placeholder="Ordre" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              <input id="cert-expiration" type="date" {...register("date_expiration")} placeholder="Date d'expiration" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
             </div>
           </div>
           <div>
             <label htmlFor="cert-description" className="sr-only">Description</label>
-            <textarea id="cert-description" name="description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description" rows={3} autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+            <textarea id="cert-description" {...register("description")} placeholder="Description" rows={3} autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
           </div>
           <div>
             <label htmlFor="cert-media" className="block text-sm font-medium text-off-white mb-1">Image (optionnel)</label>
             <input id="cert-media" type="file" accept="image/*" onChange={handleMediaChange} className="w-full text-sm text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-[#222] file:text-off-white file:text-xs file:font-mono hover:file:bg-[#333]" />
             {mediaPreview && <img src={mediaPreview} alt="" className="mt-2 max-h-32 rounded object-contain border border-[#222]" />}
           </div>
-          <button type="submit" disabled={saving} className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
-            {saving ? 'Enregistrement...' : (editId ? 'Modifier' : 'Ajouter')}
+          <button type="submit" disabled={saving || isSubmitting} className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
+            {saving || isSubmitting ? 'Enregistrement...' : (editId ? 'Modifier' : 'Ajouter')}
           </button>
         </form>
       )}
@@ -159,13 +199,13 @@ export default function CertificationsPage() {
                 </p>
                 {c.description && <p className="text-sm text-muted mt-2 line-clamp-2">{c.description}</p>}
                 {c.medias?.length > 0 && (
-                  <img src={c.medias[0].chemin_fichier} alt="" className="mt-2 max-h-24 rounded object-contain border border-[#222]" />
+                  <MediaViewer src={c.medias[0].chemin_fichier} alt="" width={200} height={96} className="mt-2 max-h-24 rounded object-contain border border-[#222]" />
                 )}
                 {c.url_credential && <a href={c.url_credential} target="_blank" rel="noopener noreferrer" className="text-sm text-acid hover:underline mt-1 inline-block">Voir le justificatif ↗</a>}
               </div>
               <div className="flex gap-2 shrink-0">
-                <button onClick={() => startEdit(c)} className="text-sm text-acid hover:text-acid/80" aria-label="Modifier">Modifier</button>
-                <button onClick={() => setConfirmDelete(c.id)} className="text-sm text-red-400 hover:text-red-300" aria-label="Supprimer">Supprimer</button>
+                <button onClick={() => startEdit(c)} className="p-2 text-acid hover:text-acid/80 transition-colors rounded hover:bg-acid/10" aria-label="Modifier"><Icons.edit className="w-4 h-4" /></button>
+                <button onClick={() => setConfirmDelete(c.id)} className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10" aria-label="Supprimer"><Icons.trash className="w-4 h-4" /></button>
               </div>
             </div>
           ))}

@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreProjetPortfolioRequest;
+use App\Http\Requests\UpdateProjetPortfolioRequest;
+use App\Http\Resources\ProjetPortfolioResource;
 use App\Models\ProjetPortfolio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -15,10 +18,10 @@ class ProjetPortfolioController extends Controller
         // Cache only the public list without filters
         if ($request->boolean('publie') && !$request->has('technologie')) {
             return Cache::remember('projets.publies', 3600, function () {
-                return ProjetPortfolio::with(['commentaires.auteur', 'likes.auteur', 'medias'])
+                return ProjetPortfolioResource::collection(ProjetPortfolio::with(['commentaires.auteur', 'likes.auteur', 'medias'])
                     ->where('est_publie', true)
                     ->orderBy('created_at', 'desc')
-                    ->paginate(12);
+                    ->paginate(12));
             });
         }
 
@@ -32,31 +35,21 @@ class ProjetPortfolioController extends Controller
             $query->whereJsonContains('technologies', $request->technologie);
         }
 
-        return $query->orderBy('created_at', 'desc')->paginate(12);
+        return ProjetPortfolioResource::collection($query->orderBy('created_at', 'desc')->paginate(12));
     }
 
     public function show(string $slug)
     {
         $query = ProjetPortfolio::with(['commentaires.auteur', 'likes.auteur', 'medias']);
         if (is_numeric($slug)) {
-            return $query->findOrFail((int) $slug);
+            return ProjetPortfolioResource::make($query->findOrFail((int) $slug));
         }
-        return $query->where('slug', $slug)->firstOrFail();
+        return ProjetPortfolioResource::make($query->where('slug', $slug)->firstOrFail());
     }
 
-    public function store(Request $request)
+    public function store(StoreProjetPortfolioRequest $request)
     {
-        $data = $request->validate([
-            'titre' => 'required|string|max:255',
-            'description' => 'required|string',
-            'technologies' => 'nullable|array',
-            'technologies.*' => 'string',
-            'url_demo' => 'nullable|url|max:500',
-            'url_code' => 'nullable|url|max:500',
-            'image_couverture' => 'nullable|string',
-            'est_publie' => 'boolean',
-        ]);
-
+        $data = $request->validated();
         $data['slug'] = Str::slug($data['titre']) . '-' . Str::random(6);
         $data['proprietaire_id'] = $request->user()->proprietaire->id;
 
@@ -64,36 +57,30 @@ class ProjetPortfolioController extends Controller
             $data['publie_le'] = now();
         }
 
-        return ProjetPortfolio::create($data);
+        Cache::forget('projets.publies');
+        return ProjetPortfolioResource::make(ProjetPortfolio::create($data));
     }
 
-    public function update(Request $request, ProjetPortfolio $projetPortfolio)
+    public function update(UpdateProjetPortfolioRequest $request, ProjetPortfolio $projetPortfolio)
     {
         $this->authorizeOwnershipOrFail($request, $projetPortfolio);
 
-        $data = $request->validate([
-            'titre' => 'sometimes|string|max:255',
-            'description' => 'sometimes|string',
-            'technologies' => 'nullable|array',
-            'technologies.*' => 'string',
-            'url_demo' => 'nullable|url|max:500',
-            'url_code' => 'nullable|url|max:500',
-            'image_couverture' => 'nullable|string',
-            'est_publie' => 'boolean',
-        ]);
+        $data = $request->validated();
 
         if (isset($data['est_publie']) && $data['est_publie'] && !$projetPortfolio->publie_le) {
             $data['publie_le'] = now();
         }
 
         $projetPortfolio->update($data);
-        return $projetPortfolio;
+        Cache::forget('projets.publies');
+        return ProjetPortfolioResource::make($projetPortfolio);
     }
 
     public function destroy(Request $request, ProjetPortfolio $projetPortfolio)
     {
         $this->authorizeOwnershipOrFail($request, $projetPortfolio);
         $projetPortfolio->delete();
+        Cache::forget('projets.publies');
         return response()->noContent();
     }
 }

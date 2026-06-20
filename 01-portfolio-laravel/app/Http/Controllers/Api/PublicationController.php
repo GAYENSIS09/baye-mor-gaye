@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePublicationRequest;
+use App\Http\Requests\UpdatePublicationRequest;
+use App\Http\Resources\PublicationResource;
 use App\Models\Publication;
 use App\Services\HtmlPurifierService;
 use Illuminate\Http\Request;
@@ -16,10 +19,10 @@ class PublicationController extends Controller
         // Cache only the public list without filters
         if ($request->boolean('publie') && !$request->has('type') && !$request->has('domaine')) {
             return Cache::remember('publications.publies', 3600, function () {
-                return Publication::with(['domaines', 'commentaires.auteur', 'likes.auteur'])
+                return PublicationResource::collection(Publication::with(['domaines', 'commentaires.auteur', 'likes.auteur'])
                     ->where('est_publie', true)
                     ->orderBy('created_at', 'desc')
-                    ->paginate(12);
+                    ->paginate(12));
             });
         }
 
@@ -37,32 +40,21 @@ class PublicationController extends Controller
             $query->whereHas('domaines', fn($q) => $q->where('slug', $request->domaine));
         }
 
-        return $query->orderBy('created_at', 'desc')->paginate(12);
+        return PublicationResource::collection($query->orderBy('created_at', 'desc')->paginate(12));
     }
 
     public function show(string $slug)
     {
         $query = Publication::with(['domaines', 'commentaires.auteur', 'likes.auteur']);
         if (is_numeric($slug)) {
-            return $query->findOrFail((int) $slug);
+            return PublicationResource::make($query->findOrFail((int) $slug));
         }
-        return $query->where('slug', $slug)->firstOrFail();
+        return PublicationResource::make($query->where('slug', $slug)->firstOrFail());
     }
 
-    public function store(Request $request)
+    public function store(StorePublicationRequest $request)
     {
-        $data = $request->validate([
-            'titre' => 'required|string|max:255',
-            'contenu' => 'required|string',
-            'contenu_json' => 'nullable|json',
-            'contenu_html' => 'nullable|string',
-            'type' => 'required|in:article,tutoriel,note',
-            'extrait' => 'nullable|string|max:500',
-            'image_couverture' => 'nullable|string',
-            'est_publie' => 'boolean',
-            'domaines' => 'nullable|array',
-            'domaines.*' => 'exists:domaines,id',
-        ]);
+        $data = $request->validated();
 
         if (!empty($data['contenu_html'])) {
             $data['contenu_html'] = $this->purifierContenu($data['contenu_html']);
@@ -81,25 +73,15 @@ class PublicationController extends Controller
             $publication->domaines()->sync($data['domaines']);
         }
 
-        return $publication->load('domaines');
+        Cache::forget('publications.publies');
+        return PublicationResource::make($publication->load('domaines'));
     }
 
-    public function update(Request $request, Publication $publication)
+    public function update(UpdatePublicationRequest $request, Publication $publication)
     {
         $this->authorizeOwnershipOrFail($request, $publication);
 
-        $data = $request->validate([
-            'titre' => 'sometimes|string|max:255',
-            'contenu' => 'sometimes|string',
-            'contenu_json' => 'nullable|json',
-            'contenu_html' => 'nullable|string',
-            'type' => 'sometimes|in:article,tutoriel,note',
-            'extrait' => 'nullable|string|max:500',
-            'image_couverture' => 'nullable|string',
-            'est_publie' => 'boolean',
-            'domaines' => 'nullable|array',
-            'domaines.*' => 'exists:domaines,id',
-        ]);
+        $data = $request->validated();
 
         if (!empty($data['contenu_html'])) {
             $data['contenu_html'] = $this->purifierContenu($data['contenu_html']);
@@ -115,13 +97,15 @@ class PublicationController extends Controller
             $publication->domaines()->sync($data['domaines']);
         }
 
-        return $publication->load('domaines');
+        Cache::forget('publications.publies');
+        return PublicationResource::make($publication->load('domaines'));
     }
 
     public function destroy(Request $request, Publication $publication)
     {
         $this->authorizeOwnershipOrFail($request, $publication);
         $publication->delete();
+        Cache::forget('publications.publies');
         return response()->noContent();
     }
 

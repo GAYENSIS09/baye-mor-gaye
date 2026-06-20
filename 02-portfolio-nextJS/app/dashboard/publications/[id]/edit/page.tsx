@@ -2,6 +2,9 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { PublicationFormSchema, type PublicationFormData } from '@/schemas/forms';
 import { uploadImage } from '@/lib/upload';
 import { useRouter, useParams } from 'next/navigation';
 import { useDomaines, usePublicationById } from '@/hooks/queries';
@@ -9,6 +12,7 @@ import { Domaine } from '@/types/api';
 import { useUpdatePublication } from '@/hooks/mutations';
 import TipTapEditor from '@/components/TipTapEditor';
 import { useToast } from '@/contexts/ToastContext';
+import MediaViewer from '@/components/MediaViewer';
 import { LoadingScreen } from '@/components/LoadingScreen';
 
 export default function EditPublicationPage() {
@@ -20,30 +24,38 @@ export default function EditPublicationPage() {
   const { data: publication, isLoading: loadingPub } = usePublicationById(pubId);
   const updatePublication = useUpdatePublication(pubId);
   const toast = useToast();
-  const [titre, setTitre] = useState('');
   const [contenu, setContenu] = useState('');
-  const [type, setType] = useState('article');
-  const [extrait, setExtrait] = useState('');
   const [selectedDomaines, setSelectedDomaines] = useState<number[]>([]);
   const [imageCouverture, setImageCouverture] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [estPublie, setEstPublie] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [initialized, setInitialized] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setValue,
+    reset,
+  } = useForm<PublicationFormData>({
+    resolver: zodResolver(PublicationFormSchema),
+  });
 
   useEffect(() => {
     if (publication && !initialized) {
-      setTitre(publication.titre);
       setContenu(publication.contenu);
-      setType(publication.type);
-      setExtrait(publication.extrait ?? '');
-      setEstPublie(publication.est_publie);
+      setValue('contenu', publication.contenu, { shouldValidate: false });
       setSelectedDomaines(publication.domaines?.map((d: Domaine) => d.id) ?? []);
       setImageCouverture(publication.image_couverture ?? '');
+      reset({
+        titre: publication.titre,
+        type: publication.type as 'article' | 'tutoriel' | 'note',
+        extrait: publication.extrait ?? '',
+        est_publie: publication.est_publie,
+      });
       setInitialized(true);
     }
-  }, [publication, initialized]);
+  }, [publication, initialized, reset, setValue]);
 
   useEffect(() => {
     if (!authLoading && !utilisateur) {
@@ -51,9 +63,12 @@ export default function EditPublicationPage() {
     }
   }, [authLoading, utilisateur, router]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
+  function handleContenuChange(value: string) {
+    setContenu(value);
+    setValue('contenu', value, { shouldValidate: false });
+  }
+
+  async function onSubmit(data: PublicationFormData) {
     let imageUrl = imageCouverture || undefined;
     if (imageFile) {
       setUploading(true);
@@ -69,21 +84,16 @@ export default function EditPublicationPage() {
     }
     try {
       await updatePublication.mutateAsync({
-        titre,
+        ...data,
         contenu,
         contenu_html: contenu || undefined,
-        type,
-        extrait: extrait || undefined,
         image_couverture: imageUrl,
         domaines: selectedDomaines.length > 0 ? selectedDomaines : undefined,
-        est_publie: estPublie,
       });
       toast.success('Publication modifiée');
       router.push('/dashboard/publications');
     } catch {
       toast.error('Erreur lors de la modification');
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -94,29 +104,32 @@ export default function EditPublicationPage() {
     <div className="max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-6 text-off-white">Modifier la publication</h1>
 
-      <form onSubmit={handleSubmit} className="bg-[#111] p-6 rounded border border-[#222] space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="bg-[#111] p-6 rounded border border-[#222] space-y-4">
         <div>
           <label className="block text-sm font-medium text-off-white">Titre</label>
-          <input value={titre} onChange={(e) => setTitre(e.target.value)} required
+          <input {...register("titre")}
             className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white" />
+          {errors.titre && <p className="text-red-400 text-xs mt-1">{errors.titre.message}</p>}
         </div>
         <div>
           <label className="block text-sm font-medium text-off-white">Type</label>
-          <select value={type} onChange={(e) => setType(e.target.value)}
+          <select {...register("type")}
             className="w-full border border-[#333] rounded px-3 py-2 bg-[#111] text-off-white">
             <option value="article">Article</option>
             <option value="tutoriel">Tutoriel</option>
             <option value="note">Note</option>
           </select>
+          {errors.type && <p className="text-red-400 text-xs mt-1">{errors.type.message}</p>}
         </div>
         <div>
           <label className="block text-sm font-medium text-off-white">Extrait</label>
-          <textarea value={extrait} onChange={(e) => setExtrait(e.target.value)} rows={2}
+          <textarea {...register("extrait")} rows={2}
             className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white" />
         </div>
         <div>
           <label className="block text-sm font-medium text-off-white">Contenu</label>
-          <TipTapEditor content={contenu} onChange={setContenu} />
+          <TipTapEditor content={contenu} onChange={handleContenuChange} />
+          {errors.contenu && <p className="text-red-400 text-xs mt-1">{errors.contenu.message}</p>}
         </div>
         <div>
           <label className="block text-sm font-medium text-off-white mb-1">Domaines</label>
@@ -134,20 +147,19 @@ export default function EditPublicationPage() {
         </div>
         <div>
           <label className="block text-sm font-medium text-off-white">Image de couverture</label>
-          {imageCouverture && <img src={imageCouverture} alt="Preview" className="h-32 object-cover rounded mb-2" />}
+          {imageCouverture && <MediaViewer src={imageCouverture} alt="Preview" width={400} height={128} className="h-32 object-cover rounded mb-2" />}
           <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)}
             className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white" />
           {uploading && <p className="text-xs text-muted mt-1">Upload en cours...</p>}
         </div>
         <div className="flex items-center gap-2">
-          <input type="checkbox" id="publier" checked={estPublie}
-            onChange={(e) => setEstPublie(e.target.checked)} className="accent-acid" />
+          <input type="checkbox" id="publier" {...register("est_publie")} className="accent-acid" />
           <label htmlFor="publier" className="text-sm text-off-white">Publier</label>
         </div>
         <div className="flex gap-3">
-          <button type="submit" disabled={saving}
+          <button type="submit" disabled={isSubmitting}
             className="bg-acid text-black px-6 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
-            {saving ? 'Enregistrement...' : 'Enregistrer'}
+            {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}
           </button>
           <button type="button" onClick={() => router.back()}
             className="bg-[#222] text-off-white px-6 py-2 rounded hover:bg-[#333] font-mono text-xs uppercase tracking-widest">

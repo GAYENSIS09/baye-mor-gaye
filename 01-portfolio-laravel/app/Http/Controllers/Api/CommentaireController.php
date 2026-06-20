@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCommentaireRequest;
+use App\Http\Requests\UpdateCommentaireRequest;
+use App\Http\Resources\CommentaireResource;
 use App\Mail\CommentaireApprouve;
 use App\Mail\CommentaireRejete;
 use App\Models\Commentaire;
@@ -18,16 +21,16 @@ class CommentaireController extends Controller
     {
         $model = $this->resolveModel($commentableType, $commentableId);
 
-        return $model->commentaires()->with('auteur')->where('est_approuve', true)->paginate(20);
+        return CommentaireResource::collection($model->commentaires()->with('auteur')->where('est_approuve', true)->paginate(20));
     }
 
-    public function store(Request $request)
+    public function store(StoreCommentaireRequest $request)
     {
-        $data = $request->validate([
-            'commentable_type' => 'required|in:publication,projet_portfolio',
-            'commentable_id' => 'required|integer',
-            'contenu' => 'required|string|min:2|max:2000',
-        ]);
+        $data = $request->validated();
+
+        if (!in_array($data['commentable_type'], ['publication', 'publications', 'projet_portfolio', 'projets'])) {
+            abort(422, 'Type de commentaire invalide');
+        }
 
         $model = $this->resolveModel($data['commentable_type'], $data['commentable_id']);
 
@@ -37,7 +40,7 @@ class CommentaireController extends Controller
             'est_approuve' => false,
         ]);
 
-        return $commentaire->load('auteur');
+        return CommentaireResource::make($commentaire->load('auteur'));
     }
 
     public function approuver(Request $request, Commentaire $commentaire)
@@ -58,7 +61,7 @@ class CommentaireController extends Controller
             Mail::to($commentaire->auteur->email)->queue(new CommentaireApprouve($commentaire));
         }
 
-        return response()->json($commentaire->load('auteur'));
+        return response()->json(CommentaireResource::make($commentaire->load('auteur')));
     }
 
     public function rejeter(Request $request, Commentaire $commentaire)
@@ -82,20 +85,34 @@ class CommentaireController extends Controller
         return response()->json(['message' => 'Commentaire rejeté']);
     }
 
+    public function publicationCommentaires(string $slug)
+    {
+        $publication = Publication::where('slug', $slug)->firstOrFail();
+
+        return CommentaireResource::collection($publication->commentaires()->with('auteur')->where('est_approuve', true)->paginate(20));
+    }
+
+    public function projetCommentaires(string $slug)
+    {
+        $projet = ProjetPortfolio::where('slug', $slug)->firstOrFail();
+
+        return CommentaireResource::collection($projet->commentaires()->with('auteur')->where('est_approuve', true)->paginate(20));
+    }
+
     public function enAttente(Request $request)
     {
         $proprietaireId = $this->getProprietaireId($request);
         if (!$proprietaireId) {
             abort(403);
         }
-        return Commentaire::with(['auteur', 'commentable'])
+        return CommentaireResource::collection(Commentaire::with(['auteur', 'commentable'])
             ->where('est_approuve', false)
             ->where(function ($q) use ($proprietaireId) {
                 $q->whereHasMorph('commentable', [Publication::class], fn($sq) => $sq->where('proprietaire_id', $proprietaireId))
                   ->orWhereHasMorph('commentable', [ProjetPortfolio::class], fn($sq) => $sq->where('proprietaire_id', $proprietaireId));
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(20);
+            ->paginate(20));
     }
 
     public function destroy(Request $request, Commentaire $commentaire)
@@ -105,11 +122,20 @@ class CommentaireController extends Controller
         return response()->noContent();
     }
 
+    public function update(UpdateCommentaireRequest $request, Commentaire $commentaire)
+    {
+        $this->authorizeOwnershipOrFail($request, $commentaire->commentable);
+
+        $commentaire->update($request->validated());
+
+        return CommentaireResource::make($commentaire->load('auteur'));
+    }
+
     private function resolveModel(string $type, int $id)
     {
         return match ($type) {
-            'publication' => \App\Models\Publication::findOrFail($id),
-            'projet_portfolio' => \App\Models\ProjetPortfolio::findOrFail($id),
+            'publication', 'publications' => \App\Models\Publication::findOrFail($id),
+            'projet_portfolio', 'projets' => \App\Models\ProjetPortfolio::findOrFail($id),
         };
     }
 }

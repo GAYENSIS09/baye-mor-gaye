@@ -24,7 +24,16 @@ export function useCreateFormation() {
 export function useUpdateFormation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: number } & Record<string, unknown>) => api.put(`/formations/${id}`, data),
+    mutationFn: (arg: ({ id: number } & Record<string, unknown>) | FormData) => {
+      if (arg instanceof FormData) {
+        const id = Number(arg.get('id'));
+        arg.delete('_method');
+        arg.delete('id');
+        return api.put(`/formations/${id}`, arg);
+      }
+      const { id, ...data } = arg;
+      return api.put(`/formations/${id}`, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.formations() });
       queryClient.invalidateQueries({ queryKey: qk.profile() });

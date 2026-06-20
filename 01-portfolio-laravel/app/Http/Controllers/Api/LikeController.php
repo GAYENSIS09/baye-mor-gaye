@@ -3,22 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ToggleLikeRequest;
 use App\Models\Commentaire;
 use App\Models\Like;
 use App\Models\ProjetPortfolio;
 use App\Models\Publication;
-use Illuminate\Http\Request;
 
 class LikeController extends Controller
 {
-    public function toggle(Request $request)
+    public function toggle(ToggleLikeRequest $request)
     {
-        $data = $request->validate([
-            'likeable_type'  => 'required_without_all:publication_id,projet_id|in:publication,projet_portfolio,commentaire',
-            'likeable_id'    => 'required_without_all:publication_id,projet_id|integer',
-            'publication_id' => 'required_without_all:likeable_type,likeable_id|exists:publications,id',
-            'projet_id'      => 'required_without_all:likeable_type,likeable_id|exists:projet_portfolios,id',
-        ]);
+        $data = $request->validated();
 
         // Support both morph and direct publication_id/projet_id
         if (isset($data['publication_id'])) {

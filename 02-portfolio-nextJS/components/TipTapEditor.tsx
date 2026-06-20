@@ -14,6 +14,7 @@ import TableHeader from '@tiptap/extension-table-header';
 import { common, createLowlight } from 'lowlight';
 import { uploadImage } from '@/lib/upload';
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { sanitizeHtml } from '@/lib/sanitize';
 
 const lowlight = createLowlight(common);
 
@@ -105,7 +106,7 @@ export default function TipTapEditor({ content, onChange, placeholder = 'Écrive
     ],
     content,
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
+      onChange(sanitizeHtml(editor.getHTML()));
     },
     editorProps: {
       attributes: {

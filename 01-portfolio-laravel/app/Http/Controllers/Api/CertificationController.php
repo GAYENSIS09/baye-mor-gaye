@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreCertificationRequest;
+use App\Http\Requests\UpdateCertificationRequest;
+use App\Http\Resources\CertificationResource;
 use App\Models\Certification;
 use App\Models\Proprietaire;
 use Illuminate\Http\Request;
@@ -19,54 +22,65 @@ class CertificationController extends Controller
                 return response()->json(['message' => 'Aucun profil trouve.'], 404);
             }
 
-            return $proprietaire->certifications()->orderBy('ordre')->orderByDesc('date_obtention')->get();
+            return CertificationResource::collection($proprietaire->certifications()->with('medias')->orderBy('ordre')->orderByDesc('date_obtention')->get());
         });
     }
 
     public function show(Certification $certification)
     {
-        return $certification->load('medias');
+        return CertificationResource::make($certification->load('medias'));
     }
 
-    public function store(Request $request)
+    public function store(StoreCertificationRequest $request)
     {
-        $data = $request->validate([
-            'titre' => 'required|string|max:255',
-            'organisme' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'date_obtention' => 'required|date',
-            'date_expiration' => 'nullable|date|after_or_equal:date_obtention',
-            'url_credential' => 'nullable|url|max:255',
-            'ordre' => 'integer|min:0',
-        ]);
-
+        $data = $request->validated();
         $data['proprietaire_id'] = $request->user()->proprietaire->id;
 
-        return Certification::create($data);
+        $certification = Certification::create($data);
+
+        if ($request->hasFile('media')) {
+            $path = $request->file('media')->store('uploads/certifications', 'public');
+            $certification->medias()->create([
+                'type' => 'image',
+                'chemin_fichier' => $path,
+                'titre' => $data['titre'] ?? null,
+                'ordre' => 0,
+            ]);
+        }
+
+        Cache::forget('profile.public');
+        Cache::forget('certifications.public');
+        return CertificationResource::make($certification->load('medias'));
     }
 
-    public function update(Request $request, Certification $certification)
+    public function update(UpdateCertificationRequest $request, Certification $certification)
     {
         $this->authorizeOwnershipOrFail($request, $certification);
 
-        $data = $request->validate([
-            'titre' => 'sometimes|string|max:255',
-            'organisme' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
-            'date_obtention' => 'sometimes|date',
-            'date_expiration' => 'nullable|date|after_or_equal:date_obtention',
-            'url_credential' => 'nullable|url|max:255',
-            'ordre' => 'integer|min:0',
-        ]);
+        $certification->update($request->validated());
 
-        $certification->update($data);
-        return $certification;
+        if ($request->hasFile('media')) {
+            $certification->medias()->delete();
+            $path = $request->file('media')->store('uploads/certifications', 'public');
+            $certification->medias()->create([
+                'type' => 'image',
+                'chemin_fichier' => $path,
+                'titre' => $certification->titre,
+                'ordre' => 0,
+            ]);
+        }
+
+        Cache::forget('profile.public');
+        Cache::forget('certifications.public');
+        return CertificationResource::make($certification->load('medias'));
     }
 
     public function destroy(Request $request, Certification $certification)
     {
         $this->authorizeOwnershipOrFail($request, $certification);
         $certification->delete();
+        Cache::forget('profile.public');
+        Cache::forget('certifications.public');
         return response()->noContent();
     }
 }

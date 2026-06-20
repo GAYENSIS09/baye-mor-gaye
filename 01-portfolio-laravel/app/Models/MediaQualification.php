@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class MediaQualification extends Model
 {
+    use HasFactory;
     protected $table = 'media_qualifications';
 
     protected $fillable = [

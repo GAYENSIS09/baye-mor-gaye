@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreDomaineRequest;
+use App\Http\Requests\UpdateDomaineRequest;
+use App\Http\Resources\DomaineResource;
 use App\Models\Domaine;
 use App\Models\Ressource;
 use Illuminate\Http\Request;
@@ -21,56 +24,50 @@ class DomaineController extends Controller
             return Cache::remember("domaines.user.{$proprietaireId}", 3600, function () use ($proprietaireId) {
                 $proprietaire = \App\Models\Proprietaire::find($proprietaireId);
                 return $proprietaire
-                    ? $proprietaire->domaines()->withCount(['publications', 'ressources'])->get()
+                    ? DomaineResource::collection($proprietaire->domaines()->withCount(['publications', 'ressources'])->get())
                     : collect();
             });
         }
 
         return Cache::remember('domaines.public', 3600, function () {
-            return Domaine::all();
+            return DomaineResource::collection(Domaine::all());
         });
     }
 
     public function show(Domaine $domaine)
     {
-        return $domaine->load('publications', 'ressources');
+        return DomaineResource::make($domaine->load('publications', 'ressources'));
     }
 
-    public function store(Request $request)
+    public function store(StoreDomaineRequest $request)
     {
-        $data = $request->validate([
-            'nom' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:domaines,slug',
-            'description' => 'nullable|string',
-            'couleur' => 'nullable|string|max:7',
-        ]);
-
+        $data = $request->validated();
         $data['slug'] = $data['slug'] ?? Str::slug($data['nom']);
         $data['proprietaire_id'] = $request->user()->proprietaire->id;
 
-        return Domaine::create($data);
+        $proprietaireId = $request->user()->proprietaire->id;
+        Cache::forget("domaines.user.{$proprietaireId}");
+        Cache::forget('domaines.public');
+        return DomaineResource::make(Domaine::create($data));
     }
 
-    public function update(Request $request, Domaine $domaine)
+    public function update(UpdateDomaineRequest $request, Domaine $domaine)
     {
         $this->authorizeOwnershipOrFail($request, $domaine);
 
-        $data = $request->validate([
-            'nom' => 'sometimes|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:domaines,slug,' . $domaine->id,
-            'description' => 'nullable|string',
-            'couleur' => 'nullable|string|max:7',
-        ]);
+        $domaine->update($request->validated());
 
-        $domaine->update($data);
-
-        return $domaine;
+        $proprietaireId = $request->user()->proprietaire->id;
+        Cache::forget("domaines.user.{$proprietaireId}");
+        Cache::forget('domaines.public');
+        return DomaineResource::make($domaine);
     }
 
     public function destroy(Request $request, Domaine $domaine)
     {
         $this->authorizeOwnershipOrFail($request, $domaine);
 
+        $proprietaireId = $request->user()->proprietaire->id;
         DB::transaction(function () use ($domaine) {
             $domaine->publications()->detach();
             Ressource::where('domaine_id', $domaine->id)
@@ -78,6 +75,8 @@ class DomaineController extends Controller
             $domaine->delete();
         });
 
+        Cache::forget("domaines.user.{$proprietaireId}");
+        Cache::forget('domaines.public');
         return response()->json(['message' => 'Domaine supprimé, publications dissociées']);
     }
 }

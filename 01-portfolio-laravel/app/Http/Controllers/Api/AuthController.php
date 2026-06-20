@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreAuthRequest;
+use App\Http\Resources\UtilisateurResource;
 use App\Models\Utilisateur;
 use App\Models\Proprietaire;
 use Illuminate\Http\Request;
@@ -11,13 +13,9 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+    public function register(StoreAuthRequest $request)
     {
-        $data = $request->validate([
-            'nom' => 'required|string|max:255',
-            'email' => 'required|email|unique:utilisateurs,email',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+        $data = $request->validated();
 
         $utilisateur = Utilisateur::create([
             'nom' => $data['nom'],
@@ -41,12 +39,9 @@ class AuthController extends Controller
         ], 201);
     }
 
-    public function login(Request $request)
+    public function login(StoreAuthRequest $request)
     {
-        $data = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-        ]);
+        $data = $request->validated();
 
         $utilisateur = Utilisateur::where('email', $data['email'])->first();
 
@@ -68,7 +63,7 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return $request->user()->load('proprietaire');
+        return UtilisateurResource::make($request->user()->load('proprietaire'));
     }
 
     public function logout(Request $request)

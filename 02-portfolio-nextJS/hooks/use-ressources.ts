@@ -33,3 +33,12 @@ export function useUpdateRessource() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.ressources() }),
   });
 }
+
+export function useCreateRessourceMedia() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { qualifiable_type: string; qualifiable_id: number; type: string; chemin_fichier: string; titre?: string }) =>
+      api.post('/media-qualifications', data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.ressources() }),
+  });
+}

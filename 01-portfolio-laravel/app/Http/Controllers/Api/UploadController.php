@@ -3,16 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreUploadRequest;
+use App\Http\Requests\StoreUploadImageRequest;
 use Illuminate\Http\Request;
 
 class UploadController extends Controller
 {
-    public function store(Request $request)
+    public function store(StoreUploadRequest $request)
     {
-        $data = $request->validate([
-            'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,zip,png,jpg,jpeg,gif,webp|max:10240',
-            'folder' => 'nullable|string|in:publications,projets,ressources,profils',
-        ]);
+        $data = $request->validated();
 
         $folder = $data['folder'] ?? 'publications';
         $path = $request->file('file')->store("uploads/{$folder}", 'public');
@@ -26,12 +25,9 @@ class UploadController extends Controller
         ], 201);
     }
 
-    public function uploadImage(Request $request)
+    public function uploadImage(StoreUploadImageRequest $request)
     {
-        $data = $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'folder' => 'nullable|string|in:publications,projets,ressources,profils',
-        ]);
+        $data = $request->validated();
 
         $folder = $data['folder'] ?? 'publications';
         $path = $request->file('image')->store("uploads/{$folder}", 'public');

@@ -2,12 +2,17 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { EdtFormSchema, type EdtFormData } from '@/schemas/forms';
 import Link from 'next/link';
 import { useEdt } from '@/hooks/queries';
 import { Evenement } from '@/types/api';
 import { useCreateEdt, useToggleEdt, useDeleteEdt, useImportConversion, useDeleteEvenement } from '@/hooks/mutations';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { useToast } from '@/contexts/ToastContext';
+import { Icons } from '@/components/ui/Icons';
 
 const DAYS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
@@ -31,14 +36,10 @@ export default function EdtDashboardPage() {
   const { utilisateur, loading: authLoading } = useAuth();
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
   const [showForm, setShowForm] = useState(false);
-  const [titre, setTitre] = useState('');
-  const [description, setDescription] = useState('');
-  const [type, setType] = useState('personnel');
   const [showImport, setShowImport] = useState(false);
   const [importUrl, setImportUrl] = useState('');
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState('');
-  const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [confirmDeleteEvent, setConfirmDeleteEvent] = useState<number | null>(null);
   const { data: edts = [], isLoading, isError, refetch } = useEdt();
@@ -47,6 +48,7 @@ export default function EdtDashboardPage() {
   const deleteEdt = useDeleteEdt();
   const deleteEvenement = useDeleteEvenement();
   const importConversion = useImportConversion();
+  const toast = useToast();
 
   const weekDays = useMemo(() => {
     return DAYS.map((_, i) => {
@@ -70,13 +72,28 @@ export default function EdtDashboardPage() {
     return map;
   }, [weekDays, edts]);
 
-  async function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+  } = useForm<EdtFormData>({
+    resolver: zodResolver(EdtFormSchema),
+    defaultValues: {
+      titre: '',
+      description: '',
+      type: 'personnel',
+      est_actif: false,
+    },
+  });
+
+  async function handleCreate(data: EdtFormData) {
     try {
-      await createEdt.mutateAsync({ titre, description: description || undefined, type });
-      setTitre(''); setDescription(''); setType('personnel'); setShowForm(false);
-    } catch { console.error('Erreur'); } finally { setSaving(false); }
+      await createEdt.mutateAsync(data);
+      reset({ titre: '', description: '', type: 'personnel', est_actif: false });
+      setShowForm(false);
+      toast.success('Emploi du temps créé');
+    } catch { toast.error("Erreur lors de la création"); }
   }
 
   if (authLoading) return <LoadingScreen />;
@@ -109,19 +126,27 @@ export default function EdtDashboardPage() {
       )}
 
       {showForm && (
-        <form onSubmit={handleCreate} className="bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
-          <input value={titre} onChange={(e) => setTitre(e.target.value)} placeholder="Titre" required
-            className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description"
-            className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none" rows={2} />
-          <select value={type} onChange={(e) => setType(e.target.value)}
-            className="w-full border border-[#333] rounded px-3 py-2 bg-[#111] text-off-white focus-visible:outline-none">
-            <option value="professionnel">Professionnel</option>
-            <option value="academique">Académique</option>
-            <option value="personnel">Personnel</option>
-          </select>
-          <button type="submit" disabled={saving} className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
-            {saving ? 'Création...' : 'Créer'}
+        <form onSubmit={handleSubmit(handleCreate)} noValidate className="bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
+          <div>
+            <input {...register("titre")} placeholder="Titre" required
+              className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+            {errors.titre && <p className="text-red-400 text-xs mt-1">{errors.titre.message}</p>}
+          </div>
+          <div>
+            <textarea {...register("description")} placeholder="Description"
+              className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none" rows={2} />
+          </div>
+          <div>
+            <select {...register("type")}
+              className="w-full border border-[#333] rounded px-3 py-2 bg-[#111] text-off-white focus-visible:outline-none">
+              <option value="professionnel">Professionnel</option>
+              <option value="academique">Académique</option>
+              <option value="personnel">Personnel</option>
+            </select>
+            {errors.type && <p className="text-red-400 text-xs mt-1">{errors.type.message}</p>}
+          </div>
+          <button type="submit" disabled={isSubmitting} className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
+            {isSubmitting ? 'Création...' : 'Créer'}
           </button>
         </form>
       )}
@@ -190,7 +215,7 @@ export default function EdtDashboardPage() {
                     <button onClick={() => toggleEdt.mutateAsync({ id: edt.id, est_actif: !edt.est_actif })}
                       className="text-sm text-acid hover:text-acid/80">{edt.est_actif ? 'Désactiver' : 'Activer'}</button>
                     <button onClick={() => setConfirmDelete(edt.id)}
-                      className="text-sm text-red-400 hover:text-red-300">Supprimer</button>
+                      className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10" aria-label="Supprimer"><Icons.trash className="w-4 h-4" /></button>
                   </div>
                 </div>
                 <div className="p-4">
@@ -242,9 +267,9 @@ export default function EdtDashboardPage() {
         </>
       )}
 
-      <ConfirmDialog open={confirmDelete !== null} title="Supprimer l'EDT" message="Tous les événements associés seront supprimés." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDelete) { try { await deleteEdt.mutateAsync(confirmDelete); } catch { console.error('Erreur'); } setConfirmDelete(null); } } } onCancel={() => setConfirmDelete(null)} />
+      <ConfirmDialog open={confirmDelete !== null} title="Supprimer l'EDT" message="Tous les événements associés seront supprimés." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDelete) { try { await deleteEdt.mutateAsync(confirmDelete); toast.success('Emploi du temps supprimé'); } catch { toast.error('Erreur lors de la suppression'); } setConfirmDelete(null); } } } onCancel={() => setConfirmDelete(null)} />
 
-      <ConfirmDialog open={confirmDeleteEvent !== null} title="Supprimer l'événement" message="Cette action est irréversible." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDeleteEvent) { try { await deleteEvenement.mutateAsync(confirmDeleteEvent); } catch { console.error('Erreur'); } setConfirmDeleteEvent(null); } } } onCancel={() => setConfirmDeleteEvent(null)} />
+      <ConfirmDialog open={confirmDeleteEvent !== null} title="Supprimer l'événement" message="Cette action est irréversible." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDeleteEvent) { try { await deleteEvenement.mutateAsync(confirmDeleteEvent); toast.success('Événement supprimé'); } catch { toast.error('Erreur lors de la suppression'); } setConfirmDeleteEvent(null); } } } onCancel={() => setConfirmDeleteEvent(null)} />
     </div>
   );
 }

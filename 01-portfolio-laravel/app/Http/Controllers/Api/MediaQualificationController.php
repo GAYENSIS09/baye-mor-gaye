@@ -3,28 +3,27 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreMediaQualificationRequest;
+use App\Http\Resources\MediaQualificationResource;
 use App\Models\MediaQualification;
 use App\Models\Experience;
 use App\Models\Formation;
 use App\Models\Certification;
+use App\Models\Ressource;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class MediaQualificationController extends Controller
 {
-    public function store(Request $request)
+    public function store(StoreMediaQualificationRequest $request)
     {
-        $data = $request->validate([
-            'qualifiable_type' => 'required|in:experience,formation,certification',
-            'qualifiable_id' => 'required|integer',
-            'type' => 'required|in:image,video,document,lien',
-            'chemin_fichier' => 'required|string|max:255',
-            'titre' => 'nullable|string|max:255',
-        ]);
+        $data = $request->validated();
 
         $modelClass = match ($data['qualifiable_type']) {
             'experience' => Experience::class,
             'formation' => Formation::class,
             'certification' => Certification::class,
+            'ressource' => Ressource::class,
         };
 
         $qualifiable = $modelClass::findOrFail($data['qualifiable_id']);
@@ -40,13 +39,16 @@ class MediaQualificationController extends Controller
             'ordre' => 0,
         ]);
 
-        return $media->fresh();
+        Cache::forget('profile.public');
+
+        return MediaQualificationResource::make($media->fresh());
     }
 
     public function destroy(Request $request, MediaQualification $mediaQualification)
     {
         $this->authorizeOwnershipOrFail($request, $mediaQualification->qualifiable);
         $mediaQualification->delete();
+        Cache::forget('profile.public');
         return response()->noContent();
     }
 }

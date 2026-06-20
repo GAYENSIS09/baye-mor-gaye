@@ -33,6 +33,8 @@ Route::post('/vues', [VuePageController::class, 'enregistrer'])->middleware('thr
 Route::get('/publications', [PublicationController::class, 'index']);
 Route::get('/publications/{slug}', [PublicationController::class, 'show']);
 Route::get('/commentaires/{commentableType}/{commentableId}', [CommentaireController::class, 'index']);
+Route::get('/publications/{slug}/commentaires', [CommentaireController::class, 'publicationCommentaires']);
+Route::get('/projets/{slug}/commentaires', [CommentaireController::class, 'projetCommentaires']);
 
 Route::get('/profile/public', [ProfileController::class, 'publicProfile']);
 
@@ -78,6 +80,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/commentaires', [CommentaireController::class, 'store']);
     Route::put('/commentaires/{commentaire}/approuver', [CommentaireController::class, 'approuver']);
     Route::delete('/commentaires/{commentaire}/rejeter', [CommentaireController::class, 'rejeter']);
+    Route::put('/commentaires/{commentaire}', [CommentaireController::class, 'update']);
+    Route::patch('/commentaires/{commentaire}', [CommentaireController::class, 'update']);
     Route::delete('/commentaires/{commentaire}', [CommentaireController::class, 'destroy']);
 
     Route::get('/statistiques', [StatistiqueController::class, 'index']);

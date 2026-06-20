@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Skeleton } from '@/components/Skeleton';
 import type { Publication } from '@/types/api';
 import { Icons } from '@/components/ui/Icons';
+import MediaViewer from '@/components/MediaViewer';
 
 const TYPES = [
   { value: '', label: 'Tous' },
@@ -24,7 +25,7 @@ function PublicationRow({ pub }: { pub: Publication }) {
       <div className="flex items-start gap-4">
         {pub.image_couverture && (
           <div className="hidden sm:block w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
-            <img src={pub.image_couverture} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <MediaViewer src={pub.image_couverture} alt="" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
           </div>
         )}
         <div className="flex-1 min-w-0">

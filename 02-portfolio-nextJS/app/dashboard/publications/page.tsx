@@ -12,6 +12,7 @@ import { Domaine } from '@/types/api';
 import Pagination from '@/components/Pagination';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { Icons } from '@/components/ui/Icons';
 
 const TYPES = ['article', 'tutoriel', 'note'];
 
@@ -107,7 +108,11 @@ export default function PublicationsDashboardPage() {
                 </div>
                 <p className="text-sm text-muted">
                   {p.publie_le ? new Date(p.publie_le).toLocaleDateString('fr-FR') : 'Non publié'}
-                  {(p.domaines?.length ?? 0) > 0 && ` — ${p.domaines.map((d: Domaine) => d.nom).join(', ')}`}
+                  {(p.domaines?.length ?? 0) > 0 && (
+                    <span> — {p.domaines.map((d: Domaine, i) => (
+                      <span key={d.id}>{i > 0 && ', '}<Link href="/dashboard/domaines" className="text-acid hover:underline">{d.nom}</Link></span>
+                    ))}</span>
+                  )}
                 </p>
               </div>
               <div className="flex items-center gap-2 ml-4 flex-shrink-0">
@@ -116,12 +121,12 @@ export default function PublicationsDashboardPage() {
                   {p.est_publie ? 'Archiver' : 'Publier'}
                 </button>
                 <Link href={`/dashboard/publications/${p.id}/edit`}
-                  className="text-xs text-muted hover:text-off-white font-mono transition-colors">
-                  Modifier
+                  className="p-2 text-acid hover:text-acid/80 transition-colors rounded hover:bg-acid/10" aria-label="Modifier">
+                  <Icons.edit className="w-4 h-4" />
                 </Link>
                 <button onClick={() => setDeleteTarget(p.id)}
-                  className="text-xs text-red-400 hover:text-red-300 font-mono transition-colors">
-                  Supprimer
+                  className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10" aria-label="Supprimer">
+                  <Icons.trash className="w-4 h-4" />
                 </button>
               </div>
             </div>

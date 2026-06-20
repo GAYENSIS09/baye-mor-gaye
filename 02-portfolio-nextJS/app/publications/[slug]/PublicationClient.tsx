@@ -7,8 +7,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { LikeButton } from '@/components/LikeButton';
 import ReadingProgress from '@/components/ReadingProgress';
 import CommentSection from '@/components/CommentSection';
+import MediaGallery from '@/components/MediaGallery';
+import MediaViewer from '@/components/MediaViewer';
 import { api } from '@/lib/api';
-import { Domaine, Like } from '@/types/api';
+import { Domaine, Like, MediaPublication } from '@/types/api';
 import Link from 'next/link';
 import { Icons } from '@/components/ui/Icons';
 
@@ -58,6 +60,25 @@ export default function PublicationClient() {
             {publication.nombre_vues != null && <span><Icons.search className="w-3.5 h-3.5 inline" aria-hidden /> {publication.nombre_vues}</span>}
             <span>{readTime} min</span>
           </div>
+
+          {publication.image_couverture && (
+            <div className="relative w-full aspect-video rounded-lg overflow-hidden mb-8">
+              <MediaViewer src={publication.image_couverture} alt={publication.titre} fill className="object-cover" />
+            </div>
+          )}
+
+          {publication.medias && publication.medias.length > 0 && (
+            <div className="mb-8">
+              <MediaGallery
+                items={publication.medias.map((m: MediaPublication) => ({
+                  id: m.id,
+                  url: m.chemin_fichier,
+                  type: m.type,
+                  titre: m.titre,
+                }))}
+              />
+            </div>
+          )}
 
           <div className="prose prose-invert max-w-none text-off-white mb-12">
             {publication.contenu_html ? (
