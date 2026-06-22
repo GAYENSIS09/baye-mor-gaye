@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import "@/app/globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { QueryProvider } from "@/lib/query-client";
+import { DebugProvider } from "@/lib/debug";
 import { Bebas_Neue, DM_Sans, JetBrains_Mono } from 'next/font/google';
 import { PersonJsonLd, WebSiteJsonLd } from '@/components/JsonLd';
+import Navbar from '@/components/Navbar';
 
 const fontDisplay = Bebas_Neue({
   subsets: ['latin'],
@@ -85,8 +87,7 @@ export default async function RootLayout({
     <html lang="fr" className={`${fontDisplay.variable} ${fontBody.variable} ${fontMono.variable}`} style={{ colorScheme: 'dark' }}>
       <head>
         <meta name="theme-color" content="#0A0A0A" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
         {profile && (
           <>
             <PersonJsonLd
@@ -107,7 +108,10 @@ export default async function RootLayout({
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[999] focus:px-4 focus:py-2 focus:bg-acid focus:text-black focus:rounded focus:font-mono focus:text-sm">
           Aller au contenu
         </a>
-        <QueryProvider><AuthProvider><div id="main-content">{children}</div></AuthProvider></QueryProvider>
+        <DebugProvider><QueryProvider><AuthProvider>
+          <Navbar />
+          <div id="main-content" className="pt-14">{children}</div>
+        </AuthProvider></QueryProvider></DebugProvider>
       </body>
     </html>
   );

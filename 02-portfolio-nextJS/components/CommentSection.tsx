@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useCreateCommentaire } from '@/hooks/mutations';
 import { useAuth } from '@/contexts/AuthContext';
+import { ActionButton } from '@/components/ActionBar';
 import { Commentaire } from '@/types/api';
 import Link from 'next/link';
 
@@ -45,11 +46,10 @@ export default function CommentSection({ entityType, entityId, comments }: Comme
       {utilisateur ? (
         <form onSubmit={handleComment} className="bg-[#111] p-4 rounded border border-[#222] mb-6">
           <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Votre commentaire..." required rows={3}
-            className="w-full border border-[#333] rounded px-3 py-2 mb-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-          <button type="submit" disabled={commentMutation.isPending}
-            className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 font-mono text-xs uppercase tracking-widest disabled:opacity-50">
+            className="input-base mb-2" />
+          <ActionButton type="submit" disabled={commentMutation.isPending} variant="primary">
             {commentMutation.isPending ? 'Envoi...' : 'Commenter'}
-          </button>
+          </ActionButton>
         </form>
       ) : (
         <div className="bg-[#111] p-4 rounded border border-[#222] mb-6 text-center">
@@ -80,12 +80,10 @@ export default function CommentSection({ entityType, entityId, comments }: Comme
               <div className="mt-2 ml-9 border-t border-[#222] pt-2">
                 <textarea value={replyContent} onChange={(e) => setReplyContent(e.target.value)}
                   placeholder={`Répondre à ${replyTo.auteur}...`} rows={2}
-                  className="w-full border border-[#333] rounded px-3 py-2 mb-2 bg-transparent text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+                  className="input-base text-sm mb-2" />
                 <div className="flex gap-2">
-                  <button onClick={() => handleReply(c.id)}
-                    className="bg-acid text-black px-3 py-1 rounded text-xs hover:bg-acid/90 font-mono uppercase tracking-widest">Envoyer</button>
-                  <button onClick={() => { setReplyTo(null); setReplyContent(''); }}
-                    className="text-xs text-muted hover:text-off-white">Annuler</button>
+                  <ActionButton onClick={() => handleReply(c.id)} variant="primary" size="sm">Envoyer</ActionButton>
+                  <ActionButton onClick={() => { setReplyTo(null); setReplyContent(''); }} variant="ghost" size="sm">Annuler</ActionButton>
                 </div>
               </div>
             )}

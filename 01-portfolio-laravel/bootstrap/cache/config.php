@@ -3,7 +3,7 @@
   array (
     'name' => 'PortfolioAPI',
     'env' => 'local',
-    'debug' => true,
+    'debug' => false,
     'url' => 'http://localhost:8000',
     'frontend_url' => 'http://localhost:3000',
     'asset_url' => NULL,
@@ -46,6 +46,7 @@
       20 => 'Illuminate\\Translation\\TranslationServiceProvider',
       21 => 'Illuminate\\Validation\\ValidationServiceProvider',
       22 => 'Illuminate\\View\\ViewServiceProvider',
+      23 => 'App\\Providers\\AppServiceProvider',
     ),
     'aliases' => 
     array (
@@ -460,7 +461,7 @@
   ),
   'cache' => 
   array (
-    'default' => 'file',
+    'default' => 'database',
     'stores' => 
     array (
       'array' => 
@@ -795,48 +796,6 @@
     array (
       'api_key' => NULL,
       'endpoint' => 'https://us-central1-aiplatform.googleapis.com/v1',
-    ),
-  ),
-  'permission' => 
-  array (
-    'models' => 
-    array (
-      'permission' => 'Spatie\\Permission\\Models\\Permission',
-      'role' => 'Spatie\\Permission\\Models\\Role',
-    ),
-    'table_names' => 
-    array (
-      'roles' => 'roles',
-      'permissions' => 'permissions',
-      'model_has_permissions' => 'model_has_permissions',
-      'model_has_roles' => 'model_has_roles',
-      'role_has_permissions' => 'role_has_permissions',
-    ),
-    'column_names' => 
-    array (
-      'role_pivot_key' => NULL,
-      'permission_pivot_key' => NULL,
-      'model_morph_key' => 'model_id',
-      'team_foreign_key' => 'team_id',
-    ),
-    'register_permission_check_method' => true,
-    'register_octane_reset_listener' => false,
-    'events_enabled' => false,
-    'teams' => false,
-    'team_resolver' => 'Spatie\\Permission\\DefaultTeamResolver',
-    'use_passport_client_credentials' => false,
-    'display_permission_in_exception' => false,
-    'display_role_in_exception' => false,
-    'enable_wildcard_permission' => false,
-    'cache' => 
-    array (
-      'expiration_time' => 
-      \DateInterval::__set_state(array(
-         'from_string' => true,
-         'date_string' => '24 hours',
-      )),
-      'key' => 'spatie.permission.cache',
-      'store' => 'default',
     ),
   ),
 );

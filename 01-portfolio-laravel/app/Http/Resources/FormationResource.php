@@ -17,7 +17,7 @@ class FormationResource extends JsonResource
             'domaine_etude' => $this->domaine_etude,
             'date_debut' => $this->date_debut?->toIso8601String(),
             'date_fin' => $this->date_fin?->toIso8601String(),
-            'medias' => MediaQualificationResource::collection($this->whenLoaded('medias')),
+            'medias' => MediaResource::collection($this->whenLoaded('medias')),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

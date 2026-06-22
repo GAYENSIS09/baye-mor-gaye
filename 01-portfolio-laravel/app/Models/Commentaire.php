@@ -16,6 +16,7 @@ class Commentaire extends Model
         'commentable_type',
         'contenu',
         'est_approuve',
+        'parent_id',
     ];
 
     protected function casts(): array

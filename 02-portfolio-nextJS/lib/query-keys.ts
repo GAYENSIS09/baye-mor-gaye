@@ -21,6 +21,4 @@ export const qk = {
   rappels:         (f?: Record<string, string>) => ['rappels', f] as const,
   statistiques:    (p?: string) => ['statistiques', p] as const,
   conversions:     (f?: Record<string, string>) => ['conversions', f] as const,
-  projetsDashboard: () => ['projets', 'dashboard'] as const,
-  publicationsDashboard: () => ['publications', 'dashboard'] as const,
 };

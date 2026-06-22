@@ -3,13 +3,17 @@ import { useState } from "react";
 import { useExperiences, useFormations, useCertifications } from "@/hooks/queries";
 import { MiniMediaGallery } from "@/components/MediaGallery";
 import type { GalleryItem } from "@/components/MediaGallery";
-import type { MediaQualification } from "@/types/api";
+import type { Media, Certification } from "@/types/api";
+import { getMediaUrl } from "@/lib/media";
+import { CardContainer, CardContent, CardTitle, CardDescription, CardMeta, CardTags } from "@/components/CardContainer";
+import { SectionHeader } from "@/components/SectionHeader";
+import { Icons } from "@/components/ui/Icons";
 
-function toGalleryItems(medias?: MediaQualification[]): GalleryItem[] {
+function toGalleryItems(medias?: Media[]): GalleryItem[] {
   if (!medias) return [];
-  return medias.map((m) => ({
+  return medias.filter((m) => m.chemin_fichier).map((m) => ({
     id: m.id,
-    url: m.chemin_fichier,
+    url: getMediaUrl(m.chemin_fichier) ?? m.chemin_fichier!,
     type: m.type,
     titre: m.titre,
   }));
@@ -30,6 +34,19 @@ function TimelineItem({ children }: { children: React.ReactNode }) {
   );
 }
 
+function ExperienceCard({ item }: { item: { type: FilterValue; id: string; date: string; content: React.ReactNode } }) {
+  return (
+    <TimelineItem>
+      <div className="self-start">
+        <p className="font-mono text-xs text-muted uppercase tracking-widest">
+          {formatDate(item.date)} – {item.type === 'experience' || item.type === 'formation' ? 'Présent' : ''}
+        </p>
+      </div>
+      <div>{item.content}</div>
+    </TimelineItem>
+  );
+}
+
 export default function ExperienceTimeline() {
   const [filter, setFilter] = useState<FilterValue>('tout');
   const { data: experiences = [], isLoading: loadingExp } = useExperiences();
@@ -44,25 +61,17 @@ export default function ExperienceTimeline() {
       date: exp.date_debut,
       content: (
         <>
-          <div>
-            <p className="font-mono text-xs text-muted uppercase tracking-widest">
-              {formatDate(exp.date_debut)} – {exp.est_actuel ? "Présent" : exp.date_fin ? formatDate(exp.date_fin) : "Présent"}
-            </p>
-            {exp.lieu && <p className="font-mono text-[10px] text-muted mt-1">{exp.lieu}</p>}
-          </div>
-          <div>
-            <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-              <div>
-                <h3 className="text-off-white text-xl font-body font-medium">{exp.titre}</h3>
-                <p className="text-acid font-mono text-sm mt-1">{exp.entreprise}</p>
-              </div>
-              <span className="tag">Expérience</span>
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+            <div>
+              <h3 className="text-off-white text-xl font-body font-medium">{exp.titre}</h3>
+              <p className="text-acid font-mono text-sm mt-1">{exp.entreprise}</p>
             </div>
-            {exp.description && <p className="text-muted text-sm leading-relaxed">{exp.description}</p>}
-            {exp.medias && exp.medias.length > 0 && (
-              <MiniMediaGallery items={toGalleryItems(exp.medias)} />
-            )}
+            <span className="tag">Expérience</span>
           </div>
+          {exp.description && <p className="text-muted text-sm leading-relaxed">{exp.description}</p>}
+          {exp.medias && exp.medias.length > 0 && (
+            <MiniMediaGallery items={toGalleryItems(exp.medias)} />
+          )}
         </>
       ),
     })),
@@ -72,40 +81,38 @@ export default function ExperienceTimeline() {
       date: f.date_debut,
       content: (
         <>
-          <div>
-            <p className="font-mono text-xs text-muted uppercase tracking-widest">
-              {formatDate(f.date_debut)} – {f.date_fin ? formatDate(f.date_fin) : "Présent"}
-            </p>
-          </div>
-          <div>
-            <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-              <div>
-                <h3 className="text-off-white text-xl font-body font-medium">{f.diplome}</h3>
-                <p className="text-acid font-mono text-sm mt-1">{f.etablissement}</p>
-              </div>
-              <span className="tag">Formation</span>
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+            <div>
+              <h3 className="text-off-white text-xl font-body font-medium">{f.diplome}</h3>
+              <p className="text-acid font-mono text-sm mt-1">{f.etablissement}</p>
             </div>
-            {f.domaine_etude && <p className="text-muted text-sm">{f.domaine_etude}</p>}
-            {f.description && <p className="text-muted text-xs mt-2">{f.description}</p>}
-            {f.medias && f.medias.length > 0 && (
-              <MiniMediaGallery items={toGalleryItems(f.medias)} />
-            )}
+            <span className="tag">Formation</span>
           </div>
+          {f.domaine_etude && <p className="text-muted text-sm">{f.domaine_etude}</p>}
+          {f.description && <p className="text-muted text-xs mt-2">{f.description}</p>}
+          {f.medias && f.medias.length > 0 && (
+            <MiniMediaGallery items={toGalleryItems(f.medias)} />
+          )}
         </>
       ),
     })),
-    ...certifications.map((c) => ({
-      type: 'certification' as FilterValue,
-      id: `cert-${c.id}`,
-      date: c.date_obtention,
-      content: (
-        <>
-          <div>
-            <p className="font-mono text-xs text-muted uppercase tracking-widest">
-              {formatDate(c.date_obtention)}
-            </p>
-          </div>
-          <div>
+    ...certifications.map((c) => {
+      const certGalleryItems = toGalleryItems(c.medias);
+      const hasLocalCredential = c.url_credential && !c.url_credential.startsWith('http://') && !c.url_credential.startsWith('https://');
+      if (hasLocalCredential) {
+        certGalleryItems.push({
+          id: -(c.id),
+          url: getMediaUrl(c.url_credential!) ?? c.url_credential!,
+          type: 'pdf',
+          titre: `${c.titre} - Certificat`,
+        });
+      }
+      return {
+        type: 'certification' as FilterValue,
+        id: `cert-${c.id}`,
+        date: c.date_obtention,
+        content: (
+          <>
             <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
               <div>
                 <h3 className="text-off-white text-xl font-body font-medium">{c.titre}</h3>
@@ -117,19 +124,19 @@ export default function ExperienceTimeline() {
             {c.date_expiration && (
               <p className="text-xs text-muted mt-1">Expire le {formatDate(c.date_expiration)}</p>
             )}
-            {c.url_credential && (
+            {c.url_credential && c.url_credential.startsWith('http') && (
               <a href={c.url_credential} target="_blank" rel="noopener noreferrer"
                 className="inline-block mt-2 text-xs text-acid hover:underline font-mono">
                 Voir le certificat ↗
               </a>
             )}
-            {c.medias && c.medias.length > 0 && (
-              <MiniMediaGallery items={toGalleryItems(c.medias)} />
+            {certGalleryItems.length > 0 && (
+              <MiniMediaGallery items={certGalleryItems} />
             )}
-          </div>
-        </>
-      ),
-    })),
+          </>
+        ),
+      };
+    }),
   ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const filtered = filter === 'tout' ? items : items.filter((i) => i.type === filter);
@@ -137,27 +144,18 @@ export default function ExperienceTimeline() {
   return (
     <section id="experience" className="py-32 px-6">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-baseline gap-6 mb-8">
-          <span className="font-mono text-acid text-xs uppercase tracking-widest">02</span>
-          <h2 className="font-display text-5xl md:text-7xl text-white uppercase tracking-tight">Parcours</h2>
-        </div>
-
-        <div className="flex gap-2 mb-12 flex-wrap">
-          {([
+        <SectionHeader
+          number="02"
+          title="Parcours"
+          filters={[
             { value: 'tout', label: 'Tout' },
             { value: 'experience', label: 'Expériences' },
             { value: 'formation', label: 'Formations' },
             { value: 'certification', label: 'Certifications' },
-          ] as { value: FilterValue; label: string }[]).map(({ value, label }) => (
-            <button key={value} onClick={() => setFilter(value)}
-              className={`px-3 py-1.5 rounded font-mono text-xs uppercase tracking-widest transition-colors ${
-                filter === value ? 'bg-acid text-black' : 'bg-[#222] text-muted hover:text-off-white'
-              }`}>
-              {label}
-            </button>
-          ))}
-        </div>
-
+          ]}
+          activeFilter={filter}
+          onFilterChange={(value) => setFilter(value as FilterValue)}
+        />
         {loading ? (
           <div className="text-center py-16">
             <span className="font-mono text-sm text-muted animate-pulse">Chargement...</span>
@@ -169,7 +167,7 @@ export default function ExperienceTimeline() {
         ) : (
           <div className="space-y-0">
             {filtered.map((item) => (
-              <TimelineItem key={item.id}>{item.content}</TimelineItem>
+              <ExperienceCard key={item.id} item={item} />
             ))}
           </div>
         )}

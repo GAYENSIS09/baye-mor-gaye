@@ -4,6 +4,7 @@ const mockLocalStorage: Record<string, string> = {};
 
 beforeEach(() => {
   Object.keys(mockLocalStorage).forEach((key) => delete mockLocalStorage[key]);
+  vi.clearAllMocks();
 });
 
 vi.stubGlobal('localStorage', {

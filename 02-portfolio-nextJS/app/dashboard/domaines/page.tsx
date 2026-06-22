@@ -10,8 +10,12 @@ import { useCreateDomaine, useUpdateDomaine, useDeleteDomaine } from '@/hooks/mu
 import type { Domaine } from '@/types/api';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { Skeleton } from '@/components/Skeleton';
 import { useToast } from '@/contexts/ToastContext';
 import { Icons } from '@/components/ui/Icons';
+import { CardContainer, CardContent, CardTitle } from '@/components/CardContainer';
+import { SectionHeader } from '@/components/SectionHeader';
+import { ActionButton, IconButton } from '@/components/ActionBar';
 
 export default function DomainsPage() {
   const { utilisateur, loading: authLoading } = useAuth();
@@ -75,69 +79,82 @@ export default function DomainsPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6 text-off-white">Domaines</h1>
+      <SectionHeader
+        title="Domaines"
+        actions={
+          <ActionButton variant="primary" onClick={() => {}}>
+            Nouveau domaine
+          </ActionButton>
+        }
+      />
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
-        <h2 className="font-semibold text-off-white">Nouveau domaine</h2>
-        <label htmlFor="domains-nom" className="sr-only">Nom</label>
-        <input id="domains-nom" {...register("nom")} placeholder="Nom" required autoComplete="off"
-          className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-        {errors.nom && <p className="text-red-400 text-xs mt-1">{errors.nom.message}</p>}
-        <label htmlFor="domains-description" className="sr-only">Description</label>
-        <textarea id="domains-description" {...register("description")} placeholder="Description (optionnelle)" autoComplete="off"
-          className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" rows={2} />
-        <div className="flex items-center gap-3">
-          <label htmlFor="domains-couleur" className="sr-only">Couleur</label>
-          <input id="domains-couleur" type="color" {...register("couleur")}
-            className="w-10 h-10 border border-[#333] rounded bg-transparent" />
-          <span className="text-sm text-muted">Couleur (optionnelle)</span>
-        </div>
-        <button type="submit" disabled={isSubmitting} className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
-          Ajouter
-        </button>
-      </form>
+      <CardContainer className="p-4 mb-6">
+        <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3">
+          <CardTitle className="text-base">Nouveau domaine</CardTitle>
+          <input id="domains-nom" {...register("nom")} placeholder="Nom" required autoComplete="off" className="input-base" />
+          {errors.nom && <p className="text-red-400 text-xs mt-1">{errors.nom.message}</p>}
+          <textarea id="domains-description" {...register("description")} placeholder="Description (optionnelle)" autoComplete="off" className="input-base" rows={2} />
+          <div className="flex items-center gap-3">
+            <input id="domains-couleur" type="color" {...register("couleur")} className="w-10 h-10 border border-[#333] rounded bg-transparent" />
+            <span className="text-sm text-muted">Couleur (optionnelle)</span>
+          </div>
+          <ActionButton type="submit" disabled={isSubmitting} variant="primary">
+            Ajouter
+          </ActionButton>
+        </form>
+      </CardContainer>
 
       {isError ? (
         <div className="text-center py-16">
           <p className="text-muted font-mono text-sm mb-4" role="alert">Erreur chargement domaines</p>
-          <button onClick={() => refetch()} className="bg-acid text-black px-4 py-2 font-mono text-xs uppercase tracking-widest hover:bg-acid/90 transition-colors rounded">
-            Réessayer
-          </button>
+          <ActionButton variant="primary" onClick={() => refetch()}>Réessayer</ActionButton>
         </div>
       ) : isLoading ? (
-        <p className="text-muted">Chargement...</p>
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <CardContainer key={i} className="animate-pulse p-4">
+              <CardContent className="p-0">
+                <Skeleton className="h-16 w-full rounded" />
+              </CardContent>
+            </CardContainer>
+          ))}
+        </div>
       ) : (
         <div className="space-y-3">
           {domaines.map((d) => (
-            <div key={d.id} className="bg-[#111] p-4 rounded border border-[#222] flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                {d.couleur && (
-                  <span className="w-4 h-4 rounded-full inline-block" style={{ backgroundColor: d.couleur }} />
-                )}
-                <div>
-                  {editingId === d.id ? (
-                    <input ref={editRef} value={editValue} onChange={(e) => setEditValue(e.target.value)}
-                      onBlur={() => saveEdit(d.id)} onKeyDown={(e) => {
-                        if (e.key === 'Enter') saveEdit(d.id);
-                        if (e.key === 'Escape') setEditingId(null);
-                      }}
-                      className="font-semibold bg-transparent border border-acid/50 rounded px-2 py-0.5 text-off-white w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-                  ) : (
-                    <button onClick={() => startEdit(d)} className="font-semibold text-off-white hover:text-acid transition-colors text-left">
-                      {d.nom}
-                    </button>
+            <CardContainer key={d.id} className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {d.couleur && (
+                    <span className="w-4 h-4 rounded-full inline-block shrink-0" style={{ backgroundColor: d.couleur }} />
                   )}
-                  <p className="text-sm text-muted">{d.slug}</p>
-                  {d.description && <p className="text-sm text-muted">{d.description}</p>}
+                  <div>
+                    {editingId === d.id ? (
+                      <input ref={editRef} value={editValue} onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => saveEdit(d.id)} onKeyDown={(e) => {
+                          if (e.key === 'Enter') saveEdit(d.id);
+                          if (e.key === 'Escape') setEditingId(null);
+                        }}
+                        className="font-semibold bg-transparent border border-acid/50 rounded px-2 py-0.5 text-off-white w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+                    ) : (
+                      <button onClick={() => startEdit(d)} className="font-semibold text-off-white hover:text-acid transition-colors text-left">
+                        {d.nom}
+                      </button>
+                    )}
+                    <p className="text-sm text-muted">{d.slug}</p>
+                    {d.description && <p className="text-sm text-muted">{d.description}</p>}
+                  </div>
                 </div>
+                <IconButton onClick={() => setConfirmDelete(d.id)} icon={<Icons.trash className="w-4 h-4" />} label={`Supprimer ${d.nom}`} variant="danger" size="sm" />
               </div>
-              <button onClick={() => setConfirmDelete(d.id)} aria-label={`Supprimer ${d.nom}`}
-                className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10">
-                <Icons.trash className="w-4 h-4" />
-              </button>
-            </div>
+            </CardContainer>
           ))}
-          {domaines.length === 0 && <div className="text-center py-12"><svg className="w-10 h-10 mx-auto text-muted/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg><p className="text-muted font-mono text-sm">Aucun domaine.</p></div>}
+          {domaines.length === 0 && (
+            <CardContainer className="p-8 text-center">
+              <Icons.file className="w-10 h-10 mx-auto text-muted/30 mb-3" aria-hidden />
+              <p className="text-muted font-mono text-sm">Aucun domaine.</p>
+            </CardContainer>
+          )}
         </div>
       )}
 

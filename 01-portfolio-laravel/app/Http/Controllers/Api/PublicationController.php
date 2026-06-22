@@ -19,16 +19,24 @@ class PublicationController extends Controller
         // Cache only the public list without filters
         if ($request->boolean('publie') && !$request->has('type') && !$request->has('domaine')) {
             return Cache::remember('publications.publies', 3600, function () {
-                return PublicationResource::collection(Publication::with(['domaines', 'commentaires.auteur', 'likes.auteur'])
+                return PublicationResource::collection(Publication::with(['domaines', 'commentaires.auteur', 'likes.auteur', 'medias'])
                     ->where('est_publie', true)
                     ->orderBy('created_at', 'desc')
                     ->paginate(12));
             });
         }
 
-        $query = Publication::with(['domaines', 'commentaires.auteur', 'likes.auteur']);
+        $query = Publication::with(['domaines', 'commentaires.auteur', 'likes.auteur', 'medias']);
 
-        if ($request->boolean('publie')) {
+        if ($request->has('statut')) {
+            match ($request->statut) {
+                'publie' => $query->where('est_publie', true),
+                'brouillon' => $query->where('est_publie', false),
+                default => null,
+            };
+        } elseif ($request->boolean('publie')) {
+            $query->where('est_publie', true);
+        } elseif (!$request->boolean('all')) {
             $query->where('est_publie', true);
         }
 
@@ -40,12 +48,21 @@ class PublicationController extends Controller
             $query->whereHas('domaines', fn($q) => $q->where('slug', $request->domaine));
         }
 
+        if ($request->has('search')) {
+            $query->where('titre', 'like', '%' . $request->search . '%');
+        }
+
         return PublicationResource::collection($query->orderBy('created_at', 'desc')->paginate(12));
     }
 
-    public function show(string $slug)
+    public function show(Request $request, string $slug)
     {
-        $query = Publication::with(['domaines', 'commentaires.auteur', 'likes.auteur']);
+        $query = Publication::with(['domaines', 'commentaires.auteur', 'likes.auteur', 'medias']);
+
+        if (!$request->boolean('all')) {
+            $query->where('est_publie', true);
+        }
+
         if (is_numeric($slug)) {
             return PublicationResource::make($query->findOrFail((int) $slug));
         }
@@ -67,10 +84,13 @@ class PublicationController extends Controller
             $data['publie_le'] = now();
         }
 
+        $domaines = $data['domaines'] ?? [];
+        unset($data['domaines']);
+
         $publication = Publication::create($data);
 
-        if (!empty($data['domaines'])) {
-            $publication->domaines()->sync($data['domaines']);
+        if (!empty($domaines)) {
+            $publication->domaines()->sync($domaines);
         }
 
         Cache::forget('publications.publies');
@@ -91,10 +111,13 @@ class PublicationController extends Controller
             $data['publie_le'] = now();
         }
 
+        $domaines = $data['domaines'] ?? null;
+        unset($data['domaines']);
+
         $publication->update($data);
 
-        if (isset($data['domaines'])) {
-            $publication->domaines()->sync($data['domaines']);
+        if (isset($domaines)) {
+            $publication->domaines()->sync($domaines);
         }
 
         Cache::forget('publications.publies');

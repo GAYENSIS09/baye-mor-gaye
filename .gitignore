@@ -19,3 +19,56 @@ npm-debug.log*
 
 # Docker
 docker-data/
+
+# Laravel
+/vendor/
+/bootstrap/cache/*.php
+!/bootstrap/cache/.gitkeep
+/storage/*.key
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*.log
+!/storage/logs/.gitkeep
+
+# PHP debug/temp files
+*.php.dump
+check.php
+dump.php
+dump2.php
+opcheck.php
+opreset.php
+
+# Node / Frontend
+/node_modules/
+/dist/
+/build/
+/.next/
+/out/
+*.tsbuildinfo
+
+# Tests & Coverage
+/coverage/
+/.nyc_output/
+/test-results/
+/playwright-report/
+/e2e/
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+AUDIT_REPORT.md
+
+# Debug / Dev tools
+debug.tsx
+logger.ts
+react-audit.tsx
+
+# Docker / Compose overrides
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Misc
+.claude/
+*.wsd

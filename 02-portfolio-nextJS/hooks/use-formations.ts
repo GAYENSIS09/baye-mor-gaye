@@ -15,8 +15,8 @@ export function useCreateFormation() {
   return useMutation({
     mutationFn: (data: any) => api.post('/formations', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.formations() });
-      queryClient.invalidateQueries({ queryKey: qk.profile() });
+      queryClient.invalidateQueries({ queryKey: qk.formations(), exact: true });
+      queryClient.invalidateQueries({ queryKey: qk.profile(), exact: true });
     },
   });
 }
@@ -35,8 +35,8 @@ export function useUpdateFormation() {
       return api.put(`/formations/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.formations() });
-      queryClient.invalidateQueries({ queryKey: qk.profile() });
+      queryClient.invalidateQueries({ queryKey: qk.formations(), exact: true });
+      queryClient.invalidateQueries({ queryKey: qk.profile(), exact: true });
     },
   });
 }
@@ -46,8 +46,8 @@ export function useDeleteFormation() {
   return useMutation({
     mutationFn: (id: number) => api.delete(`/formations/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.formations() });
-      queryClient.invalidateQueries({ queryKey: qk.profile() });
+      queryClient.invalidateQueries({ queryKey: qk.formations(), exact: true });
+      queryClient.invalidateQueries({ queryKey: qk.profile(), exact: true });
     },
   });
 }

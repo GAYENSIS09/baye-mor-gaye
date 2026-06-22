@@ -14,7 +14,7 @@ export function useCreateRappel() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: Record<string, unknown>) => api.post('/rappels', data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.rappels() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.rappels(), exact: false }),
   });
 }
 
@@ -22,7 +22,7 @@ export function useDeleteRappel() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.delete(`/rappels/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.rappels() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.rappels(), exact: false }),
   });
 }
 
@@ -30,6 +30,6 @@ export function useUpdateRappel() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, ...data }: { id: number } & Record<string, unknown>) => api.put(`/rappels/${id}`, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.rappels() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.rappels(), exact: false }),
   });
 }

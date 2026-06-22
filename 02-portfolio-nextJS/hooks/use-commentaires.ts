@@ -16,8 +16,8 @@ export function useCreateCommentaire() {
     mutationFn: (data: { contenu: string; commentable_type: string; commentable_id: number; parent_id?: number }) =>
       api.post('/commentaires', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.publications() });
-      queryClient.invalidateQueries({ queryKey: qk.commentaires() });
+      queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false });
+      queryClient.invalidateQueries({ queryKey: qk.commentaires(), exact: false });
     },
   });
 }
@@ -26,15 +26,15 @@ export function useApprouverCommentaire() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.put(`/commentaires/${id}/approuver`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.commentaires() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.commentaires(), exact: false }),
   });
 }
 
 export function useRejeterCommentaire() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => api.delete(`/commentaires/${id}/rejeter`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.commentaires() }),
+    mutationFn: (id: number) => api.put(`/commentaires/${id}/rejeter`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.commentaires(), exact: false }),
   });
 }
 
@@ -44,8 +44,8 @@ export function useUpdateCommentaire() {
     mutationFn: ({ id, contenu }: { id: number; contenu: string }) =>
       api.put(`/commentaires/${id}`, { contenu }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.publications() });
-      queryClient.invalidateQueries({ queryKey: qk.commentaires() });
+      queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false });
+      queryClient.invalidateQueries({ queryKey: qk.commentaires(), exact: false });
     },
   });
 }
@@ -54,6 +54,6 @@ export function useDeleteCommentaire() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.delete(`/commentaires/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.commentaires() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.commentaires(), exact: false }),
   });
 }

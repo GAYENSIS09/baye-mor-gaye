@@ -10,11 +10,19 @@ import { useCreateFormation, useUpdateFormation, useDeleteFormation } from '@/ho
 import { Formation } from '@/types/api';
 import { useToast } from '@/contexts/ToastContext';
 import MediaViewer from '@/components/MediaViewer';
+import { getMediaUrl } from '@/lib/media';
 import Link from 'next/link';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import EmptyState from '@/components/EmptyState';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { Skeleton } from '@/components/Skeleton';
 import { Icons } from '@/components/ui/Icons';
+import { SectionHeader } from '@/components/SectionHeader';
+import { ActionButton, IconButton } from '@/components/ActionBar';
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
+}
 
 export default function FormationsPage() {
   const { utilisateur, loading: authLoading } = useAuth();
@@ -38,12 +46,7 @@ export default function FormationsPage() {
   } = useForm<FormationFormData>({
     resolver: zodResolver(FormationFormSchema),
     defaultValues: {
-      diplome: '',
-      etablissement: '',
-      description: '',
-      domaine: '',
-      date_debut: '',
-      date_fin: '',
+      diplome: '', etablissement: '', description: '', domaine: '', date_debut: '', date_fin: '',
     },
   });
 
@@ -95,14 +98,6 @@ export default function FormationsPage() {
     finally { setSaving(false); }
   }
 
-  const STORAGE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '/storage') || 'http://localhost:8000/storage';
-
-  function getMediaUrl(path: string | null | undefined): string | null {
-    if (!path) return null;
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    return `${STORAGE_URL}/${path.replace(/^\//, '')}`;
-  }
-
   function startEdit(f: Formation) {
     reset({
       diplome: f.diplome,
@@ -127,90 +122,113 @@ export default function FormationsPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-off-white">Formations</h1>
-        <button onClick={() => { resetForm(); setShowForm(!showForm); }} className={`px-4 py-2 rounded font-mono text-xs uppercase tracking-widest transition-colors ${showForm ? 'bg-[#222] text-off-white' : 'bg-acid text-black hover:bg-acid/90'}`}>
-          {showForm ? 'Annuler' : 'Nouvelle formation'}
-        </button>
-      </div>
+      <SectionHeader
+        title="Formations"
+        actions={
+          <ActionButton variant="primary" onClick={() => { resetForm(); setShowForm(!showForm); }}>
+            {showForm ? 'Annuler' : 'Nouvelle formation'}
+          </ActionButton>
+        }
+      />
 
       {showForm && (
-        <form onSubmit={handleSubmit(onSubmit)} noValidate className="bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
-          <h2 className="font-semibold text-off-white">{editId ? 'Modifier' : 'Nouvelle'} formation</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label htmlFor="form-diplome" className="sr-only">Diplôme</label>
-              <input id="form-diplome" {...register("diplome")} placeholder="Diplôme *" required autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-              {errors.diplome && <p className="text-red-400 text-xs mt-1">{errors.diplome.message}</p>}
+        <div className="bg-[#111] border border-[#222] rounded-lg p-4 mb-6">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3">
+            <h3 className="font-body font-semibold text-off-white text-base">{editId ? 'Modifier' : 'Nouvelle'} formation</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <input id="form-diplome" {...register("diplome")} placeholder="Diplôme *" required autoComplete="off" className="input-base" />
+                {errors.diplome && <p className="text-red-400 text-xs mt-1">{errors.diplome.message}</p>}
+              </div>
+              <div>
+                <input id="form-etablissement" {...register("etablissement")} placeholder="Établissement *" required autoComplete="off" className="input-base" />
+                {errors.etablissement && <p className="text-red-400 text-xs mt-1">{errors.etablissement.message}</p>}
+              </div>
+              <div>
+                <input id="form-domaine" {...register("domaine")} placeholder="Domaine d'étude" autoComplete="off" className="input-base" />
+              </div>
+              <div>
+                <input id="form-date-debut" type="date" {...register("date_debut")} required className="input-base" />
+                {errors.date_debut && <p className="text-red-400 text-xs mt-1">{errors.date_debut.message}</p>}
+              </div>
+              <div>
+                <input id="form-date-fin" type="date" {...register("date_fin")} className="input-base" />
+              </div>
             </div>
             <div>
-              <label htmlFor="form-etablissement" className="sr-only">Établissement</label>
-              <input id="form-etablissement" {...register("etablissement")} placeholder="Établissement *" required autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-              {errors.etablissement && <p className="text-red-400 text-xs mt-1">{errors.etablissement.message}</p>}
+              <textarea id="form-description" {...register("description")} placeholder="Description" rows={3} autoComplete="off" className="input-base" />
             </div>
             <div>
-              <label htmlFor="form-domaine" className="sr-only">Domaine d'étude</label>
-              <input id="form-domaine" {...register("domaine")} placeholder="Domaine d'étude" autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              <label htmlFor="form-media" className="label-base">Image (optionnel)</label>
+              <input id="form-media" type="file" accept="image/*" onChange={handleMediaChange} className="w-full text-sm text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-[#222] file:text-off-white file:text-xs file:font-mono hover:file:bg-[#333]" />
+              {mediaPreview && <img src={mediaPreview} alt="" className="mt-2 max-h-32 rounded object-contain border border-[#222]" />}
             </div>
-            <div>
-              <label htmlFor="form-date-debut" className="sr-only">Date début</label>
-              <input id="form-date-debut" type="date" {...register("date_debut")} required className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-              {errors.date_debut && <p className="text-red-400 text-xs mt-1">{errors.date_debut.message}</p>}
-            </div>
-            <div>
-              <label htmlFor="form-date-fin" className="sr-only">Date fin</label>
-              <input id="form-date-fin" type="date" {...register("date_fin")} className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-            </div>
-          </div>
-          <div>
-            <label htmlFor="form-description" className="sr-only">Description</label>
-            <textarea id="form-description" {...register("description")} placeholder="Description" rows={3} autoComplete="off" className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-          </div>
-          <div>
-            <label htmlFor="form-media" className="block text-sm font-medium text-off-white mb-1">Image (optionnel)</label>
-            <input id="form-media" type="file" accept="image/*" onChange={handleMediaChange} className="w-full text-sm text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-[#222] file:text-off-white file:text-xs file:font-mono hover:file:bg-[#333]" />
-            {mediaPreview && <img src={mediaPreview} alt="" className="mt-2 max-h-32 rounded object-contain border border-[#222]" />}
-          </div>
-          <button type="submit" disabled={saving || isSubmitting} className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
-            {saving || isSubmitting ? 'Enregistrement...' : (editId ? 'Modifier' : 'Ajouter')}
-          </button>
-        </form>
+            <ActionButton type="submit" disabled={saving || isSubmitting} variant="primary">
+              {saving || isSubmitting ? 'Enregistrement...' : (editId ? 'Modifier' : 'Ajouter')}
+            </ActionButton>
+          </form>
+        </div>
       )}
 
       {isError ? (
         <div className="text-center py-16">
           <p className="text-muted font-mono text-sm mb-4" role="alert">Erreur chargement</p>
-          <button onClick={() => refetch()} className="bg-acid text-black px-4 py-2 font-mono text-xs uppercase tracking-widest hover:bg-acid/90 transition-colors rounded">Réessayer</button>
+          <ActionButton variant="primary" onClick={() => refetch()}>Réessayer</ActionButton>
         </div>
       ) : isLoading ? (
-        <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-24 bg-[#222] rounded animate-pulse" />)}</div>
+        <div className="space-y-0">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="group relative py-8 border-t border-[#222] animate-pulse">
+              <div className="grid md:grid-cols-[200px_1fr] gap-6 md:gap-12">
+                <Skeleton className="h-4 w-24 rounded" />
+                <div className="space-y-3">
+                  <Skeleton className="h-6 w-48 rounded" />
+                  <Skeleton className="h-4 w-32 rounded" />
+                  <Skeleton className="h-16 w-full rounded" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : formations.length === 0 ? (
         <EmptyState icon="" title="Aucune formation" message="Ajoutez votre parcours académique." actionLabel="Ajouter" onAction={() => { resetForm(); setShowForm(true); }} />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-0">
           {formations.map((f) => (
-            <div key={f.id} className="bg-[#111] p-4 rounded border border-[#222] flex items-start justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-semibold text-off-white">{f.diplome}</h3>
-                  <span className="text-sm text-muted">{f.etablissement}</span>
+            <div key={f.id} className="group relative py-8 border-t border-[#222] hover:border-acid/40 transition-colors duration-300">
+              <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-acid scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top" />
+              <div className="grid md:grid-cols-[200px_1fr] gap-6 md:gap-12">
+                <div className="self-start">
+                  <p className="font-mono text-xs text-muted uppercase tracking-widest">
+                    {formatDate(f.date_debut)} — {f.date_fin ? formatDate(f.date_fin) : "En cours"}
+                  </p>
                 </div>
-                {f.domaine_etude && (
-                  <Link href="/dashboard/domaines" className="text-sm text-acid hover:underline">
-                    {f.domaine_etude}
-                  </Link>
-                )}
-                <p className="text-xs text-muted mt-1">
-                  {new Date(f.date_debut).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' })} — {f.date_fin ? new Date(f.date_fin).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' }) : 'En cours'}
-                </p>
-                {f.description && <p className="text-sm text-muted mt-2 line-clamp-2">{f.description}</p>}
-                {f.medias?.length > 0 && (
-                  <MediaViewer src={f.medias[0].chemin_fichier} alt="" width={200} height={96} className="mt-2 max-h-24 rounded object-contain border border-[#222]" />
-                )}
-              </div>
-              <div className="flex gap-2 shrink-0">
-                <button onClick={() => startEdit(f)} className="p-2 text-acid hover:text-acid/80 transition-colors rounded hover:bg-acid/10" aria-label="Modifier"><Icons.edit className="w-4 h-4" /></button>
-                <button onClick={() => setConfirmDelete(f.id)} className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10" aria-label="Supprimer"><Icons.trash className="w-4 h-4" /></button>
+                <div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-start justify-between gap-4 mb-2">
+                        <div>
+                          <h3 className="text-off-white text-xl font-body font-medium">{f.diplome}</h3>
+                          <p className="text-acid font-mono text-sm mt-1">{f.etablissement}</p>
+                        </div>
+                        <span className="tag shrink-0">Formation</span>
+                      </div>
+                      {f.domaine_etude && (
+                        <Link href="/dashboard/domaines" className="text-sm text-acid hover:underline">
+                          {f.domaine_etude}
+                        </Link>
+                      )}
+                      {f.description && <p className="text-muted text-sm mt-2 leading-relaxed">{f.description}</p>}
+                      {f.medias?.length > 0 && (
+                        <MediaViewer src={getMediaUrl(f.medias[0].chemin_fichier) ?? ''} alt="" width={200} height={96} className="mt-3 max-h-24 rounded object-contain border border-[#222]" />
+                      )}
+                    </div>
+                    <div className="flex gap-1 shrink-0 mt-1">
+                      <IconButton onClick={() => startEdit(f)} icon={<Icons.edit className="w-4 h-4" />} label="Modifier" variant="ghost" size="sm" />
+                      <IconButton onClick={() => setConfirmDelete(f.id)} icon={<Icons.trash className="w-4 h-4" />} label="Supprimer" variant="danger" size="sm" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           ))}

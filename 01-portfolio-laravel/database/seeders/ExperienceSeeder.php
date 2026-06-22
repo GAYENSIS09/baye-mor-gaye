@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Experience;
-use App\Models\MediaQualification;
+use App\Models\Media;
 use App\Models\Proprietaire;
 use Illuminate\Database\Seeder;
 
@@ -31,8 +31,8 @@ class ExperienceSeeder extends Seeder
             );
 
             if ($exp->wasRecentlyCreated || !$exp->medias()->count()) {
-                MediaQualification::firstOrCreate(
-                    ['qualifiable_id' => $exp->id, 'qualifiable_type' => Experience::class, 'type' => 'image'],
+                Media::firstOrCreate(
+                    ['mediable_id' => $exp->id, 'mediable_type' => Experience::class, 'type' => 'image'],
                     [
                         'chemin_fichier' => $media,
                         'titre' => $entreprise,

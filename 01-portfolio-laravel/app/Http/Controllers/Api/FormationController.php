@@ -15,13 +15,13 @@ class FormationController extends Controller
 {
     public function index()
     {
-        return Cache::remember('formations.public', 3600, function () {
-            $proprietaire = Proprietaire::first();
+        $proprietaire = Proprietaire::first();
 
-            if (!$proprietaire) {
-                return response()->json(['message' => 'Aucun profil trouve.'], 404);
-            }
+        if (!$proprietaire) {
+            return response()->json(['message' => 'Aucun profil trouve.'], 404);
+        }
 
+        return Cache::remember('formations.public', 3600, function () use ($proprietaire) {
             return FormationResource::collection($proprietaire->formations()->with('medias')->orderBy('ordre')->orderByDesc('date_debut')->get());
         });
     }

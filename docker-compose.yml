@@ -38,6 +38,7 @@ services:
       DB_PASSWORD: portfolio
       SANCTUM_STATEFUL_DOMAINS: localhost:3000
       CORS_ALLOWED_ORIGINS: http://localhost:3000
+      CACHE_STORE: database
       FILESYSTEM_DISK: local
       SESSION_DRIVER: cookie
       SESSION_DOMAIN: localhost
@@ -68,7 +69,6 @@ services:
     restart: unless-stopped
     volumes:
       - ./01-portfolio-laravel:/var/www
-      - ./02-portfolio-nextJS:/var/www-frontend
     working_dir: /var/www
     tty: true
     stdin_open: true
@@ -100,20 +100,14 @@ services:
 
   frontend:
     build:
-      context: ./docker/frontend
-      dockerfile: Dockerfile
+      context: ./02-portfolio-nextJS
+      dockerfile: ../docker/frontend/Dockerfile
     container_name: portfolio-frontend
     restart: unless-stopped
     ports:
       - "3000:3000"
-    volumes:
-      - ./02-portfolio-nextJS:/app
-    working_dir: /app
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000/api
-      NEXT_DISABLE_TURBOPACK: 1
-    command: >
-      sh -c "npm install && npm run build && npm run start"
     depends_on:
       - php-fpm
     networks:

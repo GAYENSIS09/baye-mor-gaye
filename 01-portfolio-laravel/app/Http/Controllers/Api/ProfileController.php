@@ -26,20 +26,20 @@ class ProfileController extends Controller
 
     public function publicProfile()
     {
-        $data = Cache::remember('profile.public', 3600, function () {
-            $proprietaire = \App\Models\Proprietaire::with([
-                'utilisateur',
-                'competences.niveaux',
-                'domaines',
-                'experiences.medias',
-                'formations.medias',
-                'certifications.medias',
-            ])->first();
+        $proprietaire = \App\Models\Proprietaire::with([
+            'utilisateur',
+            'competences.niveaux',
+            'domaines',
+            'experiences.medias',
+            'formations.medias',
+            'certifications.medias',
+        ])->first();
 
-            if (!$proprietaire) {
-                return ['error' => 'Profil introuvable.', 'status' => 404];
-            }
+        if (!$proprietaire) {
+            return response()->json(['message' => 'Profil introuvable.'], 404);
+        }
 
+        return Cache::remember('profile.public', 3600, function () use ($proprietaire) {
             $photo = $proprietaire->utilisateur->photo;
             $photoUrl = $photo
                 ? (str_starts_with($photo, 'http://') || str_starts_with($photo, 'https://')
@@ -47,7 +47,7 @@ class ProfileController extends Controller
                     : url("storage/$photo"))
                 : null;
 
-            return [
+            return response()->json([
                 'nom' => $proprietaire->utilisateur->nom,
                 'email' => $proprietaire->utilisateur->email,
                 'photo' => $photoUrl,
@@ -63,14 +63,8 @@ class ProfileController extends Controller
                 'experiences' => $proprietaire->experiences,
                 'formations' => $proprietaire->formations,
                 'certifications' => $proprietaire->certifications,
-            ];
+            ]);
         });
-
-        if (isset($data['error'])) {
-            return response()->json(['message' => $data['error']], $data['status'] ?? 404);
-        }
-
-        return response()->json($data);
     }
 
     public function update(UpdateProfileRequest $request)
@@ -95,7 +89,15 @@ class ProfileController extends Controller
         $proprietaire = $utilisateur->proprietaire;
 
         if ($proprietaire) {
-            $proprietaire->update($data);
+            $proprietaireData = array_intersect_key($data, array_flip([
+                'bio',
+                'titre_professionnel',
+                'localisation',
+                'site_web',
+                'url_linkedin',
+                'url_github',
+            ]));
+            $proprietaire->update($proprietaireData);
         }
 
         Cache::forget('profile.public');

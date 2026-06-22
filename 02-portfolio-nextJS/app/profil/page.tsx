@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useProfilePublic } from '@/hooks/queries';
 import { useKpi } from '@/hooks/useKpi';
 import Link from 'next/link';
@@ -9,7 +9,8 @@ import { Skeleton } from '@/components/Skeleton';
 import { getMediaUrl } from '@/lib/media';
 import { Icons } from '@/components/ui/Icons';
 import MediaViewer from '@/components/MediaViewer';
-import type { Experience, Formation, Certification, MediaQualification } from '@/types/api';
+import { SectionHeader } from '@/components/SectionHeader';
+import type { Experience, Formation, Certification, Media } from '@/types/api';
 
 function ProfileSkeleton() {
   return (
@@ -63,7 +64,7 @@ function ProfileSkeleton() {
   );
 }
 
-function QualificationMedia({ medias, size = 'md', onOpen }: { medias: MediaQualification[]; size?: 'sm' | 'md' | 'lg'; onOpen?: (m: MediaQualification) => void }) {
+function QualificationMedia({ medias, size = 'md', onOpen }: { medias: Media[]; size?: 'sm' | 'md' | 'lg'; onOpen?: (m: Media) => void }) {
   if (!medias || medias.length === 0) return null;
   const dim = size === 'sm' ? 'w-12 h-12' : size === 'lg' ? 'w-24 h-24' : 'w-16 h-16';
   const first = medias[0];
@@ -82,7 +83,7 @@ function QualificationMedia({ medias, size = 'md', onOpen }: { medias: MediaQual
   );
 }
 
-function MediaLightbox({ media, onClose }: { media: MediaQualification; onClose: () => void }) {
+function MediaLightbox({ media, onClose }: { media: Media; onClose: () => void }) {
   const src = getMediaUrl(media.chemin_fichier);
   return (
     <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4" onClick={onClose} role="dialog" aria-modal="true" aria-label={media.titre || 'Média'}>
@@ -114,7 +115,7 @@ function TimelineEntry({ children, date, isLast = false }: { children: React.Rea
   );
 }
 
-function ExperienceCard({ exp, onMediaOpen }: { exp: Experience; onMediaOpen?: (m: MediaQualification) => void }) {
+function ExperienceCard({ exp, onMediaOpen }: { exp: Experience; onMediaOpen?: (m: Media) => void }) {
   const period = `${new Date(exp.date_debut).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })} – ${exp.est_actuel ? 'Présent' : exp.date_fin ? new Date(exp.date_fin).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }) : 'Présent'}`;
   return (
     <div className="bg-[#111] rounded-lg border border-[#222] p-4 hover:border-acid/20 transition-colors group">
@@ -133,7 +134,7 @@ function ExperienceCard({ exp, onMediaOpen }: { exp: Experience; onMediaOpen?: (
   );
 }
 
-function FormationCard({ formation, onMediaOpen }: { formation: Formation; onMediaOpen?: (m: MediaQualification) => void }) {
+function FormationCard({ formation, onMediaOpen }: { formation: Formation; onMediaOpen?: (m: Media) => void }) {
   const period = `${new Date(formation.date_debut).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })} – ${formation.date_fin ? new Date(formation.date_fin).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }) : 'Présent'}`;
   return (
     <div className="bg-[#111] rounded-lg border border-[#222] p-4 hover:border-acid/20 transition-colors group">
@@ -152,12 +153,24 @@ function FormationCard({ formation, onMediaOpen }: { formation: Formation; onMed
   );
 }
 
-function CertificationCard({ cert, onMediaOpen }: { cert: Certification; onMediaOpen?: (m: MediaQualification) => void }) {
+function CertificationCard({ cert, onMediaOpen }: { cert: Certification; onMediaOpen?: (m: Media) => void }) {
   const date = new Date(cert.date_obtention).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
+  const hasLocalCredential = cert.url_credential && !cert.url_credential.startsWith('http://') && !cert.url_credential.startsWith('https://');
+  const handleMediaOpen = useCallback((m: Media) => {
+    if (hasLocalCredential) {
+      onMediaOpen?.({
+        id: -1, type: 'pdf', chemin_fichier: cert.url_credential!,
+        titre: `${cert.titre} - Certificat`, taille: null, largeur: null, hauteur: null,
+        url_externe: null, vignette: null, est_principal: false, ordre: 0,
+      } as Media);
+    } else {
+      onMediaOpen?.(m);
+    }
+  }, [cert, hasLocalCredential, onMediaOpen]);
   return (
     <div className="bg-[#111] rounded-lg border border-[#222] p-4 hover:border-acid/20 transition-colors group">
       <div className="flex gap-4">
-        <QualificationMedia medias={cert.medias} onOpen={onMediaOpen} />
+        <QualificationMedia medias={cert.medias} onOpen={handleMediaOpen} />
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-off-white group-hover:text-acid transition-colors">{cert.titre}</h4>
           <p className="text-acid text-sm">{cert.organisme}</p>
@@ -165,7 +178,7 @@ function CertificationCard({ cert, onMediaOpen }: { cert: Certification; onMedia
           {cert.description && (
             <p className="text-muted text-sm mt-2 line-clamp-2">{cert.description}</p>
           )}
-          {cert.url_credential && (
+          {cert.url_credential && cert.url_credential.startsWith('http') && (
             <a href={cert.url_credential} target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-acid text-xs hover:underline mt-2 font-mono">
               Voir le certificat
@@ -189,7 +202,7 @@ function KpiCard({ label, value, suffix }: { label: string; value: number | stri
 
 export default function ProfilPage() {
   const profileQuery = useProfilePublic();
-  const [lightboxMedia, setLightboxMedia] = useState<MediaQualification | null>(null);
+  const [lightboxMedia, setLightboxMedia] = useState<Media | null>(null);
 
   const loading = profileQuery.isLoading;
   const error = profileQuery.isError;
@@ -216,21 +229,22 @@ export default function ProfilPage() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A]">
-      <header className="bg-[#111] border-b border-[#222] sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto p-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-off-white">Profil</h1>
-          <Link href="/" className="text-acid hover:underline text-sm font-mono">Accueil</Link>
-        </div>
-      </header>
+      <SectionHeader
+        breadcrumb={[{ label: 'Accueil', href: '/' }, { label: 'Profil' }]}
+        backHref="/"
+        backLabel="Retour à l'accueil"
+        title="Profil"
+        subtitle={profile.titre_professionnel || 'Parcours et compétences'}
+      />
 
       <main className="max-w-4xl mx-auto p-4 py-8 space-y-8">
         {/* Profile card */}
         <div className="bg-[#111] rounded-lg border border-[#222] p-6 md:p-8 animate-fade-in">
           <div className="flex flex-col md:flex-row items-start gap-6 mb-6">
             {profile.photo && (
-      <div className="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-2 border-acid/20 shrink-0">
-        <MediaViewer src={getMediaUrl(profile.photo) || ''} alt={profile.nom} width={112} height={112} className="object-cover w-full h-full" />
-      </div>
+              <div className="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-2 border-acid/20 shrink-0">
+                <MediaViewer src={getMediaUrl(profile.photo) || ''} alt={profile.nom} width={112} height={112} className="object-cover w-full h-full" />
+              </div>
             )}
             <div className="flex-1">
               <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2">

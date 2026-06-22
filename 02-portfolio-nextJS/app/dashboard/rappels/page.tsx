@@ -10,6 +10,9 @@ import { useCreateRappel, useDeleteRappel, useUpdateRappel } from '@/hooks/mutat
 import ConfirmDialog from '@/components/ConfirmDialog';
 import type { Rappel } from '@/types/api';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { SectionHeader } from '@/components/SectionHeader';
+import { CardContainer, CardTitle, CardDescription, CardActions } from '@/components/CardContainer';
+import { ActionButton, ActionBar, StatusBadge } from '@/components/ActionBar';
 import { Icons } from '@/components/ui/Icons';
 
 function formatDatetimeLocal(date: string | null) {
@@ -39,10 +42,7 @@ export default function RappelsDashboardPage() {
     reset,
   } = useForm<RappelFormData>({
     resolver: zodResolver(RappelFormSchema),
-    defaultValues: {
-      titre: '',
-      message: '',
-    },
+    defaultValues: { titre: '', message: '' },
   });
 
   async function handleCreate(data: RappelFormData) {
@@ -82,13 +82,14 @@ export default function RappelsDashboardPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-off-white">Rappels</h1>
-        <button onClick={() => setShowForm(!showForm)}
-          className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 font-mono text-xs uppercase tracking-widest">
-          {showForm ? 'Annuler' : 'Nouveau rappel'}
-        </button>
-      </div>
+      <SectionHeader
+        title="Rappels"
+        actions={
+          <ActionButton variant={showForm ? 'secondary' : 'primary'} onClick={() => setShowForm(!showForm)}>
+            {showForm ? 'Annuler' : 'Nouveau rappel'}
+          </ActionButton>
+        }
+      />
 
       {showForm && (
         <form onSubmit={handleSubmit(handleCreate)} noValidate className="bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
@@ -106,9 +107,9 @@ export default function RappelsDashboardPage() {
             <input id="rappel-notifie" type="datetime-local" value={notifieLe} onChange={(e) => setNotifieLe(e.target.value)}
               className="w-full border border-[#333] rounded px-3 py-2 bg-[#111] text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
           </div>
-          <button type="submit" disabled={isSubmitting} className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
+          <ActionButton type="submit" variant="primary" disabled={isSubmitting}>
             {isSubmitting ? 'Création...' : 'Créer'}
-          </button>
+          </ActionButton>
         </form>
       )}
 
@@ -119,7 +120,7 @@ export default function RappelsDashboardPage() {
           {rappels.map((r) => {
             const isEditing = editingId === r.id;
             return (
-              <div key={r.id} className="bg-[#111] p-4 rounded border border-[#222] flex items-start justify-between">
+              <CardContainer key={r.id} className="p-4">
                 {isEditing ? (
                   <div className="flex-1 space-y-2">
                     <input value={editTitre} onChange={(e) => setEditTitre(e.target.value)}
@@ -128,36 +129,43 @@ export default function RappelsDashboardPage() {
                       className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" rows={2} />
                     <input type="datetime-local" value={editNotifieLe} onChange={(e) => setEditNotifieLe(e.target.value)}
                       className="w-full border border-[#333] rounded px-3 py-2 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-                    <div className="flex gap-2">
-                      <button onClick={saveEdit} className="text-xs text-acid font-mono hover:text-acid/80 transition-colors">Sauver</button>
-                      <button onClick={() => setEditingId(null)} className="text-xs text-muted font-mono hover:text-off-white transition-colors">Annuler</button>
-                    </div>
+                    <ActionBar align="start" gap={2}>
+                      <ActionButton variant="primary" size="sm" onClick={saveEdit}>Sauver</ActionButton>
+                      <ActionButton variant="ghost" size="sm" onClick={() => setEditingId(null)}>Annuler</ActionButton>
+                    </ActionBar>
                   </div>
                 ) : (
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold text-off-white">{r.titre}</p>
-                      {r.est_notifie && <span className="text-xs bg-green-900/20 text-green-400 px-2 py-0.5 rounded">Notifié</span>}
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="text-base">{r.titre}</CardTitle>
+                        {r.est_notifie && <StatusBadge variant="success" size="sm">Notifié</StatusBadge>}
+                      </div>
+                      {r.message && <CardDescription className="mt-1">{r.message}</CardDescription>}
+                      <p className="text-xs text-muted mt-1">
+                        Créé le {new Date(r.created_at).toLocaleDateString('fr-FR')}
+                        {r.notifie_le && ` — Rappel le ${new Date(r.notifie_le).toLocaleDateString('fr-FR')} ${new Date(r.notifie_le).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`}
+                      </p>
                     </div>
-                    {r.message && <p className="text-sm text-muted">{r.message}</p>}
-                    <p className="text-xs text-muted mt-1">
-                      Créé le {new Date(r.created_at).toLocaleDateString('fr-FR')}
-                      {r.notifie_le && ` — Rappel le ${new Date(r.notifie_le).toLocaleDateString('fr-FR')} ${new Date(r.notifie_le).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`}
-                    </p>
+                    <CardActions className="mt-0 pt-0 border-0 ml-4 shrink-0">
+                      <ActionButton variant="ghost" size="sm" onClick={() => startEdit(r)}>Modifier</ActionButton>
+                      <ActionButton variant="danger" size="sm" onClick={() => setConfirmDelete(r.id)}>
+                        <Icons.trash className="w-4 h-4" />
+                      </ActionButton>
+                    </CardActions>
                   </div>
                 )}
-                <div className="flex items-center gap-2 ml-4 flex-shrink-0">
-                  {!isEditing && (
-                    <>
-                      <button onClick={() => startEdit(r)} className="p-2 text-acid hover:text-acid/80 transition-colors rounded hover:bg-acid/10" aria-label="Modifier"><Icons.edit className="w-4 h-4" /></button>
-                      <button onClick={() => setConfirmDelete(r.id)} className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10" aria-label="Supprimer"><Icons.trash className="w-4 h-4" /></button>
-                    </>
-                  )}
-                </div>
-              </div>
+              </CardContainer>
             );
           })}
-          {rappels.length === 0 && <div className="text-center py-12"><svg className="w-10 h-10 mx-auto text-muted/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg><p className="text-muted font-mono text-sm">Aucun rappel.</p></div>}
+          {rappels.length === 0 && (
+            <div className="text-center py-12">
+              <svg className="w-10 h-10 mx-auto text-muted/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+              <p className="text-muted font-mono text-sm">Aucun rappel.</p>
+            </div>
+          )}
         </div>
       )}
 

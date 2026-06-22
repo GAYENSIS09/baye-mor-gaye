@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Domaine;
-use App\Models\MediaPublication;
+use App\Models\Media;
 use App\Models\Proprietaire;
 use App\Models\Publication;
 use Illuminate\Database\Seeder;
@@ -64,8 +64,9 @@ class PublicationSeeder extends Seeder
                 $domaines->random(fake()->numberBetween(1, 3))->pluck('id')
             );
 
-            MediaPublication::factory()->count(2)->create([
-                'publication_id' => $pub->id,
+            Media::factory()->count(2)->create([
+                'mediable_id' => $pub->id,
+                'mediable_type' => Publication::class,
                 'type' => 'image',
             ]);
         }

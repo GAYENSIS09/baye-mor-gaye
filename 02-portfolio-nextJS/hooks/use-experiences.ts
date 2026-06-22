@@ -15,8 +15,8 @@ export function useCreateExperience() {
   return useMutation({
     mutationFn: (data: unknown) => api.post('/experiences', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.experiences() });
-      queryClient.invalidateQueries({ queryKey: qk.profile() });
+      queryClient.invalidateQueries({ queryKey: qk.experiences(), exact: true });
+      queryClient.invalidateQueries({ queryKey: qk.profile(), exact: true });
     },
   });
 }
@@ -35,8 +35,8 @@ export function useUpdateExperience() {
       return api.put(`/experiences/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.experiences() });
-      queryClient.invalidateQueries({ queryKey: qk.profile() });
+      queryClient.invalidateQueries({ queryKey: qk.experiences(), exact: true });
+      queryClient.invalidateQueries({ queryKey: qk.profile(), exact: true });
     },
   });
 }
@@ -46,8 +46,8 @@ export function useDeleteExperience() {
   return useMutation({
     mutationFn: (id: number) => api.delete(`/experiences/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.experiences() });
-      queryClient.invalidateQueries({ queryKey: qk.profile() });
+      queryClient.invalidateQueries({ queryKey: qk.experiences(), exact: true });
+      queryClient.invalidateQueries({ queryKey: qk.profile(), exact: true });
     },
   });
 }

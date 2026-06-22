@@ -15,8 +15,8 @@ export function useCreateCertification() {
   return useMutation({
     mutationFn: (data: unknown) => api.post('/certifications', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.certifications() });
-      queryClient.invalidateQueries({ queryKey: qk.profile() });
+      queryClient.invalidateQueries({ queryKey: qk.certifications(), exact: true });
+      queryClient.invalidateQueries({ queryKey: qk.profile(), exact: true });
     },
   });
 }
@@ -35,8 +35,8 @@ export function useUpdateCertification() {
       return api.put(`/certifications/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.certifications() });
-      queryClient.invalidateQueries({ queryKey: qk.profile() });
+      queryClient.invalidateQueries({ queryKey: qk.certifications(), exact: true });
+      queryClient.invalidateQueries({ queryKey: qk.profile(), exact: true });
     },
   });
 }
@@ -46,8 +46,8 @@ export function useDeleteCertification() {
   return useMutation({
     mutationFn: (id: number) => api.delete(`/certifications/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.certifications() });
-      queryClient.invalidateQueries({ queryKey: qk.profile() });
+      queryClient.invalidateQueries({ queryKey: qk.certifications(), exact: true });
+      queryClient.invalidateQueries({ queryKey: qk.profile(), exact: true });
     },
   });
 }

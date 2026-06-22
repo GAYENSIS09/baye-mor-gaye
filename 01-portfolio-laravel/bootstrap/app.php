@@ -5,12 +5,16 @@ return Illuminate\Foundation\Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         health: '/up',
     )
+    ->withProviders([
+        \App\Providers\AppServiceProvider::class,
+    ])
     ->withSchedule(function (Illuminate\Console\Scheduling\Schedule $schedule) {
         $schedule->command('rappels:envoyer')->everyMinute();
     })
     ->withMiddleware(function (Illuminate\Foundation\Configuration\Middleware $middleware) {
         $middleware->validateCsrfTokens(except: ['api/*']);
         $middleware->append(\App\Http\Middleware\ContentSecurityPolicy::class);
+        $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Illuminate\Foundation\Configuration\Exceptions $exceptions) {
         $exceptions->shouldRenderJsonWhen(function (Illuminate\Http\Request $request) {

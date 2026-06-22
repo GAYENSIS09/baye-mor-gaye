@@ -35,8 +35,8 @@ class Ressource extends Model
         return $this->belongsTo(Domaine::class);
     }
 
-    public function mediaQualifications()
+    public function medias()
     {
-        return $this->morphMany(MediaQualification::class, 'qualifiable');
+        return $this->morphMany(Media::class, 'mediable');
     }
 }

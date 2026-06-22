@@ -68,9 +68,11 @@ class CompetenceController extends Controller
         }
         $data = $request->validated();
 
+        $niveau = $data['niveau'] ?? null;
+        unset($data['niveau']);
+
         $competence->update($data);
 
-        $niveau = $request->input('niveau');
         if ($niveau) {
             $proprietaire = $request->user()->proprietaire;
             NiveauCompetence::updateOrCreate(

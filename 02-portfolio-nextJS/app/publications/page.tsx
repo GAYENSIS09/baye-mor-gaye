@@ -1,13 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { usePublications, useDomaines } from '@/hooks/queries';
 import DomaineBadge from '@/components/DomaineBadge';
 import Link from 'next/link';
 import { Skeleton } from '@/components/Skeleton';
+import { SectionHeader } from '@/components/SectionHeader';
+import { Pagination } from '@/components/ActionBar';
+import { MediaPreview } from '@/components/MediaPreview';
 import type { Publication } from '@/types/api';
 import { Icons } from '@/components/ui/Icons';
-import MediaViewer from '@/components/MediaViewer';
+import { getMediaUrl } from '@/lib/media';
 
 const TYPES = [
   { value: '', label: 'Tous' },
@@ -18,14 +21,15 @@ const TYPES = [
 
 function PublicationRow({ pub }: { pub: Publication }) {
   const approvedCount = pub.commentaires?.filter((c) => c.est_approuve).length ?? 0;
+  const coverSrc = getMediaUrl(pub.image_couverture);
 
   return (
     <Link href={`/publications/${pub.slug}`}
       className="group bg-[#111] p-5 rounded-lg border border-[#222] hover:border-acid/30 transition-all block">
       <div className="flex items-start gap-4">
-        {pub.image_couverture && (
-          <div className="hidden sm:block w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
-            <MediaViewer src={pub.image_couverture} alt="" fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+        {coverSrc && (
+          <div className="hidden sm:block w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 relative">
+            <MediaPreview src={coverSrc} alt="" aspectRatio="square" />
           </div>
         )}
         <div className="flex-1 min-w-0">
@@ -50,6 +54,7 @@ function PublicationRow({ pub }: { pub: Publication }) {
 export default function PublicationsPage() {
   const [typeFilter, setTypeFilter] = useState('');
   const [domaineFilter, setDomaineFilter] = useState('');
+  const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const params: Record<string, string> = { publie: 'true', page: String(currentPage) };
   if (typeFilter) params.type = typeFilter;
@@ -61,33 +66,44 @@ export default function PublicationsPage() {
   const lastPage = data?.last_page ?? 1;
   const total = data?.total ?? 0;
 
+  const filtered = useMemo(() => {
+    if (!search) return publications;
+    const q = search.toLowerCase();
+    return publications.filter((p) =>
+      p.titre.toLowerCase().includes(q) ||
+      p.extrait?.toLowerCase().includes(q) ||
+      p.type?.toLowerCase().includes(q) ||
+      p.domaines?.some((d) => d.nom.toLowerCase().includes(q))
+    );
+  }, [publications, search]);
+
   return (
     <div className="min-h-screen bg-[#0A0A0A]">
-      <header className="bg-[#111] border-b border-[#222] sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto p-4 space-y-3">
-          <h1 className="text-2xl font-bold text-off-white">Publications</h1>
-          <nav className="flex gap-2 flex-wrap">
-            {TYPES.map((t) => (
-              <button key={t.value} onClick={() => { setTypeFilter(t.value); setCurrentPage(1); }}
-                className={`px-3 py-1.5 rounded font-mono text-xs uppercase tracking-widest transition-colors ${typeFilter === t.value ? 'bg-acid text-black' : 'bg-[#222] text-muted hover:text-off-white'}`}>
-                {t.label}
-              </button>
-            ))}
-          </nav>
-          <nav className="flex gap-2 flex-wrap">
-            <button onClick={() => { setDomaineFilter(''); setCurrentPage(1); }}
-              className={`px-3 py-1.5 rounded font-mono text-xs uppercase tracking-widest transition-colors ${!domaineFilter ? 'bg-acid text-black' : 'bg-[#222] text-muted hover:text-off-white'}`}>
-              Tous
+      <SectionHeader
+        breadcrumb={[{ label: 'Accueil', href: '/' }, { label: 'Publications' }]}
+        title="Publications"
+        subtitle="Explorez les articles, tutoriels et notes."
+        total={total}
+        searchValue={search}
+        onSearchChange={(v) => { setSearch(v); setCurrentPage(1); }}
+        searchPlaceholder="Rechercher une publication..."
+        filters={TYPES}
+        activeFilter={typeFilter}
+        onFilterChange={(v) => { setTypeFilter(v); setCurrentPage(1); }}
+      >
+        <div className="flex gap-1.5 flex-wrap" role="tablist" aria-label="Filtres par domaine">
+          <button onClick={() => { setDomaineFilter(''); setCurrentPage(1); }} role="tab" aria-selected={!domaineFilter}
+            className={`whitespace-nowrap font-mono text-xs uppercase tracking-widest transition-all duration-200 ${!domaineFilter ? 'bg-acid text-black px-3 py-1 rounded-full' : 'bg-[#222] text-muted hover:text-off-white px-3 py-1 rounded-full'}`}>
+            Tous les domaines
+          </button>
+          {domaines.map((d) => (
+            <button key={d.id} onClick={() => { setDomaineFilter(d.slug); setCurrentPage(1); }} role="tab" aria-selected={domaineFilter === d.slug}
+              className={`whitespace-nowrap font-mono text-xs uppercase tracking-widest transition-all duration-200 ${domaineFilter === d.slug ? 'bg-acid text-black px-3 py-1 rounded-full' : 'bg-[#222] text-muted hover:text-off-white px-3 py-1 rounded-full'}`}>
+              {d.nom}
             </button>
-            {domaines.map((d) => (
-              <button key={d.id} onClick={() => { setDomaineFilter(d.slug); setCurrentPage(1); }}
-                className={`px-3 py-1.5 rounded font-mono text-xs uppercase tracking-widest transition-colors ${domaineFilter === d.slug ? 'bg-acid text-black' : 'bg-[#222] text-muted hover:text-off-white'}`}>
-                {d.nom}
-              </button>
-            ))}
-          </nav>
+          ))}
         </div>
-      </header>
+      </SectionHeader>
 
       <main className="max-w-4xl mx-auto p-4 py-8">
         {isLoading ? (
@@ -104,29 +120,22 @@ export default function PublicationsPage() {
               </div>
             ))}
           </div>
-        ) : publications.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="text-center py-12">
             <svg className="w-10 h-10 mx-auto text-muted/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
             </svg>
-            <p className="text-muted font-mono text-sm">Aucune publication pour le moment.</p>
+            <p className="text-muted font-mono text-sm">
+              {search ? `Aucune publication ne correspond à "${search}".` : 'Aucune publication pour le moment.'}
+            </p>
           </div>
         ) : (
           <div className="grid gap-4">
-            {publications.map((p) => <PublicationRow key={p.id} pub={p} />)}
+            {filtered.map((p) => <PublicationRow key={p.id} pub={p} />)}
           </div>
         )}
 
-        {lastPage > 1 && (
-          <div className="flex justify-center gap-2 mt-8">
-            {Array.from({ length: lastPage }, (_, i) => i + 1).map((page) => (
-              <button key={page} onClick={() => setCurrentPage(page)}
-                className={`w-8 h-8 rounded font-mono text-xs transition-colors ${currentPage === page ? 'bg-acid text-black' : 'bg-[#222] text-muted hover:text-off-white'}`}>
-                {page}
-              </button>
-            ))}
-          </div>
-        )}
+        <Pagination currentPage={currentPage} lastPage={lastPage} total={total} onPageChange={setCurrentPage} />
       </main>
     </div>
   );

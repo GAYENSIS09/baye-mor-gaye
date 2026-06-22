@@ -1,30 +1,15 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useRessources } from '@/hooks/queries';
-import Link from 'next/link';
-import Image from 'next/image';
-import Pagination from '@/components/Pagination';
-import { Skeleton } from '@/components/Skeleton';
+import { getMediaUrl } from '@/lib/media';
+import { SectionHeader } from '@/components/SectionHeader';
+import { ResponsiveGrid } from '@/components/ResponsiveGrid';
+import { ActionButton, LoadMoreButton, Pagination } from '@/components/ActionBar';
+import { CardContainer, CardImage, CardContent, CardTitle, CardDescription } from '@/components/CardContainer';
+import { MediaPreview, MediaGalleryPreview } from '@/components/MediaPreview';
+import SkeletonCard from '@/components/SkeletonCard';
 import { Icons } from '@/components/ui/Icons';
-import MediaViewer from '@/components/MediaViewer';
-import type { Ressource, MediaQualification } from '@/types/api';
-
-const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp', 'svg'];
-const STORAGE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '/storage') || 'http://localhost:8000/storage';
-
-function getMediaUrl(path: string | null | undefined): string | null {
-  if (!path) return null;
-  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:') || path.startsWith('data:')) return path;
-  return `${STORAGE_URL}/${path.replace(/^\//, '')}`;
-}
-
-function getFirstCover(resource: Ressource): string | null {
-  if (resource.media && resource.media.length > 0) {
-    const img = resource.media.find(m => m.type === 'image');
-    if (img?.chemin_fichier) return getMediaUrl(img.chemin_fichier);
-  }
-  return null;
-}
+import type { Ressource, Media } from '@/types/api';
 
 const FILE_ICONS: Record<string, React.ReactNode> = {
   pdf: <Icons.file className="w-5 h-5" aria-hidden />,
@@ -32,7 +17,7 @@ const FILE_ICONS: Record<string, React.ReactNode> = {
   video: <Icons.file className="w-5 h-5" aria-hidden />,
 };
 
-function getMediaTypeIcon(media: MediaQualification): React.ReactNode {
+function getMediaTypeIcon(media: Media): React.ReactNode {
   const key = media.type?.toLowerCase() || '';
   for (const [k, icon] of Object.entries(FILE_ICONS)) {
     if (key.includes(k)) return icon;
@@ -40,11 +25,19 @@ function getMediaTypeIcon(media: MediaQualification): React.ReactNode {
   return <Icons.file className="w-5 h-5" aria-hidden />;
 }
 
+function getFirstCover(resource: Ressource): string | null {
+  if (resource.medias && resource.medias.length > 0) {
+    const img = resource.medias.find(m => m.type === 'image');
+    if (img?.chemin_fichier) return getMediaUrl(img.chemin_fichier);
+  }
+  return null;
+}
+
 function ResourcePreviewModal({ resource, onClose }: { resource: Ressource; onClose: () => void }) {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const cover = getFirstCover(resource);
-  const firstMedia = resource.media?.[0];
+  const firstMedia = resource.medias?.[0];
   const previewUrl = firstMedia ? getMediaUrl(firstMedia.chemin_fichier) : null;
 
   useEffect(() => {
@@ -71,7 +64,7 @@ function ResourcePreviewModal({ resource, onClose }: { resource: Ressource; onCl
       </button>
       <div className="relative max-w-5xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
         {previewUrl ? (
-          <MediaViewer src={previewUrl} alt={resource.titre} className="max-h-[85vh] mx-auto rounded-lg" />
+          <MediaPreview src={previewUrl} alt={resource.titre} aspectRatio="auto" className="max-h-[85vh]" />
         ) : (
           <div className="bg-[#111] border border-[#222] rounded-lg p-8 text-center">
             <Icons.file className="w-16 h-16 mx-auto text-muted/50 mb-4" aria-hidden />
@@ -92,16 +85,17 @@ function ResourcePreviewModal({ resource, onClose }: { resource: Ressource; onCl
 
 function ResourceCard({ resource, onPreview }: { resource: Ressource; onPreview?: (r: Ressource) => void }) {
   const cover = getFirstCover(resource);
-  const firstMedia = resource.media?.[0];
+  const firstMedia = resource.medias?.[0];
   const icon = firstMedia ? getMediaTypeIcon(firstMedia) : <Icons.file className="w-5 h-5" aria-hidden />;
 
   if (!firstMedia && !cover) return null;
 
-  const content = (
-    <>
+  return (
+    <button onClick={() => onPreview?.(resource)}
+      className="bg-[#111] rounded-lg border border-[#222] hover:border-acid/30 transition-all group flex flex-col overflow-hidden text-left w-full">
       {cover && (
-        <div className="aspect-video relative overflow-hidden bg-[#1a1a1a] rounded-t-lg">
-          <Image src={cover} alt={resource.titre} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
+        <div className="relative aspect-video overflow-hidden bg-[#1a1a1a]">
+          <MediaPreview src={cover} alt={resource.titre} aspectRatio="video" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-transparent to-transparent" />
         </div>
       )}
@@ -126,12 +120,6 @@ function ResourceCard({ resource, onPreview }: { resource: Ressource; onPreview?
           </span>
         </div>
       </div>
-    </>
-  );
-
-  return (
-    <button onClick={() => onPreview?.(resource)} className="bg-[#111] rounded-lg border border-[#222] hover:border-acid/30 transition-all group flex flex-col overflow-hidden text-left w-full">
-      {content}
     </button>
   );
 }
@@ -145,57 +133,39 @@ export default function RessourcesPage() {
   const total = ressourcesRes?.total ?? 0;
 
   return (
-    <div className="min-h-screen bg-off-black">
-      <div className="max-w-6xl mx-auto px-6 py-32">
-        <div className="flex items-baseline gap-6 mb-20">
-          <span className="font-mono text-acid text-xs uppercase tracking-widest">Ressources</span>
-          <h1 className="font-display text-5xl md:text-7xl text-white uppercase tracking-tight">
-            Ressources
-          </h1>
-        </div>
+    <div className="min-h-screen bg-[#0A0A0A]">
+      <SectionHeader
+        breadcrumb={[{ label: 'Accueil', href: '/' }, { label: 'Ressources' }]}
+        title="Ressources"
+        subtitle="Documents, fichiers et ressources téléchargeables."
+        total={total}
+      />
 
-        <div className="border-t border-[#222] pt-16">
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="bg-[#111] p-6 rounded border border-[#222] space-y-3">
-                  <div className="flex items-start gap-4 mb-3">
-                    <Skeleton className="w-8 h-8" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-5 w-3/4" />
-                      <Skeleton className="h-4 w-1/3" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-4 w-1/2" />
-                </div>
-              ))}
-            </div>
-          ) : isError ? (
-            <div className="text-center py-16">
-              <Icons.warning className="w-12 h-12 mx-auto text-muted/30 mb-4" role="img" aria-label="Erreur" />
-              <p className="text-muted font-mono text-sm mb-4" role="alert">Erreur lors du chargement des ressources</p>
-              <button
-                onClick={() => refetch()}
-                className="bg-acid text-black px-4 py-2 font-mono text-xs uppercase tracking-widest hover:bg-acid/90 transition-colors rounded"
-              >
-                Réessayer
-              </button>
-            </div>
-          ) : ressources.length === 0 ? (
-            <div className="text-center py-16">
-              <Icons.file className="w-12 h-12 mx-auto text-muted/30 mb-4" aria-hidden />
-              <p className="text-muted font-mono text-sm">Aucune ressource disponible pour le moment.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {ressources.map((r) => (
-                <ResourceCard key={r.id} resource={r} onPreview={setPreviewResource} />
-              ))}
-            </div>
-          )}
-          <Pagination currentPage={currentPage} lastPage={lastPage} total={total} onPageChange={setCurrentPage} />
-        </div>
-      </div>
+      <main className="max-w-6xl mx-auto p-4 py-8">
+        {isLoading ? (
+          <ResponsiveGrid columns={3} gap={4}>
+            {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+          </ResponsiveGrid>
+        ) : isError ? (
+          <div className="text-center py-16">
+            <Icons.warning className="w-12 h-12 mx-auto text-muted/30 mb-4" role="img" aria-label="Erreur" />
+            <p className="text-muted font-mono text-sm mb-4" role="alert">Erreur lors du chargement des ressources</p>
+            <ActionButton variant="primary" onClick={() => refetch()}>Réessayer</ActionButton>
+          </div>
+        ) : ressources.length === 0 ? (
+          <div className="text-center py-16">
+            <Icons.file className="w-12 h-12 mx-auto text-muted/30 mb-4" aria-hidden />
+            <p className="text-muted font-mono text-sm">Aucune ressource disponible pour le moment.</p>
+          </div>
+        ) : (
+          <ResponsiveGrid columns={3} gap={4}>
+            {ressources.map((r) => (
+              <ResourceCard key={r.id} resource={r} onPreview={setPreviewResource} />
+            ))}
+          </ResponsiveGrid>
+        )}
+        <Pagination currentPage={currentPage} lastPage={lastPage} total={total} onPageChange={setCurrentPage} />
+      </main>
 
       {previewResource && (
         <ResourcePreviewModal resource={previewResource} onClose={() => setPreviewResource(null)} />

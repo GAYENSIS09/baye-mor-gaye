@@ -15,6 +15,7 @@ RUN apk add --no-cache \
 
 # OPCache configuration (production)
 COPY docker/php-fpm/conf.d/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY docker/php-fpm/conf.d/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
 # PHP-FPM pool config
 COPY docker/php-fpm/php-fpm.d/www.conf /usr/local/etc/php-fpm.d/www.conf
@@ -43,22 +44,21 @@ RUN mkdir -p /var/www/bootstrap/cache
 RUN composer dump-autoload --optimize --no-dev \
     && php artisan package:discover --ansi
 
-# Laravel caches
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan event:cache
-
 # Storage link
 RUN php artisan storage:link
 
 # Permissions
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
+# Copy entrypoint script
+COPY docker/php-fpm/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 USER www-data
 
 EXPOSE 9000
 
-CMD ["php-fpm"]
+ENTRYPOINT ["entrypoint.sh"]
 
 # ============================================================
 # DEVELOPMENT TARGET (extends production)
@@ -93,7 +93,5 @@ RUN apk add --no-cache shadow && \
     fi && \
     sed -i "s/user = www-data/user = www/g" /usr/local/etc/php-fpm.d/www.conf && \
     sed -i "s/group = www-data/group = $group_name/g" /usr/local/etc/php-fpm.d/www.conf
-
-USER www-data
 
 CMD ["php-fpm"]

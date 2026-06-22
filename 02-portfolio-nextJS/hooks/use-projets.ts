@@ -18,17 +18,10 @@ export function useProject(slug: string) {
   });
 }
 
-export function useProjetsDashboard() {
-  return useQuery({
-    queryKey: qk.projetsDashboard(),
-    queryFn: () => api.get<PaginatedResponse<Projet>>('/projets'),
-  });
-}
-
 export function useProjetById(id: string | number) {
   return useQuery({
     queryKey: qk.projetById(id),
-    queryFn: () => api.get<Projet>(`/projets/${id}`),
+    queryFn: () => api.get<Projet>(`/projets/${id}`, { params: { all: 'true' } }),
     enabled: !!id,
   });
 }
@@ -37,7 +30,7 @@ export function useCreateProjet() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: Record<string, unknown>) => api.post('/projets', data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.projets() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.projets(), exact: false }),
   });
 }
 
@@ -46,9 +39,9 @@ export function useUpdateProjet(id: number) {
   return useMutation({
     mutationFn: (data: Record<string, unknown>) => api.put(`/projets/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.projets() });
-      queryClient.invalidateQueries({ queryKey: ['project'] });
-      queryClient.invalidateQueries({ queryKey: ['projet'] });
+      queryClient.invalidateQueries({ queryKey: qk.projets(), exact: false });
+      queryClient.invalidateQueries({ queryKey: ['project'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['projet'], exact: false });
     },
   });
 }
@@ -57,6 +50,6 @@ export function useDeleteProjet() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.delete(`/projets/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.projets() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.projets(), exact: false }),
   });
 }

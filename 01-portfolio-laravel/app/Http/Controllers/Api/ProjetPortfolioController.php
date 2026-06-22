@@ -27,7 +27,15 @@ class ProjetPortfolioController extends Controller
 
         $query = ProjetPortfolio::with(['commentaires.auteur', 'likes.auteur', 'medias']);
 
-        if ($request->boolean('publie')) {
+        if ($request->has('statut')) {
+            match ($request->statut) {
+                'publie' => $query->where('est_publie', true),
+                'brouillon' => $query->where('est_publie', false),
+                default => null,
+            };
+        } elseif ($request->boolean('publie')) {
+            $query->where('est_publie', true);
+        } elseif (!$request->boolean('all')) {
             $query->where('est_publie', true);
         }
 
@@ -35,12 +43,21 @@ class ProjetPortfolioController extends Controller
             $query->whereJsonContains('technologies', $request->technologie);
         }
 
+        if ($request->has('search')) {
+            $query->where('titre', 'like', '%' . $request->search . '%');
+        }
+
         return ProjetPortfolioResource::collection($query->orderBy('created_at', 'desc')->paginate(12));
     }
 
-    public function show(string $slug)
+    public function show(Request $request, string $slug)
     {
         $query = ProjetPortfolio::with(['commentaires.auteur', 'likes.auteur', 'medias']);
+
+        if (!$request->boolean('all')) {
+            $query->where('est_publie', true);
+        }
+
         if (is_numeric($slug)) {
             return ProjetPortfolioResource::make($query->findOrFail((int) $slug));
         }

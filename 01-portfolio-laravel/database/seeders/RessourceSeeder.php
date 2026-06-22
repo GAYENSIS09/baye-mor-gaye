@@ -16,20 +16,17 @@ class RessourceSeeder extends Seeder
 
         foreach ($domaines as $domaine) {
             $ressources = [
-                ["Guide $domaine->nom", 'https://example.com/guide-' . $domaine->slug],
-                ["Documentation $domaine->nom", 'https://docs.example.com/' . $domaine->slug],
-                ["Tutoriel $domaine->nom", 'https://tuto.example.com/' . $domaine->slug],
+                ["Guide $domaine->nom"],
+                ["Documentation $domaine->nom"],
+                ["Tutoriel $domaine->nom"],
             ];
 
-            foreach ($ressources as [$titre, $url]) {
+            foreach ($ressources as [$titre]) {
                 Ressource::firstOrCreate(
                     ['proprietaire_id' => $proprietaire->id, 'titre' => $titre],
                     [
                         'domaine_id' => $domaine->id,
-                        'url_externe' => $url,
-                        'type' => 'lien',
                         'est_publique' => true,
-                        'nombre_telechargements' => fake()->numberBetween(0, 200),
                     ]
                 );
             }

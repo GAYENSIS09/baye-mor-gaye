@@ -18,6 +18,7 @@ enum TypeMedia {
   Vidéo
   Document
   Lien
+  Youtube
 }
 
 enum TypeRessource {
@@ -119,17 +120,20 @@ package "Publications & Interactions" as Posts {
 
   Like --|> Timestamps
 
-  class MediaPublication {
+  class Media {
     + type: TypeMedia
     + cheminFichier: String
+    + urlExterne: String
+    + vignette: String
+    + titre: String
     + taille: Integer
     + largeur: Integer
     + hauteur: Integer
-    + titre: String
+    + estPrincipal: Boolean
     + ordre: Integer
   }
 
-  MediaPublication --|> Timestamps
+  Media --|> Timestamps
 }
 
 ' ========== PACKAGE PROJETS ==========
@@ -149,19 +153,6 @@ package "Projets Portfolio" as Projets {
   }
 
   ProjetPortfolio --|> SoftDeletes
-
-  class MediaProjet {
-    + type: TypeMedia
-    + cheminFichier: String
-    + urlExterne: String
-    + vignette: String
-    + titre: String
-    + estPrincipal: Boolean
-    + ordre: Integer
-  }
-
-  MediaProjet --|> Timestamps
-}
 
 ' ========== PACKAGE PLANNING ==========
 package "Planning" as Planning {
@@ -257,8 +248,7 @@ package "Notifications & Statistiques" as Notifications {
 ' ENUM RELATIONS
 ' ==================================================
 NiveauCompetence --> Niveau
-MediaProjet --> TypeMedia
-MediaPublication --> TypeMedia
+Media --> TypeMedia
 Ressource --> TypeRessource
 
 ' ========== PACKAGE QUALIFICATIONS ==========
@@ -301,15 +291,6 @@ package "Qualifications" as Qualifications {
 
   Certification --|> Timestamps
 
-  class MediaQualification {
-    + type: TypeMedia
-    + cheminFichier: String
-    + titre: String
-    + taille: Integer
-    + ordre: Integer
-  }
-
-  MediaQualification --|> Timestamps
 }
 
 ' ==================================================
@@ -337,9 +318,9 @@ Proprietaire "1" -- "0..*" Ressource : ressources
 Publication "1" -- "0..*" Commentaire : commentaires
 Publication "1" -- "0..*" Like : likes
 Publication "*" -- "*" Domaine : domaines
-Publication "1" -- "0..*" MediaPublication : médias
+Publication "1" -- "0..*" Media : médias
 
-ProjetPortfolio "1" -- "0..*" MediaProjet : medias
+ProjetPortfolio "1" -- "0..*" Media : medias
 
 EmploiDuTemps "1" -- "0..*" EvenementEDT : événements
 EmploiDuTemps "1" -- "0..*" ConversionEDT : conversions
@@ -351,11 +332,9 @@ Proprietaire "1" -- "0..*" Experience : experiences
 Proprietaire "1" -- "0..*" Formation : formations
 Proprietaire "1" -- "0..*" Certification : certifications
 
-Experience "1" -- "0..*" MediaQualification : medias
-Formation "1" -- "0..*" MediaQualification : medias
-Certification "1" -- "0..*" MediaQualification : medias
-
-MediaQualification --> TypeMedia
+Experience "1" -- "0..*" Media : medias
+Formation "1" -- "0..*" Media : medias
+Certification "1" -- "0..*" Media : medias
 
 Publication "1" -- "0..*" VuePage : vues
 ProjetPortfolio "1" -- "0..*" VuePage : vues

@@ -1,5 +1,4 @@
 import dynamic from 'next/dynamic';
-import FloatingPillNav from "@/components/FloatingPillNav";
 import Hero from "@/components/Hero";
 import ExperienceTimeline from "@/components/Experience";
 import CompetencesSection from "@/components/Skills";
@@ -15,7 +14,6 @@ const Contact = dynamic(() => import('@/components/Contact'), {
 export default function Home() {
   return (
     <main>
-      <FloatingPillNav />
       <Hero />
       <ExperienceTimeline />
       <CompetencesSection />

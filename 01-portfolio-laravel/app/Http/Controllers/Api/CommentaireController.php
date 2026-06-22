@@ -21,7 +21,7 @@ class CommentaireController extends Controller
     {
         $model = $this->resolveModel($commentableType, $commentableId);
 
-        return CommentaireResource::collection($model->commentaires()->with('auteur')->where('est_approuve', true)->paginate(20));
+        return CommentaireResource::collection($model->commentaires()->with(['auteur', 'commentable'])->where('est_approuve', true)->paginate(20));
     }
 
     public function store(StoreCommentaireRequest $request)
@@ -38,9 +38,10 @@ class CommentaireController extends Controller
             'auteur_id' => $request->user()->id,
             'contenu' => $data['contenu'],
             'est_approuve' => false,
+            'parent_id' => $data['parent_id'] ?? null,
         ]);
 
-        return CommentaireResource::make($commentaire->load('auteur'));
+        return CommentaireResource::make($commentaire->load(['auteur', 'commentable']));
     }
 
     public function approuver(Request $request, Commentaire $commentaire)
@@ -61,7 +62,7 @@ class CommentaireController extends Controller
             Mail::to($commentaire->auteur->email)->queue(new CommentaireApprouve($commentaire));
         }
 
-        return response()->json(CommentaireResource::make($commentaire->load('auteur')));
+        return response()->json(CommentaireResource::make($commentaire->load(['auteur', 'commentable'])));
     }
 
     public function rejeter(Request $request, Commentaire $commentaire)
@@ -89,14 +90,14 @@ class CommentaireController extends Controller
     {
         $publication = Publication::where('slug', $slug)->firstOrFail();
 
-        return CommentaireResource::collection($publication->commentaires()->with('auteur')->where('est_approuve', true)->paginate(20));
+        return CommentaireResource::collection($publication->commentaires()->with(['auteur', 'commentable'])->where('est_approuve', true)->paginate(20));
     }
 
     public function projetCommentaires(string $slug)
     {
         $projet = ProjetPortfolio::where('slug', $slug)->firstOrFail();
 
-        return CommentaireResource::collection($projet->commentaires()->with('auteur')->where('est_approuve', true)->paginate(20));
+        return CommentaireResource::collection($projet->commentaires()->with(['auteur', 'commentable'])->where('est_approuve', true)->paginate(20));
     }
 
     public function enAttente(Request $request)
@@ -128,7 +129,7 @@ class CommentaireController extends Controller
 
         $commentaire->update($request->validated());
 
-        return CommentaireResource::make($commentaire->load('auteur'));
+        return CommentaireResource::make($commentaire->load(['auteur', 'commentable']));
     }
 
     private function resolveModel(string $type, int $id)

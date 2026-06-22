@@ -13,7 +13,7 @@ class RessourceController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Ressource::with('domaine', 'mediaQualifications');
+        $query = Ressource::with('domaine', 'medias');
 
         if ($request->has('domaine')) {
             $query->where('domaine_id', $request->domaine);
@@ -24,7 +24,7 @@ class RessourceController extends Controller
 
     public function show(Ressource $ressource)
     {
-        return RessourceResource::make($ressource->load('domaine', 'mediaQualifications'));
+        return RessourceResource::make($ressource->load('domaine', 'medias'));
     }
 
     public function store(StoreRessourceRequest $request)

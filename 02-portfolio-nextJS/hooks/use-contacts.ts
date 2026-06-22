@@ -21,7 +21,7 @@ export function useReadContact() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.patch(`/contacts/${id}/read`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.contacts() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.contacts(), exact: false }),
   });
 }
 
@@ -29,6 +29,6 @@ export function useDeleteContact() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.delete(`/contacts/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.contacts() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.contacts(), exact: false }),
   });
 }

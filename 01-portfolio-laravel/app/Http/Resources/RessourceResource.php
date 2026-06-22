@@ -15,7 +15,7 @@ class RessourceResource extends JsonResource
             'description' => $this->description,
             'est_publique' => $this->est_publique,
             'domaine' => DomaineResource::make($this->whenLoaded('domaine')),
-            'media' => MediaQualificationResource::collection($this->whenLoaded('mediaQualifications')),
+            'medias' => MediaResource::collection($this->whenLoaded('medias')),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

@@ -22,6 +22,7 @@ class UpdateExperienceRequest extends FormRequest
             'est_actuel' => 'boolean',
             'lieu' => 'nullable|string|max:255',
             'ordre' => 'integer|min:0',
+            'media' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp|max:10240',
         ];
     }
 }

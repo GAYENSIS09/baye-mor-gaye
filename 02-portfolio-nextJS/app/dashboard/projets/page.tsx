@@ -8,11 +8,17 @@ import { useDeleteProjet } from '@/hooks/mutations';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { qk } from '@/lib/query-keys';
-import Pagination from '@/components/Pagination';
-import ConfirmDialog from '@/components/ConfirmDialog';
+import { Pagination } from '@/components/ActionBar';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { Projet } from '@/types/api';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { Icons } from '@/components/ui/Icons';
+import { Skeleton } from '@/components/Skeleton';
+import { CardContainer, CardContent, CardTitle, CardTags, CardActions } from '@/components/CardContainer';
+import { SectionHeader } from '@/components/SectionHeader';
+import { ResponsiveGrid } from '@/components/ResponsiveGrid';
+import { ActionButton, IconButton, StatusBadge } from '@/components/ActionBar';
+
 
 export default function ProjetsDashboardPage() {
   const { utilisateur, loading: authLoading } = useAuth();
@@ -23,7 +29,7 @@ export default function ProjetsDashboardPage() {
   const [statutFilter, setStatutFilter] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
 
-  const params: Record<string, string> = { page: String(currentPage) };
+  const params: Record<string, string> = { page: String(currentPage), all: 'true' };
   if (search) params.search = search;
   if (techFilter) params.technologie = techFilter;
   if (statutFilter) params.statut = statutFilter;
@@ -59,18 +65,19 @@ export default function ProjetsDashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-off-white">Projets</h1>
-        <Link href="/dashboard/projets/new"
-          className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 font-mono text-xs uppercase tracking-widest">
-          Nouveau projet
-        </Link>
-      </div>
+      <SectionHeader
+        title="Projets"
+        actions={
+          <Link href="/dashboard/projets/new">
+            <ActionButton variant="primary">Nouveau projet</ActionButton>
+          </Link>
+        }
+      />
 
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-6">
         <input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
           placeholder="Rechercher par titre..."
-          className="flex-1 min-w-[200px] bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+          className="flex-1 min-w-[200px] border border-[#333] rounded px-3 py-2 bg-transparent text-off-white placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
         <select value={techFilter} onChange={(e) => { setTechFilter(e.target.value); setCurrentPage(1); }}
           className="bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
           <option value="">Toutes technos</option>
@@ -87,47 +94,74 @@ export default function ProjetsDashboardPage() {
       {isError ? (
         <div className="text-center py-16">
           <p className="text-muted font-mono text-sm mb-4" role="alert">Erreur chargement projets</p>
-          <button onClick={() => refetch()} className="bg-acid text-black px-4 py-2 font-mono text-xs uppercase tracking-widest hover:bg-acid/90 transition-colors rounded">
-            Réessayer
-          </button>
+          <ActionButton variant="primary" onClick={() => refetch()}>Réessayer</ActionButton>
         </div>
       ) : isLoading ? (
-        <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-16 bg-[#222] rounded animate-pulse" />)}</div>
-      ) : (
-        <div className="space-y-4">
-          {projets.map((p) => (
-            <div key={p.id} className="bg-[#111] p-4 rounded border border-[#222] flex items-center justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold text-off-white">{p.titre}</p>
-                  <span className={`text-xs px-2 py-0.5 rounded ${p.est_publie ? 'bg-green-900/20 text-green-400' : 'bg-yellow-900/20 text-yellow-400'}`}>
-                    {p.est_publie ? 'Publié' : 'Brouillon'}
-                  </span>
-                </div>
-                {p.technologies && p.technologies.length > 0 && (
-                  <p className="text-sm text-muted truncate">{p.technologies.join(', ')}</p>
-                )}
-              </div>
-              <div className="flex items-center gap-2 ml-4 flex-shrink-0">
-                <button onClick={() => handleTogglePublier(p)}
-                  className="text-xs text-acid hover:text-acid/80 font-mono transition-colors">
-                  {p.est_publie ? 'Archiver' : 'Publier'}
-                </button>
-                <Link href={`/dashboard/projets/${p.id}/edit`}
-                  className="p-2 text-acid hover:text-acid/80 transition-colors rounded hover:bg-acid/10" aria-label="Modifier">
-                  <Icons.edit className="w-4 h-4" />
-                </Link>
-                <button onClick={() => setDeleteTarget(p.id)}
-                  className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10" aria-label="Supprimer">
-                  <Icons.trash className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+        <ResponsiveGrid columns={1} gap={3}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <CardContainer key={i} className="animate-pulse p-4">
+              <CardContent className="p-0">
+                <Skeleton className="h-16 w-full rounded" />
+              </CardContent>
+            </CardContainer>
           ))}
-          {projets.length === 0 && <div className="text-center py-12"><svg className="w-10 h-10 mx-auto text-muted/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg><p className="text-muted font-mono text-sm">Aucun projet trouvé.</p></div>}
-        </div>
+        </ResponsiveGrid>
+      ) : (
+        <>
+          <ResponsiveGrid columns={1} gap={4}>
+            {projets.map((p) => (
+              <CardContainer key={p.id} hover className="p-4 flex items-center justify-between">
+                <CardContent className="p-0 flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <CardTitle className="text-base truncate">{p.titre}</CardTitle>
+                    <StatusBadge variant={p.est_publie ? 'success' : 'warning'} size="sm">
+                      {p.est_publie ? 'Publié' : 'Brouillon'}
+                    </StatusBadge>
+                  </div>
+                  {p.technologies && p.technologies.length > 0 && (
+                    <CardTags tags={p.technologies} maxVisible={5} className="mt-1" />
+                  )}
+                </CardContent>
+                <CardActions className="mt-0 pt-0 border-0 flex-shrink-0 ml-4">
+                  <IconButton
+                    onClick={() => handleTogglePublier(p)}
+                    icon={p.est_publie ? <Icons.folder className="w-4 h-4" /> : <Icons.external className="w-4 h-4" />}
+                    label={p.est_publie ? 'Archiver' : 'Publier'}
+                    variant="ghost"
+                    size="sm"
+                  />
+                  <Link href={`/dashboard/projets/${p.id}/edit`}>
+                    <IconButton
+                      icon={<Icons.edit className="w-4 h-4" />}
+                      label="Modifier"
+                      variant="ghost"
+                      size="sm"
+                    />
+                  </Link>
+                  <IconButton
+                    onClick={() => setDeleteTarget(p.id)}
+                    icon={<Icons.trash className="w-4 h-4" />}
+                    label="Supprimer"
+                    variant="danger"
+                    size="sm"
+                  />
+                </CardActions>
+              </CardContainer>
+            ))}
+          </ResponsiveGrid>
+
+          {projets.length === 0 && (
+            <div className="text-center py-12">
+              <svg className="w-10 h-10 mx-auto text-muted/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+              <p className="text-muted font-mono text-sm">Aucun projet trouvé.</p>
+            </div>
+          )}
+
+          <Pagination currentPage={currentPage} lastPage={lastPage} total={total} onPageChange={setCurrentPage} />
+        </>
       )}
-      <Pagination currentPage={currentPage} lastPage={lastPage} total={total} onPageChange={setCurrentPage} />
 
       <ConfirmDialog
         open={deleteTarget !== null}

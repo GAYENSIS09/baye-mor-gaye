@@ -52,7 +52,7 @@ describe('ContactPage', () => {
     const ContactPage = (await import('../app/contact/page')).default;
     render(<QueryClientProvider client={queryClient}><ContactPage /></QueryClientProvider>);
 
-    expect(screen.getByText('Contact')).toBeInTheDocument();
+    expect(screen.getAllByText('Contact').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByLabelText('Nom')).toBeInTheDocument();
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
     expect(screen.getByLabelText('Message')).toBeInTheDocument();

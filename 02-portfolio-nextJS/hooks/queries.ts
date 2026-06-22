@@ -3,13 +3,11 @@ export { useProfilePublic, useProfile } from './useProfile';
 export {
   usePublications,
   usePublication,
-  usePublicationsDashboard,
   usePublicationById,
 } from './use-publications';
 export {
   useProjects,
   useProject,
-  useProjetsDashboard,
   useProjetById,
 } from './use-projets';
 export { useExperiences } from './use-experiences';

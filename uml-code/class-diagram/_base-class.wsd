@@ -12,6 +12,7 @@ enum TypeMedia {
   Vidéo
   Document
   Lien
+  Youtube
 }
 
 enum TypeRessource {

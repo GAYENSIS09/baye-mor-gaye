@@ -1,241 +1,149 @@
 # Portfolio — Baye Mor Gaye
 
-<img src="168032110.jpg" alt="Baye Mor Gaye" width="120" style="border-radius: 50%;"/>
+Portfolio personnel de **Baye Mor Gaye**, etudiant en informatique a l'Universite Cheikh Anta Diop de Dakar. Plateforme mono-proprietaire avec publications de blog, projets portfolio, emploi du temps integre, ressources documentaires, commentaires et likes.
 
-Portfolio personnel de **Baye Mor Gaye**, etudiant en informatique a l'Universite Cheikh Anta Diop de Dakar. Ce projet modelise un portfolio mono-proprietaire avec interactions communautaires : publications de blog, projets portfolio, emploi du temps integre, ressources documentaires, commentaires et likes. L'ensemble est specifie par 22 cas d'utilisation et 30 entites, couverts par 35 diagrammes UML (cas d'utilisation, classes, sequences, activites, composants, deploiement).
+Modelise par 22 cas d'utilisation et 30 entites, couverts par 35 diagrammes UML.
 
 ---
 
 ## Sommaire
 
-- [Hierarchie des acteurs](#hierarchie-des-acteurs)
-- [Cas d'utilisation](#cas-dutilisation)
-- [Diagramme de cas d'utilisation](#diagramme-de-cas-dutilisation)
-- [Diagramme de classes](#diagramme-de-classes)
-- [Diagrammes de sequence](#diagrammes-de-sequence)
-- [Diagrammes d'activite](#diagrammes-dactivite)
-- [Diagrammes d'architecture](#diagrammes-darchitecture)
+- [Demarrage rapide](#demarrage-rapide)
+- [Architecture](#architecture)
+- [Structure du projet](#structure-du-projet)
 - [Stack technique](#stack-technique)
-- [Generation des diagrammes](#generation-des-diagrammes)
+- [Developpement](#developpement)
+- [Jeu de donnees](#jeu-de-donnees)
+- [Modelisation UML](#modelisation-uml)
 - [Licence](#licence)
 
 ---
 
-## Hierarchie des acteurs
+## Demarrage rapide
 
-Le systeme distingue trois niveaux d'acces organises en heritage. Le **Visiteur** designe toute personne accedant au site sans authentification : il peut consulter les publications, le profil public, les projets portfolio, et utiliser le formulaire de contact. L'**Utilisateur Authentifie** herite du Visiteur et peut en plus commenter les publications et exprimer des likes, apres s'etre authentifie via l'API. Le **Proprietaire** (Baye Mor Gaye) herite de l'Utilisateur Authentifie et possede la totalite des droits de gestion : publications, projets, emploi du temps, competences, domaines d'interet, ressources, notifications, rappels et statistiques. Cette hierarchie est explicite dans le diagramme de cas d'utilisation par une relation de generalisation.
+**Prerequis :** Docker et Docker Compose (WSL2 ou terminal PowerShell).
+
+```powershell
+# cloner le projet
+git clone <url-du-repo>
+cd baye-mor-gaye
+
+# lancer l'ensemble des services
+docker compose up -d
+```
+
+La premiere construction peut prendre 5 a 10 minutes (download des images, npm install, composer install, compilation Next.js). Une fois termine :
+
+| Service | URL |
+|---------|-----|
+| Frontend (Next.js) | http://localhost:3000 |
+| API (Laravel) | http://localhost:8000/api |
+| Base de donnees | localhost:3307 |
+
+Le demarrage initial execute automatiquement les migrations, le seed et le cache Laravel via le point d'entree PHP-FPM. Aucune commande manuelle requise.
+
+**Reinitialisation complete :**
+
+```powershell
+docker compose down -v
+docker compose up --build -d
+```
+
+---
+
+## Architecture
+
+Cinq conteneurs orchestres sur le reseau `portfolio`.
 
 ```
-Proprietaire (Baye Mor Gaye) ---|> Utilisateur Authentifie ---|> Visiteur
+                    Visiteur / Utilisateur / Proprietaire
+                                 |
+                          +------+------+
+                          |   nginx:80  |  (port 8000)
+                          +------+------+
+                                 |
+                    +------------+------------+
+                    |                         |
+            +-------v-------+        +--------+--------+
+            |   php-fpm     |        |    frontend     |
+            |  (Laravel 11) |        |  (Next.js 16)   |
+            |   port 9000   |        |   port 3000     |
+            +-------+-------+        +-----------------+
+                    |
+            +-------v-------+
+            |      db       |
+            |  (MySQL 8.0)  |
+            |   port 3307   |
+            +---------------+
 ```
 
----
+- **nginx** : reverse proxy, sert les assets statiques, proxy les requetes API vers PHP-FPM
+- **php-fpm** : heberge Laravel 11 avec Sanctum, Eloquent, OPCache + JIT, Horizon queues
+- **frontend** : Next.js 16 avec App Router, Turbopack, TanStack Query
+- **db** : MySQL 8.0, persistance via volume `db_data`
+- **workspace** : conteneur de developpement (Composer, Artisan, npm)
 
-## Cas d'utilisation
-
-Le systeme comporte 22 cas d'utilisation repartis entre les trois acteurs.
-
-Le **Visiteur** peut visualiser les publications avec filtres, consulter une publication en detail, consulter le profil public, consulter un projet portfolio, filtrer les projets par technologie, lancer une demo en direct, et utiliser le formulaire de contact. Il peut egalement commenter et liker une publication, mais ces actions etendent la consultation de publication et declenchent le besoin d'authentification.
-
-L'**Utilisateur Authentifie** herite des droits du Visiteur et peut s'authentifier, ainsi que commenter et liker une publication.
-
-Le **Proprietaire** herite des droits de l'Utilisateur Authentifie et dispose de dix cas dedies : gerer son profil, gerer ses competences, gerer ses domaines d'interet, consulter les statistiques de son profil, creer, modifier ou supprimer des publications, moderer les commentaires, creer, modifier ou supprimer des projets, gerer son emploi du temps, importer un emploi du temps externe par vision IA, gerer ses rappels, recevoir des notifications, et gerer ses ressources documentaires.
+Le frontend appelle l'API via nginx (`http://localhost:8000/api`). L'authentification est geree par Laravel Sanctum (jetons API avec cookies).
 
 ---
 
-## Diagramme de cas d'utilisation
-
-Le diagramme ci-dessous presente les 22 cas d'utilisation avec leurs relations d'extension et d'inclusion, ainsi que l'heritage entre les trois acteurs.
-
-<div align="center"><img src="uml-svg/use-cases/01-use-case.svg" alt="Cas d'utilisation" width="800" height="800"/></div>
-
----
-
-## Diagramme de classes
-
-Le modele de classes comporte 30 entites, 4 enumerations, et 2 traits transverses (Timestamps avec dateCreation et dateModif, SoftDeletes avec dateSuppression). Chaque entite est alignee sur un ou plusieurs cas d'utilisation.
-
-Le diagramme principal (master) presente l'ensemble du modele. Il est complete par cinq sous-diagrammes specialises.
-
-Le package Authentification et Profil contient Utilisateur (avec nom, email, photo, emailVerifieLe, derniereConnexionLe), Proprietaire (qui etend Utilisateur avec bio, titreProfessionnel, localisation, siteWeb, urlLinkedin, urlGithub), Competence, Domaine et NiveauCompetence. Proprietaire possede les competences via NiveauCompetence et les domaines d'interet.
-
-Le package Publications et Interactions regroupe Publication (avec contenu au format multiple, statut de publication, nombre de vues), Commentaire (avec estApprouve pour la moderation), Like, et MediaPublication. Publication est liee aux domaines par une relation plusieurs-a-plusieurs. L'Utilisateur est auteur des commentaires et des likes. Proprietaire est proprietaire des publications.
-
-Le package Projets Portfolio contient ProjetPortfolio (avec urlDemo, urlSource, technologies sous forme de liste, estEnVedette) et MediaProjet. Proprietaire est proprietaire des projets.
-
-Le package Planning contient EmploiDuTemps, EvenementEDT, ConversionEDT (avec fichierOriginal, modeleUtilise, resultatJSON, confiance) et Rappel. Proprietaire possede les emplois du temps et les rappels.
-
-Le package Services regroupe Notification (avec type, donnees, lueLe), VuePage (traque des consultations), Ressource (documents avec visibilite publique) et Contact (formulaire libre sans relation utilisateur). Proprietaire possede les notifications et les ressources. VuePage est liee aux publications et aux projets.
-
-
-<div align="center"><img src="uml-svg/class-diagram/02a-class-users.svg" alt="Classes - Utilisateurs et Profil" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/class-diagram/02b-class-blog.svg" alt="Classes - Publications et Interactions" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/class-diagram/02c-class-portfolio.svg" alt="Classes - Projets Portfolio" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/class-diagram/02d-class-planning.svg" alt="Classes - Planning" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/class-diagram/02e-class-services.svg" alt="Classes - Services" width="800" height="800"/></div>
-
----
-
-## Diagrammes de sequence
-
-Quatorze diagrammes de sequence detaillent les interactions entre acteurs, frontend, API et base de donnees pour chaque processus metier.
-
-Le diagramme 03-sequence-publication montre la creation d'une publication avec l'editeur enrichi TipTap. Le Proprietaire edite le contenu (qui produit un contenuJson), uploade d'eventuels medias par glisser-deposer, puis soumet la publication. L'API purifie le contenu, genere le HTML, insere en base et notifie les abonnes.
-
-Le diagramme 04-sequence-schedule couvre la gestion native de l'emploi du temps. Le Proprietaire cree un EDT, saisit les evenements avec verification de chevauchements, et peut importer un EDT externe par upload image/PDF. L'API utilise PaliGemma 2 pour la reconnaissance visuelle et propose un apercu si la confiance depasse 0.7. L'affichage est rendu nativement dans le frontend sous forme de grille hebdomadaire.
-
-Le diagramme 05-sequence-interaction illustre le parcours complet du Visiteur jusqu'a l'interaction. La consultation est libre et anonyme. Si le visiteur souhaite commenter ou liker, il s'authentifie via l'API qui retourne un jeton. Il peut ensuite commenter (avec moderation optionnelle) ou liker (avec bascule).
-
-Le diagramme 06-sequence-notification montre la gestion des rappels et notifications. Le Proprietaire cree des rappels. Un planificateur (Cron) verifie toutes les minutes les rappels dus et distribue les jobs via une file d'attente. Les notifications sont envoyees par WebSocket en temps reel.
-
-Le diagramme 12-sequence-projet decrit la creation d'un projet portfolio avec upload de medias, validation des formats, lien de demo optionnel, et publication.
-
-Le diagramme 14-sequence-moderation permet au Proprietaire de consulter la file d'attente des commentaires non approuves, de les approuver ou de les rejeter (soft delete), et eventuellement d'y repondre.
-
-Le diagramme 15-sequence-contact montre le formulaire de contact soumis par le Visiteur : validation cote serveur, insertion en base avec est_lu a false, notification au proprietaire, et confirmation au visiteur.
-
-Le diagramme 16-sequence-competences detalille la gestion des competences par le Proprietaire : liste, ajout (avec creation simultanee de Competence et NiveauCompetence), modification du niveau, et suppression en cascade.
-
-Le diagramme 17-sequence-domaines couvre la gestion des domaines d'interet : creation avec slug automatique, modification, suppression avec dissociation des publications liees.
-
-Le diagramme 18-sequence-ressources presente la gestion des ressources documentaires : upload avec stockage fichier, creation de l'entite Ressource en base, mise a jour des metadonnees, et suppression avec nettoyage du fichier physique.
-
-Le diagramme 19-sequence-filtrage montre le visiteur parcourant les projets, filtrant par technologie via requete parametree (LIKE sur le champ technologies), et consultant le detail d'un projet selectionne.
-
-Le diagramme 20-sequence-experiences detalille la gestion des experiences professionnelles par le Proprietaire : creation avec validation des dates, modification, et suppression.
-
-Le diagramme 21-sequence-formations couvre la gestion des formations academiques : ajout d'un diplome avec etablissement, periode et domaine d'etude, modification et suppression.
-
-Le diagramme 22-sequence-certifications presente la gestion des certifications : ajout avec organisme certificateur, date d'obtention et URL de verification, modification et suppression.
-
-<div align="center"><img src="uml-svg/sequences/03-sequence-publication.svg" alt="Sequence - Publication" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/sequences/04-sequence-schedule.svg" alt="Sequence - EDT" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/sequences/05-sequence-interaction.svg" alt="Sequence - Interactions" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/sequences/06-sequence-notification.svg" alt="Sequence - Notifications" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/sequences/12-sequence-projet.svg" alt="Sequence - Projet" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/sequences/14-sequence-moderation.svg" alt="Sequence - Moderation" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/sequences/15-sequence-contact.svg" alt="Sequence - Contact" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/sequences/16-sequence-competences.svg" alt="Sequence - Competences" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/sequences/17-sequence-domaines.svg" alt="Sequence - Domaines" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/sequences/18-sequence-ressources.svg" alt="Sequence - Ressources" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/sequences/19-sequence-filtrage.svg" alt="Sequence - Filtrage" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/sequences/20-sequence-experiences.svg" alt="Sequence - Experiences" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/sequences/21-sequence-formations.svg" alt="Sequence - Formations" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/sequences/22-sequence-certifications.svg" alt="Sequence - Certifications" width="800" height="800"/></div>
-
----
-
-## Diagrammes d'activite
-
-Dix diagrammes d'activite decrivent les flux de travail en termes d'actions et de decisions, avec des partitions par acteur.
-
-Le diagramme 07-activity-publication suit le Proprietaire depuis le remplissage du formulaire jusqu'a la publication, avec la bifurcation entre brouillon et publication (qui declenche la creation de version et la notification des abonnes).
-
-Le diagramme 08-activity-schedule presente les trois sources possibles d'un EDT : creation manuelle, import par vision IA via PaliGemma, ou chargement d'un existant. Les evenements sont ajoutes en boucle, puis la grille est rendue nativement.
-
-Le diagramme 09-activity-notification montre le Proprietaire creant des rappels et le systeme les verifiant periodiquement, avec distribution par file d'attente et notifications multicanaux (base de donnees, email, WebSocket).
-
-Le diagramme 13-activity-projet illustre la creation ou modification d'un projet avec les options de demo en direct et de projet en vedette, avant publication.
-
-Le diagramme 14-activity-moderation decrit le Proprietaire examinant chaque commentaire et decidant de l'approuver ou de le rejeter, avec notification a l'auteur.
-
-Le diagramme 15-activity-contact suit le Visiteur remplissant et soumettant le formulaire, avec validation serveur et confirmation.
-
-Le diagramme 16-activity-competences presente les trois actions possibles (ajouter, modifier, supprimer) avec les traitements systeme correspondants.
-
-Le diagramme 17-activity-domaines suit le meme schema pour les domaines d'interet.
-
-Le diagramme 18-activity-ressources couvre l'upload de fichiers avec stockage, la modification des metadonnees et la suppression avec nettoyage physique.
-
-Le diagramme 19-activity-filtrage montre le parcours du Visiteur depuis l'affichage de la grille de projets, la selection d'un filtre technologie, la mise a jour de la grille, et la decision de consulter un projet ou de modifier le filtre.
-
-<div align="center"><img src="uml-svg/activities/07-activity-publication.svg" alt="Activite - Publication" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/activities/08-activity-schedule.svg" alt="Activite - EDT" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/activities/09-activity-notification.svg" alt="Activite - Notifications" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/activities/13-activity-projet.svg" alt="Activite - Projet" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/activities/14-activity-moderation.svg" alt="Activite - Moderation" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/activities/15-activity-contact.svg" alt="Activite - Contact" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/activities/16-activity-competences.svg" alt="Activite - Competences" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/activities/17-activity-domaines.svg" alt="Activite - Domaines" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/activities/18-activity-ressources.svg" alt="Activite - Ressources" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/activities/19-activity-filtrage.svg" alt="Activite - Filtrage" width="800" height="800"/></div>
-
----
-
-## Diagrammes d'architecture
-
-### Diagramme de composants
-
-Le diagramme de composants presente l'architecture conteneurisee avec Docker. Cinq conteneurs orchestres sur le reseau `portfolio` :
-- **nginx** (nginx:alpine) : reverse proxy, sert les assets statiques avec un cache d'un an, proxy_pass vers PHP-FPM sur le port 9000
-- **php-fpm** (PHP 8.3-FPM Alpine) : heberge l'application Laravel 11 avec Sanctum, Eloquent, OPCache + JIT, les files d'attente Horizon, et spatie/media-library
-- **workspace** (PHP-CLI + Node 22) : conteneur de developpement pour Composer, Artisan, npm — sans serveur web
-- **db** (MySQL 8.0) : base de donnees relationnelle exposee sur le port 3307
-- **frontend** (Node 22 Alpine) : application Next.js 16 avec Turbopack, build et servee sur le port 3000
-
-Les services externes (SMTP, PaliGemma 2, Laravel Echo) restent inchanges.
-
-### Diagramme de deploiement
-
-Le diagramme de deploiement decrit l'infrastructure sur l'hote unique : les conteneurs Docker communiquent via le reseau interne `portfolio`. nginx sert d'entree unique (port 8000) et achemine les requetes API vers php-fpm. Le frontend Next.js est accessible directement sur le port 3000 et appelle l'API via nginx. Les volumes montes depuis l'hote (bind mounts) permettent le developpement en direct : le code Laravel dans `/var/www`, le code Next.js dans `/app`, et les donnees MySQL persistees dans `db_data`.
-
-Les trois acteurs (Visiteur, Utilisateur Authentifie, Proprietaire) accedent au frontend par HTTP, avec la hierarchie d'heritage representee.
-
-<div align="center"><img src="uml-svg/architecture/10-component-diagram.svg" alt="Composants" width="800" height="800"/></div>
-
-<div align="center"><img src="uml-svg/architecture/11-deployment-diagram.svg" alt="Deploiement" width="800" height="800"/></div>
+## Structure du projet
+
+```
+baye-mor-gaye/
+├── 01-portfolio-laravel/     # Backend Laravel 11
+│   ├── app/
+│   │   ├── Http/Controllers/ # Controleurs API REST
+│   │   ├── Models/           # Eloquent Models (30 entites)
+│   │   └── Services/         # HtmlPurifierService, media, etc.
+│   ├── database/
+│   │   ├── migrations/       # 42 migrations
+│   │   └── seeders/          # 14 seeders
+│   └── routes/
+│       └── api.php           # Routes API (94 endpoints)
+│
+├── 02-portfolio-nextJS/      # Frontend Next.js 16
+│   ├── app/                  # App Router (pages publiques + dashboard)
+│   ├── components/           # Composants React (UI, formulaires, medias)
+│   ├── lib/                  # Sanitize, media, API client
+│   ├── contexts/             # AuthContext, ThemeContext
+│   ├── stores/               # Zustand stores
+│   ├── hooks/                # Custom hooks
+│   ├── schemas/              # Validation Zod
+│   └── __tests__/            # Tests Vitest
+│
+├── docker/
+│   ├── nginx/                # Configuration nginx (cache, proxy)
+│   ├── php-fpm/              # Dockerfile, entrypoint, php.ini
+│   ├── frontend/             # Dockerfile Next.js
+│   └── workspace/            # Dockerfile CLI
+│
+├── uml-code/                 # Sources PlantUML (.wsd)
+├── uml-svg/                  # Diagrammes generes (SVG)
+├── docker-compose.yml        # Orchestration des services
+└── plantuml.jar              # Moteur PlantUML
+```
 
 ---
 
 ## Stack technique
-
-### Conteneurisation (Docker Compose)
-
-| Conteneur | Image | Port | Role |
-|-----------|-------|------|------|
-| **nginx** | `nginx:alpine` | 8000 | Reverse proxy, cache assets, proxy PHP-FPM |
-| **php-fpm** | `php:8.3-fpm-alpine` (custom) | — | Laravel 11, OPCache + JIT, Horizon queues |
-| **workspace** | `php:8.3-cli-alpine` (custom) | — | Composer, Artisan, npm, tty dev |
-| **db** | `mysql:8.0` | 3307 | Base de donnees relationnelle |
-| **frontend** | `node:22-alpine` (custom) | 3000 | Next.js 16 avec Turbopack |
 
 ### Frontend
 
 | Technologie | Version | Usage |
 |-------------|---------|-------|
 | Next.js | 16.2.7 | Framework React SSR avec Turbopack |
-| TypeScript | ~5.8 | Typage strict de l'application |
-| Tailwind CSS | 4 | Styles utilitaires |
-| TanStack Query | 5.75 | Requetes API, cache, mutations |
-| TipTap | ~2.11 | Editeur riche (publications) |
-| Recharts | ~2.15 | Graphiques statistiques |
-| Motion | ~12 | Animations |
+| TypeScript | 5.x | Typage strict |
+| Tailwind CSS | 3.4 + 4 | Styles utilitaires + @tailwindcss/typography |
+| TanStack Query | 5.101 | Requetes API, cache, mutations |
+| TipTap | 3.26 | Editeur riche (publications, tableaux, code ML) |
+| lowlight | 3.3 | Coloration syntaxique (code blocks) |
+| DOMPurify | 3.11 | Assainissement HTML cote client |
+| Recharts | 3.8 | Graphiques statistiques |
+| React Hook Form + Zod | 7.79 + 4.4 | Formulaires et validation |
+| Zustand | 5.0 | Gestion d'etat legere |
+| Vitest | 4.1 | Tests unitaires |
+| Playwright | 1.61 | Tests E2E |
 
 ### Backend
 
@@ -243,53 +151,177 @@ Les trois acteurs (Visiteur, Utilisateur Authentifie, Proprietaire) accedent au 
 |-------------|---------|-------|
 | Laravel | 11 | Framework PHP |
 | PHP | 8.3 FPM Alpine | Langage serveur |
-| Sanctum | ~4.18 | Authentification API (jetons) |
+| Sanctum | 4.x | Authentification API (jetons + cookies) |
 | Eloquent ORM | inclus | Mapping objet-relationnel |
-| spatie/media-library | ~11 | Gestion des medias |
 | OPCache + JIT | inclus | Acceleration PHP (buffer 64M, JIT 1255) |
-| Horizon | ~5.30 | Tableau de bord files d'attente Redis |
+| Horizon | 5.30 | Tableau de bord files d'attente Redis |
+| PHPUnit | 11 | Tests backend |
+| HtmlPurifier | 4.x | Assainissement HTML cote serveur |
 
 ### Infrastructure
 
-| Technologie | Version | Usage |
-|-------------|---------|-------|
-| MySQL | 8.0 | Base de donnees (prod) |
-| Redis | 7 | Cache, files d'attente, sessions |
-| Laravel Echo Server | ~7 | WebSocket temps reel |
-| PaliGemma 2 | 10B | Vision IA (OCR emplois du temps) |
-| SMTP / Mailhog | — | Envoi d'emails |
-
-### Modelisation
-
-| Technologie | Version | Usage |
-|-------------|---------|-------|
-| PlantUML | 1.2026.x | Diagrammes UML (31 schemas) |
-| Java | 23 | Execution PlantUML |
+| Technologie | Usage |
+|-------------|-------|
+| Docker Compose | Orchestration multi-conteneurs |
+| MySQL 8.0 | Base de donnees relationnelle |
+| Redis 7 | Cache, files d'attente, sessions |
+| Laravel Echo Server | WebSocket temps reel |
+| PaliGemma 2 (10B) | Vision IA (OCR emplois du temps) |
+| PlantUML | Generation des diagrammes UML (35 schemas) |
 
 ---
 
-## Generation des diagrammes
+## Developpement
 
-Tous les diagrammes sont generes a partir des fichiers source `.wsd` situes dans `uml-code/` organises par type (use-cases, class-diagram, sequences, activities, architecture). Les sorties SVG sont produites dans `uml-svg/` avec la meme arborescence.
+### Commandes courantes
 
-La commande suivante regenere l'integralite des 35 diagrammes. Elle parcourt recursivement les fichiers source, maintient la structure de dossiers, et invoque PlantUML en mode SVG pour chaque fichier.
+```powershell
+# logs d'un service
+docker compose logs -f php-fpm
+
+# acceder au workspace (Composer / Artisan)
+docker compose exec workspace bash
+
+# lancer les tests frontend
+docker compose exec frontend npm test
+
+# lancer les tests backend
+docker compose exec php-fpm php artisan test
+
+# reconstruire un service apres modification du Dockerfile
+docker compose build --no-cache php-fpm
+docker compose up -d php-fpm
+```
+
+### Pipeline de demarrage (entrypoint.sh)
+
+A chaque demarrage du conteneur php-fpm :
+
+1. Attente que MySQL soit pret
+2. `mkdir -p bootstrap/cache`
+3. `php artisan optimize` (ou fallback : config:cache, route:cache, event:cache)
+4. `php artisan storage:link`
+5. `php artisan migrate:fresh --seed --force` (reinitialise et peuple la base)
+6. Demarrage de PHP-FPM
+
+En production, remplacer `migrate:fresh --seed` par `migrate --force`.
+
+### Variables d'environnement
+
+Les principales variables sont definies dans `docker-compose.yml` sous le service `php-fpm` :
+
+| Variable | Valeur par defaut | Description |
+|----------|-------------------|-------------|
+| `PROPRIETAIRE_NOM` | Baye Mor Gaye | Nom du proprietaire |
+| `PROPRIETAIRE_EMAIL` | contact@... | Email du proprietaire |
+| `PROPRIETAIRE_PASSWORD` | password | Mot de passe du compte admin |
+| `DB_DATABASE` | portfolio | Nom de la base |
+| `SANCTUM_STATEFUL_DOMAINS` | localhost:3000 | Domaine SPA pour Sanctum |
+
+---
+
+## Jeu de donnees
+
+Quatorze seeders peuplent la base avec des donnees realistes :
+
+- **UtilisateurSeeder** : 10 utilisateurs fictifs
+- **ProprietaireSeeder** : le compte proprietaire (Baye Mor Gaye)
+- **CompetenceSeeder** : 10 competences (Laravel, React, Python, ML, etc.)
+- **DomaineSeeder** : 6 domaines d'interet
+- **PublicationSeeder** : 20 publications avec contenu HTML enrichi
+- **ProjetPortfolioSeeder** : 10 projets (dont 5 en vedette)
+- **CommentaireSeeder** : 300 commentaires dont 30 non approuves
+- **EmploiDuTempsSeeder** : emploi du temps hebdomadaire
+- **NotificationSeeder** : 20 notifications
+- **ExperienceSeeder** : 5 experiences professionnelles
+- **FormationSeeder** : 5 formations academiques
+- **CertificationSeeder** : 5 certifications
+- **RessourceSeeder** : 10 ressources documentaires
+- **ContactSeeder** : 10 messages de contact
+
+### Identifiants du compte proprietaire
+
+```
+Email:    contact@baye-mor-gaye.dev
+Mot de passe: password
+```
+
+---
+
+## Modelisation UML
+
+Le projet inclut 35 diagrammes UML generes a partir de sources PlantUML (`uml-code/`). Les sorties SVG sont dans `uml-svg/`.
+
+### Cas d'utilisation
+
+22 cas d'utilisation organises selon trois acteurs hierarchises :
+
+```
+Proprietaire ---|> Utilisateur Authentifie ---|> Visiteur
+```
+
+**Visiteur** : consulter publications, profil public, projets portfolio, filtrer par technologie, lancer une demo, formulaire de contact.
+
+**Utilisateur Authentifie** : s'authentifier, commenter, liker (herite du visiteur).
+
+**Proprietaire** : gerer profil, competences, domaines, publications (CRUD + moderation), projets, emploi du temps (manuel + import vision IA), rappels, notifications, ressources, statistiques (herite de l'utilisateur authentifie).
+
+<div align="center"><img src="uml-svg/use-cases/01-use-case.svg" alt="Cas d'utilisation" width="800"/></div>
+
+### Diagramme de classes
+
+30 entites, 4 enumerations, 2 traits transverses (Timestamps, SoftDeletes).
+
+- **Authentification et Profil** : Utilisateur, Proprietaire, Competence, Domaine, NiveauCompetence
+- **Publications et Interactions** : Publication, Commentaire, Like, MediaPublication
+- **Projets Portfolio** : ProjetPortfolio, MediaProjet
+- **Planning** : EmploiDuTemps, EvenementEDT, ConversionEDT, Rappel
+- **Services** : Notification, VuePage, Ressource, Contact
+- **Qualifications** : Experience, Formation, Certification, MediaQualification
+
+<div align="center"><img src="uml-svg/class-diagram/02a-class-users.svg" alt="Classes - Profil" width="600"/></div>
+<div align="center"><img src="uml-svg/class-diagram/02b-class-blog.svg" alt="Classes - Publications" width="600"/></div>
+<div align="center"><img src="uml-svg/class-diagram/02c-class-portfolio.svg" alt="Classes - Projets" width="600"/></div>
+<div align="center"><img src="uml-svg/class-diagram/02d-class-planning.svg" alt="Classes - Planning" width="600"/></div>
+<div align="center"><img src="uml-svg/class-diagram/02e-class-services.svg" alt="Classes - Services" width="600"/></div>
+<div align="center"><img src="uml-svg/class-diagram/02f-class-qualifications.svg" alt="Classes - Qualifications" width="600"/></div>
+
+### Diagrammes de sequence
+
+14 diagrammes couvrant les processus metier : publication (editeur TipTap), emploi du temps (creation manuelle + import PaliGemma), interactions (consultation -> authentification -> commentaire/like), notifications (rappel -> file d'attente -> WebSocket), projet portfolio, moderation des commentaires, contact, competences, domaines, ressources, filtrage, experiences, formations, certifications.
+
+<div align="center"><img src="uml-svg/sequences/03-sequence-publication.svg" alt="Sequence - Publication" width="700"/></div>
+<div align="center"><img src="uml-svg/sequences/05-sequence-interaction.svg" alt="Sequence - Interactions" width="700"/></div>
+<div align="center"><img src="uml-svg/sequences/06-sequence-notification.svg" alt="Sequence - Notifications" width="700"/></div>
+
+### Diagrammes d'activite
+
+10 diagrammes avec partitions par acteur : publication, emploi du temps (3 sources), notifications, projet, moderation, contact, competences, domaines, ressources, filtrage.
+
+<div align="center"><img src="uml-svg/activities/07-activity-publication.svg" alt="Activite - Publication" width="700"/></div>
+<div align="center"><img src="uml-svg/activities/08-activity-schedule.svg" alt="Activite - EDT" width="700"/></div>
+
+### Diagrammes d'architecture
+
+**Composants** : architecture conteneurisee avec les 5 services Docker, les services externes (SMTP, PaliGemma, Echo Server), et les protocoles de communication.
+
+**Deploiement** : infrastructure sur hote unique, volumes montes en bind mount pour le developpement, exposition des ports 8000 (API) et 3000 (frontend).
+
+<div align="center"><img src="uml-svg/architecture/10-component-diagram.svg" alt="Composants" width="700"/></div>
+<div align="center"><img src="uml-svg/architecture/11-deployment-diagram.svg" alt="Deploiement" width="700"/></div>
+
+### Regeneration des diagrammes
 
 ```powershell
 Get-ChildItem -Recurse -Filter "*.wsd" uml-code/ | ForEach-Object {
-  java -jar plantuml.jar -tsvg $_.FullName
+    java -jar plantuml.jar -tsvg $_.FullName
 }
 ```
 
-Pour un diagramme specifique :
-
-```bash
-java -jar plantuml.jar -tsvg uml-code/architecture/11-deployment-diagram.wsd
-```
-
-Prerequis : Java 23 ou superieur et le fichier `plantuml.jar` place a la racine du projet.
+Prerequis : Java 23+ et `plantuml.jar` a la racine.
 
 ---
 
 ## Licence
 
-Proprietaire — Baye Mor Gaye © 2026
+Proprietaire — Baye Mor Gaye (c) 2026

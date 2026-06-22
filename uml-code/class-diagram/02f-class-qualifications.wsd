@@ -46,21 +46,26 @@ package "Qualifications" as Qualifications {
 
   Certification --|> Timestamps
 
-  class MediaQualification {
+  class Media {
     + type: TypeMedia
     + cheminFichier: String
+    + urlExterne: String
+    + vignette: String
     + titre: String
     + taille: Integer
+    + largeur: Integer
+    + hauteur: Integer
+    + estPrincipal: Boolean
     + ordre: Integer
   }
 
-  MediaQualification --|> Timestamps
+  Media --|> Timestamps
 }
 
 ' ==================================================
 ' ENUM RELATIONS
 ' ==================================================
-MediaQualification --> TypeMedia
+Media --> TypeMedia
 
 ' ==================================================
 ' RELATIONS
@@ -69,9 +74,9 @@ Proprietaire "1" -- "0..*" Experience : experiences
 Proprietaire "1" -- "0..*" Formation : formations
 Proprietaire "1" -- "0..*" Certification : certifications
 
-Experience "1" -- "0..*" MediaQualification : medias
-Formation "1" -- "0..*" MediaQualification : medias
-Certification "1" -- "0..*" MediaQualification : medias
+Experience "1" -- "0..*" Media : medias
+Formation "1" -- "0..*" Media : medias
+Certification "1" -- "0..*" Media : medias
 
 legend bottom
   |= Notation |= Signification |

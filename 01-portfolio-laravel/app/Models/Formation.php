@@ -34,6 +34,6 @@ class Formation extends Model
 
     public function medias()
     {
-        return $this->morphMany(MediaQualification::class, 'qualifiable');
+        return $this->morphMany(Media::class, 'mediable');
     }
 }

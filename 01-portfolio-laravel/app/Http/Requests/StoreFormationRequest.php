@@ -21,6 +21,7 @@ class StoreFormationRequest extends FormRequest
             'date_debut' => 'required|date',
             'date_fin' => 'nullable|date|after_or_equal:date_debut',
             'ordre' => 'integer|min:0',
+            'media' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp|max:10240',
         ];
     }
 }

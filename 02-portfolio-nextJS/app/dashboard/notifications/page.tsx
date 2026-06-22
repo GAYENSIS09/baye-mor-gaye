@@ -5,10 +5,14 @@ import { useState } from 'react';
 import { useNotifications } from '@/hooks/queries';
 import { useReadNotification, useReadAllNotifications, useDeleteNotification } from '@/hooks/mutations';
 import { useToast } from '@/contexts/ToastContext';
-import Pagination from '@/components/Pagination';
-import ConfirmDialog from '@/components/ConfirmDialog';
+import { Pagination } from '@/components/ActionBar';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { Icons } from '@/components/ui/Icons';
+import { CardContainer, CardContent, CardTitle, CardDescription, CardActions } from '@/components/CardContainer';
+import { SectionHeader } from '@/components/SectionHeader';
+import { ListGrid } from '@/components/ResponsiveGrid';
+import { ActionButton, IconButton, StatusBadge } from '@/components/ActionBar';
 
 export default function NotificationsDashboardPage() {
   const { utilisateur, loading: authLoading } = useAuth();
@@ -65,53 +69,66 @@ export default function NotificationsDashboardPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-off-white">Notifications</h1>
-        <div className="flex gap-2">
-          <button onClick={() => setShowAll(!showAll)}
-            className="text-sm text-acid hover:text-acid/80">
-            {showAll ? 'Non lues' : 'Toutes'}
-          </button>
-          <button onClick={markAllAsRead}
-            className="text-sm bg-[#222] text-off-white px-3 py-1 rounded hover:bg-[#333]">
-            Tout marquer comme lu
-          </button>
-        </div>
-      </div>
+      <SectionHeader
+        title="Notifications"
+        actions={
+          <div className="flex gap-2">
+            <ActionButton variant="ghost" onClick={() => setShowAll(!showAll)}>
+              {showAll ? 'Non lues' : 'Toutes'}
+            </ActionButton>
+            <ActionButton variant="secondary" onClick={markAllAsRead}>
+              Tout marquer comme lu
+            </ActionButton>
+          </div>
+        }
+      />
 
       {isLoading ? (
         <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-16 bg-[#222] rounded animate-pulse" />)}</div>
       ) : (
-        <div className="space-y-3">
+        <ListGrid gap={3}>
           {notifications.map((n) => (
-            <div key={n.id} className={`bg-[#111] p-4 rounded border border-[#222] flex items-start justify-between ${!n.est_lue ? 'border-l-4 border-acid' : ''}`}>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`text-xs px-2 py-0.5 rounded ${typeStyles[n.type] || 'bg-[#222] text-muted'}`}>
-                    {n.type}
-                  </span>
-                  {!n.est_lue && <span className="text-xs text-acid font-semibold">Nouveau</span>}
-                </div>
-                <p className="font-semibold text-off-white">{n.titre}</p>
-                {n.message && <p className="text-sm text-muted">{n.message}</p>}
-                <p className="text-xs text-muted mt-1">{new Date(n.created_at).toLocaleString('fr-FR')}</p>
+            <CardContainer
+              key={n.id}
+              className={`p-4 ${!n.est_lue ? 'ring-1 ring-acid/30' : ''}`}
+            >
+              <div className="flex items-start justify-between">
+                <CardContent className="p-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <StatusBadge variant={
+                      n.type === 'info' ? 'info' :
+                      n.type === 'succes' ? 'success' :
+                      n.type === 'avertissement' ? 'warning' :
+                      n.type === 'erreur' ? 'danger' : 'default'
+                    } size="sm">
+                      {n.type}
+                    </StatusBadge>
+                    {!n.est_lue && <span className="text-xs text-acid font-semibold">Nouveau</span>}
+                  </div>
+                  <CardTitle className="text-base">{n.titre}</CardTitle>
+                  {n.message && <CardDescription className="text-sm">{n.message}</CardDescription>}
+                  <p className="text-xs text-muted mt-1">{new Date(n.created_at).toLocaleString('fr-FR')}</p>
+                </CardContent>
+                <CardActions className="mt-0 pt-0 border-0 ml-4 shrink-0">
+                  {!n.est_lue && (
+                    <ActionButton variant="ghost" size="sm" onClick={() => markAsRead(n.id)}>
+                      Marquer lu
+                    </ActionButton>
+                  )}
+                  <IconButton onClick={() => setConfirmDelete(n.id)} icon={<Icons.trash className="w-4 h-4" />} label="Supprimer" variant="danger" size="sm" />
+                </CardActions>
               </div>
-              <div className="flex items-center gap-2 ml-4">
-                {!n.est_lue && (
-                  <button onClick={() => markAsRead(n.id)}
-                    className="text-xs text-acid hover:text-acid/80">
-                    Marquer lu
-                  </button>
-                )}
-                <button onClick={() => setConfirmDelete(n.id)}
-                  className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10" aria-label="Supprimer">
-                  <Icons.trash className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+            </CardContainer>
           ))}
-          {notifications.length === 0 && <div className="text-center py-12"><svg className="w-10 h-10 mx-auto text-muted/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg><p className="text-muted font-mono text-sm">Aucune notification.</p></div>}
-        </div>
+          {notifications.length === 0 && (
+            <div className="text-center py-12">
+              <svg className="w-10 h-10 mx-auto text-muted/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+              <p className="text-muted font-mono text-sm">Aucune notification.</p>
+            </div>
+          )}
+        </ListGrid>
       )}
 
       <Pagination currentPage={currentPage} lastPage={lastPage} total={total} onPageChange={setCurrentPage} />

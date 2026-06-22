@@ -1,52 +1,43 @@
 "use client";
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/hooks/queries";
+import { auditLog, useAuditMount, useAuditRender, useAuditHook, useAuditEarlyReturn } from '@/lib/react-audit';
 
-const publicLinks = [
-  { label: "Profil",      href: "#about"      },
-  { label: "Expérience",  href: "#experience" },
-  { label: "Skills",      href: "#skills"     },
-  { label: "Projets",     href: "#projects"   },
-  { label: "Contact",     href: "#contact"    },
-];
-
-const authLinks = [
-  { label: "Tableau de bord", href: "/dashboard" },
-  { label: "Profil",          href: "/dashboard/profil" },
+const links = [
+  { label: "Profil",       href: "/#about" },
+  { label: "Projets",      href: "/projets" },
+  { label: "Publications", href: "/publications" },
+  { label: "Ressources",   href: "/ressources" },
+  { label: "Contact",      href: "/contact" },
 ];
 
 export default function Navbar() {
+  useAuditMount('Navbar');
+  const pathname = usePathname();
   const { utilisateur, loading, logout } = useAuth();
-  const [visible, setVisible] = useState(true);
-  const [scrolled, setScrolled] = useState(false);
-  const lastScroll = useRef(0);
   const [open, setOpen] = useState(false);
   const mobileRef = useRef<HTMLDivElement>(null);
-  const { data: notifData } = useNotifications({ est_lue: 'false' }, !!utilisateur);
-  const unreadCount = notifData?.total ?? 0;
+  
+  useAuditHook('Navbar', 'usePathname');
+  useAuditHook('Navbar', 'useAuth');
+  useAuditHook('Navbar', 'useState', { name: 'open' });
+  useAuditHook('Navbar', 'useRef', { name: 'mobileRef' });
+  
+  // Always call useNotifications to keep hook count stable across auth transitions
+  // Only enable the actual query when authenticated to avoid 401 polling noise
+  const { data: notifData, isError } = useNotifications({ est_lue: 'false' }, !!utilisateur);
+  useAuditHook('Navbar', 'useNotifications', { enabled: true });
+  const unreadCount = isError || !utilisateur ? 0 : (notifData?.total ?? 0);
 
   useEffect(() => {
-    const onScroll = () => {
-      const y = window.scrollY;
-      setScrolled(y > 40);
-      if (y > 80) {
-        const delta = y - lastScroll.current;
-        if (Math.abs(delta) > 5) {
-          setVisible(delta < 0);
-        }
-      } else {
-        setVisible(true);
-      }
-      lastScroll.current = y;
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
+    useAuditHook('Navbar', 'useEffect', { phase: 'init', deps: ['open'] });
+    if (!open) {
+      useAuditEarlyReturn('Navbar useEffect', 'not open');
+      return;
+    }
     const handleNavKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
       if (e.key === 'Tab' && mobileRef.current) {
@@ -61,136 +52,97 @@ export default function Navbar() {
     document.addEventListener('keydown', handleNavKey);
     document.body.style.overflow = 'hidden';
     return () => {
+      useAuditHook('Navbar', 'useEffect', { phase: 'cleanup' });
       document.removeEventListener('keydown', handleNavKey);
       document.body.style.overflow = '';
     };
   }, [open]);
 
+  if (pathname.startsWith('/dashboard')) {
+    useAuditEarlyReturn('Navbar', 'dashboard path');
+    return null;
+  }
+
+  const isActive = (href: string) => {
+    if (href === "/#about") return pathname === "/";
+    return pathname.startsWith(href);
+  };
+
+  useAuditRender('Navbar', { pathname, utilisateur: utilisateur?.id ?? null, loading, open, unreadCount }, {});
+
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "border-b border-[#222] bg-[#0A0A0A]/90 backdrop-blur-sm" : "bg-transparent"
-      } ${visible ? 'translate-y-0' : '-translate-y-full'}`}
-    >
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
+    <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#222] bg-[#0A0A0A]/95 backdrop-blur-sm">
+      <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
         <Link href="/" className="font-mono text-sm tracking-widest text-acid uppercase">
           BMG<span className="text-muted">.</span>dev
         </Link>
 
-        {/* Desktop links */}
-        <ul className="hidden md:flex gap-8">
-          {(utilisateur ? authLinks : publicLinks).map((l) => (
-            <li key={l.href} className="relative">
-              <Link
-                href={l.href}
-                className="text-sm text-muted hover:text-off-white transition-colors link-acid"
-              >
-                {l.label}
-              </Link>
-              {l.href === '/dashboard' && unreadCount > 0 && (
-                <span className="absolute -top-2 -right-4 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              )}
-            </li>
-          ))}
-          {utilisateur && (
-            <li>
-              <button
-                onClick={() => logout()}
-                className="text-sm text-muted hover:text-red-400 transition-colors"
-              >
-                Déconnexion
-              </button>
-            </li>
-          )}
+        <ul className="hidden md:flex items-center gap-1">
+          {links.map((l) => {
+            const active = isActive(l.href);
+            return (
+              <li key={l.href}>
+                <Link
+                  href={l.href}
+                  className={`px-3 py-1.5 text-xs font-mono tracking-wider rounded-full transition-all ${
+                    active ? "text-acid bg-acid/10" : "text-muted hover:text-off-white"
+                  }`}
+                  aria-current={active ? "page" : undefined}
+                >
+                  {l.label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
 
-        {/* CTA */}
-        {!utilisateur && !loading && (
-          <div className="hidden md:flex items-center gap-3">
-            <Link
-              href="/login"
-              className="px-4 py-2 text-sm text-muted hover:text-off-white transition-colors font-mono"
-            >
+        <div className="hidden md:flex items-center gap-2">
+          {utilisateur ? (
+            <>
+              <Link href="/dashboard" className="relative px-3 py-1.5 text-xs font-mono text-acid bg-acid/10 rounded-full hover:bg-acid/20 transition-colors">
+                Dashboard
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 text-[9px] font-bold text-white bg-red-500 rounded-full">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+              <button onClick={logout} className="px-3 py-1.5 text-xs font-mono text-muted hover:text-red-400 transition-colors">
+                Déconnexion
+              </button>
+            </>
+          ) : !loading && (
+            <Link href="/login" className="px-3 py-1.5 text-xs font-mono text-muted hover:text-off-white transition-colors">
               Se connecter
             </Link>
-            <a
-              href="#contact"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-acid text-black
-                         font-mono text-xs uppercase tracking-widest rounded-full
-                         hover:bg-acid-dim transition-colors"
-            >
-              Hire me →
-            </a>
-          </div>
-        )}
-        {utilisateur && (
-          <Link
-            href="/dashboard"
-            className="relative hidden md:inline-flex items-center gap-2 px-4 py-2 bg-acid text-black
-                       font-mono text-xs uppercase tracking-widest rounded-full
-                       hover:bg-acid-dim transition-colors"
-          >
-            Dashboard →
-            {unreadCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full">
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </span>
-            )}
-          </Link>
-        )}
+          )}
+        </div>
 
-        {/* Mobile toggle */}
-        <button
-          onClick={() => setOpen(!open)}
-          className="md:hidden text-off-white"
-          aria-label="Menu"
-          aria-expanded={open}
-        >
-          <span className="block w-5 h-px bg-current mb-1.5 transition-transform" />
-          <span className={`block w-5 h-px bg-current transition-opacity ${open ? "opacity-0" : ""}`} />
-          <span className="block w-5 h-px bg-current mt-1.5 transition-transform" />
+        <button onClick={() => setOpen(!open)} className="md:hidden text-off-white" aria-label="Menu" aria-expanded={open}>
+          <span className={`block w-5 h-px bg-current mb-1.5 transition-transform ${open ? 'rotate-45 translate-y-[7px]' : ''}`} />
+          <span className={`block w-5 h-px bg-current transition-opacity ${open ? 'opacity-0' : ''}`} />
+          <span className={`block w-5 h-px bg-current mt-1.5 transition-transform ${open ? '-rotate-45 -translate-y-[7px]' : ''}`} />
         </button>
       </div>
 
-        {/* Mobile menu */}
-      <div ref={mobileRef} className={`md:hidden bg-off-black border-t border-[#222] px-6 py-6 space-y-4 ${open ? 'block' : 'hidden'}`} aria-hidden={!open}>
-          {(utilisateur ? authLinks : publicLinks).map((l) => (
-            <div key={l.href} className="relative inline-block">
-              <Link
-                href={l.href}
-                onClick={() => setOpen(false)}
-                className="block text-off-white text-lg font-display tracking-wider"
-              >
-                {l.label}
-              </Link>
-              {l.href === '/dashboard' && unreadCount > 0 && (
-                <span className="absolute -top-1 -right-5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-red-500 rounded-full">
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </span>
-              )}
-            </div>
-          ))}
-          {!utilisateur && !loading && (
-            <Link
-              href="/login"
-              onClick={() => setOpen(false)}
-              className="block text-off-white text-lg font-display tracking-wider"
-            >
-              Se connecter
-            </Link>
-          )}
-          {utilisateur && (
-            <button
-              onClick={() => { logout(); setOpen(false); }}
-              className="block text-red-400 text-lg font-display tracking-wider"
-            >
-              Déconnexion
-            </button>
+      <div ref={mobileRef} className={`md:hidden border-t border-[#222] px-6 py-4 space-y-3 ${open ? 'block' : 'hidden'}`} aria-hidden={!open}>
+        {links.map((l) => (
+          <Link key={l.href} href={l.href} onClick={() => setOpen(false)}
+            className={`block font-mono text-sm tracking-wider ${isActive(l.href) ? 'text-acid' : 'text-muted hover:text-off-white'}`}>
+            {l.label}
+          </Link>
+        ))}
+        <div className="pt-3 border-t border-[#222]">
+          {utilisateur ? (
+            <>
+              <Link href="/dashboard" onClick={() => setOpen(false)} className="block text-acid font-mono text-sm mb-2">Dashboard</Link>
+              <button onClick={() => { logout(); setOpen(false); }} className="block text-red-400 font-mono text-sm">Déconnexion</button>
+            </>
+          ) : (
+            <Link href="/login" onClick={() => setOpen(false)} className="block text-muted hover:text-off-white font-mono text-sm">Se connecter</Link>
           )}
         </div>
+      </div>
     </nav>
   );
 }

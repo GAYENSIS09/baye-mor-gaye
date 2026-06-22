@@ -9,6 +9,7 @@ export function useNotifications(params?: Record<string, string>, enabled?: bool
     queryFn: () => api.get<PaginatedResponse<Notification>>('/notifications', { params: params as Record<string, string> }),
     enabled,
     refetchInterval: enabled ? 30000 : undefined,
+    retry: false,
   });
 }
 
@@ -16,7 +17,7 @@ export function useReadNotification() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.patch(`/notifications/${id}/read`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.notifications() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.notifications(), exact: false }),
   });
 }
 
@@ -24,7 +25,7 @@ export function useReadAllNotifications() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () => api.patch('/notifications/read-all'),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.notifications() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.notifications(), exact: false }),
   });
 }
 
@@ -32,6 +33,6 @@ export function useDeleteNotification() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.delete(`/notifications/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.notifications() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.notifications(), exact: false }),
   });
 }

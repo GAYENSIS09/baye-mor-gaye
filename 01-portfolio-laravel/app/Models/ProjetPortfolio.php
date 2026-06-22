@@ -58,6 +58,6 @@ class ProjetPortfolio extends Model
 
     public function medias()
     {
-        return $this->hasMany(MediaProjet::class, 'projet_portfolio_id')->orderBy('ordre');
+        return $this->morphMany(Media::class, 'mediable')->orderBy('ordre');
     }
 }

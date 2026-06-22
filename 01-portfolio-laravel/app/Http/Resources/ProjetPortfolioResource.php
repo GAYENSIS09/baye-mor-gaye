@@ -26,7 +26,7 @@ class ProjetPortfolioResource extends JsonResource
             'nombre_vues' => $this->nombre_vues,
             'commentaires' => CommentaireResource::collection($this->whenLoaded('commentaires')),
             'likes' => LikeResource::collection($this->whenLoaded('likes')),
-            'medias' => MediaProjetResource::collection($this->whenLoaded('medias')),
+            'medias' => MediaResource::collection($this->whenLoaded('medias')),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

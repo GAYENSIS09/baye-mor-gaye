@@ -37,24 +37,27 @@ Commentaire --|> SoftDeletes
 
 Like --|> Timestamps
 
-  class MediaPublication {
+  class Media {
     + type: TypeMedia
     + cheminFichier: String
+    + urlExterne: String
+    + vignette: String
+    + titre: String
     + taille: Integer
     + largeur: Integer
     + hauteur: Integer
-    + titre: String
+    + estPrincipal: Boolean
     + ordre: Integer
   }
 
-MediaPublication --|> Timestamps
+  Media --|> Timestamps
 
 }
 
 ' ==================================================
 ' ENUM RELATIONS
 ' ==================================================
-MediaPublication --> TypeMedia
+Media --> TypeMedia
 
 ' ==================================================
 ' RELATIONS
@@ -65,7 +68,7 @@ Proprietaire "1" -- "0..*" Publication : publications
 Proprietaire "1" -- "0..*" Domaine : domaines
 Publication "1" -- "0..*" Commentaire : commentaires
 Publication "1" -- "0..*" Like : likes
-Publication "1" -- "0..*" MediaPublication : médias
+Publication "1" -- "0..*" Media : médias
 Publication "*" -- "*" Domaine : domaines
 
 legend bottom

@@ -11,7 +11,7 @@ class StoreExperienceRequest extends FormRequest
         return (bool) $this->user()?->proprietaire;
     }
 
-    public function rules(): array
+public function rules(): array
     {
         return [
             'titre' => 'required|string|max:255',
@@ -22,6 +22,7 @@ class StoreExperienceRequest extends FormRequest
             'est_actuel' => 'boolean',
             'lieu' => 'nullable|string|max:255',
             'ordre' => 'integer|min:0',
+            'media' => 'nullable|file|mimes:jpg,jpeg,png,gif,webp|max:10240',
         ];
     }
 }

@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image"
 import { getMediaUrl } from "@/lib/media"
 
@@ -9,7 +10,8 @@ function getMediaType(url: string): "image" | "video" | "pdf" | "unknown" {
   if (url.startsWith("data:image/") || url.startsWith("blob:")) return "image"
   if (url.startsWith("data:video/")) return "video"
   if (url.startsWith("data:application/pdf")) return "pdf"
-  const ext = url.split(".").pop()?.toLowerCase() || ""
+  const pathname = url.startsWith("http") ? new URL(url).pathname : url
+  const ext = pathname.split(".").pop()?.toLowerCase() || ""
   if (IMAGE_EXTENSIONS.includes(ext)) return "image"
   if (VIDEO_EXTENSIONS.includes(ext)) return "video"
   if (ext === PDF_EXTENSION) return "pdf"
@@ -91,8 +93,8 @@ export default function MediaViewer({
   }
 
   return (
-    <a href={resolvedSrc} target="_blank" rel="noopener noreferrer" className={`block relative ${className}`}>
-      <img src={resolvedSrc} alt={alt} className="w-full h-full object-contain" loading="lazy" />
-    </a>
+    <span onClick={() => window.open(resolvedSrc, '_blank', 'noopener,noreferrer')} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.open(resolvedSrc, '_blank', 'noopener,noreferrer'); } }} className={`block relative ${className} cursor-pointer`}>
+      <img src={resolvedSrc} alt={alt} className="w-full h-full object-cover" loading="lazy" />
+    </span>
   )
 }

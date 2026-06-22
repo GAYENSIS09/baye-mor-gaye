@@ -1,21 +1,25 @@
 import { z } from 'zod/v4';
+import { Logger, generateTraceId } from './logger';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 const TIMEOUT_MS = 15_000;
 
-interface RequestOptions extends RequestInit {
+export interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
+  traceId?: string;
 }
 
-class ApiError extends Error {
+export class ApiError extends Error {
   status: number;
   data: unknown;
+  traceId: string;
 
-  constructor(message: string, status: number, data: unknown) {
+  constructor(message: string, status: number, data: unknown, traceId: string) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
     this.data = data;
+    this.traceId = traceId;
   }
 }
 
@@ -33,11 +37,20 @@ function normalizePaginatedResponse(raw: unknown): unknown {
   return { data, ...meta };
 }
 
+function sanitizeHeaders(headers: Record<string, string>): Record<string, string> {
+  const safe = { ...headers };
+  if (safe['Authorization']) safe['Authorization'] = safe['Authorization'].slice(0, 24) + '...';
+  return safe;
+}
+
 async function request<T = unknown>(
   endpoint: string,
   options: RequestOptions & { schema?: z.ZodType<T> } = {},
 ): Promise<T> {
-  const { params, schema, ...fetchOptions } = options;
+  const { params, schema, traceId: externalTraceId, ...fetchOptions } = options;
+
+  const traceId = externalTraceId || generateTraceId('api');
+  const log = new Logger(traceId);
 
   let url = `${API_BASE}${endpoint}`;
   if (params) {
@@ -49,6 +62,7 @@ async function request<T = unknown>(
 
   const headers: Record<string, string> = {
     Accept: 'application/json',
+    'X-Trace-Id': traceId,
     ...(options.headers as Record<string, string>),
   };
 
@@ -60,38 +74,68 @@ async function request<T = unknown>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
+  const isForm = options.body instanceof FormData;
+  log.debug('REQUEST', {
+    method: fetchOptions.method || 'GET',
+    endpoint,
+    queryString: params ? `?${new URLSearchParams(params)}` : '',
+    headers: sanitizeHeaders({ ...headers }),
+    bodyType: isForm ? 'FormData' : options.body !== undefined ? typeof options.body : undefined,
+  });
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-  const response = await fetch(url, {
-    ...fetchOptions,
-    headers,
-    credentials: 'include',
-    signal: controller.signal,
-  }).finally(() => clearTimeout(timeoutId));
+  try {
+    const response = await fetch(url, {
+      ...fetchOptions,
+      headers,
+      credentials: 'include',
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeoutId));
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    throw new ApiError(
-      errorData?.error?.message || `HTTP ${response.status}`,
-      response.status,
-      errorData,
-    );
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      log.error('REQUEST_FAILED', {
+        status: response.status,
+        statusText: response.statusText,
+        errorData,
+      });
+      throw new ApiError(
+        errorData?.message || errorData?.error?.message || `HTTP ${response.status}`,
+        response.status,
+        errorData,
+        traceId,
+      );
+    }
+
+    if (response.status === 204) {
+      log.info('RESPONSE_204', { status: 204 });
+      return undefined as T;
+    }
+
+    const raw: unknown = await response.json();
+    let data = isWrappedResponse(raw) ? raw.data : raw;
+    data = normalizePaginatedResponse(data);
+
+    log.info('RESPONSE_OK', {
+      status: response.status,
+      size: JSON.stringify(data).length,
+    });
+
+    if (schema) {
+      return schema.parse(data);
+    }
+
+    return data as T;
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err instanceof ApiError) throw err;
+    log.error('REQUEST_ERROR', {
+      error: err instanceof Error ? { name: err.name, message: err.message } : String(err),
+    });
+    throw err;
   }
-
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  const raw: unknown = await response.json();
-  let data = isWrappedResponse(raw) ? raw.data : raw;
-  data = normalizePaginatedResponse(data);
-
-  if (schema) {
-    return schema.parse(data);
-  }
-
-  return data as T;
 }
 
 function serializeBody(body?: unknown): BodyInit | undefined {
@@ -118,4 +162,4 @@ export const api = {
     request<T>(endpoint, { ...opts(options), method: 'DELETE' }),
 };
 
-export { ApiError };
+

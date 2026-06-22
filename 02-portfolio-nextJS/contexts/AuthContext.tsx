@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { api, ApiError } from '@/lib/api';
+import { auditLog, useAuditMount, useAuditRender, useAuditHook } from '@/lib/react-audit';
 
 interface Proprietaire {
   id: number;
@@ -37,15 +38,25 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  useAuditMount('AuthProvider');
   const [utilisateur, setUtilisateur] = useState<Utilisateur | null>(null);
   const [loading, setLoading] = useState(true);
 
+  useAuditHook('AuthProvider', 'useState', { name: 'utilisateur' });
+  useAuditHook('AuthProvider', 'useState', { name: 'loading' });
+
   useEffect(() => {
+    useAuditHook('AuthProvider', 'useEffect', { phase: 'init' });
     const token = localStorage.getItem('auth-token');
     if (token) {
+      auditLog.query('AuthProvider', '/me', undefined, undefined, undefined, undefined);
       api.get<Utilisateur>('/me')
-        .then((res) => setUtilisateur(res))
+        .then((res) => {
+          auditLog.query('AuthProvider', '/me', undefined, res, undefined, undefined);
+          setUtilisateur(res);
+        })
         .catch((err) => {
+          auditLog.query('AuthProvider', '/me', undefined, undefined, err, undefined);
           if (err instanceof ApiError && err.status === 401) {
             clearToken();
           }
@@ -54,6 +65,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       setLoading(false);
     }
+    return () => {
+      useAuditHook('AuthProvider', 'useEffect', { phase: 'cleanup' });
+    };
   }, []);
 
   const setToken = (token: string) => {
@@ -67,23 +81,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const login = useCallback(async (email: string, password: string) => {
+    useAuditHook('AuthProvider', 'useCallback', { name: 'login' });
     const res = await api.post<{ utilisateur: Utilisateur; token: string }>('/login', { email, password });
+    auditLog.mutation('AuthProvider', '/login', { email }, res, undefined, undefined);
     setToken(res.token);
     setUtilisateur(res.utilisateur);
   }, []);
 
   const register = useCallback(async (nom: string, email: string, password: string, passwordConfirmation: string) => {
+    useAuditHook('AuthProvider', 'useCallback', { name: 'register' });
     const res = await api.post<{ utilisateur: Utilisateur; token: string }>('/register', {
       nom,
       email,
       password,
       password_confirmation: passwordConfirmation,
     });
+    auditLog.mutation('AuthProvider', '/register', { nom, email }, res, undefined, undefined);
     setToken(res.token);
     setUtilisateur(res.utilisateur);
   }, []);
 
   const logout = useCallback(async () => {
+    useAuditHook('AuthProvider', 'useCallback', { name: 'logout' });
     try {
       await api.post('/logout');
     } catch {
@@ -92,6 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearToken();
     setUtilisateur(null);
   }, []);
+
+  useAuditRender('AuthProvider', { children: '...' }, { utilisateur: utilisateur?.id ?? null, loading });
 
   return (
     <AuthContext.Provider value={{ utilisateur, loading, login, register, logout }}>

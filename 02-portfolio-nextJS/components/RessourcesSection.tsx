@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import Image from "next/image";
 import { useRessources } from "@/hooks/queries";
 import DomaineBadge from "@/components/DomaineBadge";
 import { Icons } from '@/components/ui/Icons';
 import MediaViewer from '@/components/MediaViewer';
+import { CardContainer, CardImage, CardContent, CardTitle, CardDescription, CardMeta } from "@/components/CardContainer";
+import { SectionHeader } from "@/components/SectionHeader";
 import type { Ressource } from '@/types/api';
 
 const STORAGE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '/storage') || 'http://localhost:8000/storage';
@@ -16,8 +17,8 @@ function getMediaUrl(path: string | null | undefined): string | null {
 }
 
 function getCover(resource: Ressource): string | null {
-  if (resource.media && resource.media.length > 0) {
-    const img = resource.media.find(m => m.type === 'image');
+  if (resource.medias && resource.medias.length > 0) {
+    const img = resource.medias.find(m => m.type === 'image');
     if (img?.chemin_fichier) return getMediaUrl(img.chemin_fichier);
   }
   return null;
@@ -26,7 +27,7 @@ function getCover(resource: Ressource): string | null {
 function PreviewModal({ resource, onClose }: { resource: Ressource; onClose: () => void }) {
   const modalRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const firstMedia = resource.media?.[0];
+  const firstMedia = resource.medias?.[0];
   const previewUrl = firstMedia ? getMediaUrl(firstMedia.chemin_fichier) : null;
 
   useEffect(() => {
@@ -72,18 +73,18 @@ function PreviewModal({ resource, onClose }: { resource: Ressource; onClose: () 
 
 function ResourceCard({ resource, onPreview }: { resource: Ressource; onPreview?: (r: Ressource) => void }) {
   const cover = getCover(resource);
-  const firstMedia = resource.media?.[0];
+  const firstMedia = resource.medias?.[0];
 
   return (
-    <button onClick={() => onPreview?.(resource)}
-      className="bg-[#111] border border-[#222] rounded-lg overflow-hidden hover:border-acid/40 transition-all group block text-left w-full">
+    <CardContainer onClick={() => onPreview?.(resource)} hover>
       {cover && (
-        <div className="aspect-video relative overflow-hidden bg-[#1a1a1a]">
-          <Image src={cover} alt={resource.titre} fill className="object-cover group-hover:scale-105 transition-transform duration-500" unoptimized />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-transparent to-transparent" />
-        </div>
+        <CardImage
+          src={cover}
+          alt={resource.titre}
+          aspectRatio="video"
+        />
       )}
-      <div className="p-5">
+      <CardContent>
         <div className="flex items-start gap-4">
           {!cover && (
             <span className="text-lg shrink-0 mt-0.5">
@@ -91,23 +92,23 @@ function ResourceCard({ resource, onPreview }: { resource: Ressource; onPreview?
             </span>
           )}
           <div className="flex-1 min-w-0">
-            <h3 className="text-off-white font-semibold text-sm truncate">{resource.titre}</h3>
+            <CardTitle className="text-sm truncate">{resource.titre}</CardTitle>
             {resource.domaine && <DomaineBadge nom={resource.domaine.nom} couleur={resource.domaine.couleur} />}
           </div>
         </div>
         {resource.description && (
-          <p className="text-xs text-muted mt-2 line-clamp-2">{resource.description}</p>
+          <CardDescription lines={2} className="text-xs">{resource.description}</CardDescription>
         )}
-        <div className="flex items-center gap-3 mt-3">
+        <CardMeta>
           {firstMedia && (
             <span className="inline-flex items-center gap-1.5 text-xs text-acid font-mono">
               <Icons.download className="w-3 h-3" aria-hidden />
               {firstMedia.type === 'image' ? 'Image' : firstMedia.type === 'video' ? 'Vidéo' : 'Document'}
             </span>
           )}
-        </div>
-      </div>
-    </button>
+        </CardMeta>
+      </CardContent>
+    </CardContainer>
   );
 }
 
@@ -119,14 +120,22 @@ export default function RessourcesSection() {
   return (
     <section id="ressources" className="py-32 px-6 bg-off-black">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-baseline gap-6 mb-16">
-          <span className="font-mono text-acid text-xs uppercase tracking-widest">06</span>
-          <h2 className="font-display text-5xl md:text-7xl text-white uppercase tracking-tight">Ressources</h2>
-        </div>
+        <SectionHeader
+          number="06"
+          title="Ressources"
+        />
 
         {isLoading ? (
-          <div className="text-center py-16">
-            <span className="font-mono text-sm text-muted animate-pulse">Chargement...</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <CardContainer key={i} className="animate-pulse">
+                <div className="aspect-video bg-[#222] rounded-xl" />
+                <CardContent>
+                  <CardTitle>Chargement...</CardTitle>
+                  <CardDescription>Description en cours de chargement</CardDescription>
+                </CardContent>
+              </CardContainer>
+            ))}
           </div>
         ) : ressources.length === 0 ? (
           <div className="text-center py-16">

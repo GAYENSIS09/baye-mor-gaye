@@ -15,13 +15,13 @@ class CertificationController extends Controller
 {
     public function index()
     {
-        return Cache::remember('certifications.public', 3600, function () {
-            $proprietaire = Proprietaire::first();
+        $proprietaire = Proprietaire::first();
 
-            if (!$proprietaire) {
-                return response()->json(['message' => 'Aucun profil trouve.'], 404);
-            }
+        if (!$proprietaire) {
+            return response()->json(['message' => 'Aucun profil trouve.'], 404);
+        }
 
+        return Cache::remember('certifications.public', 3600, function () use ($proprietaire) {
             return CertificationResource::collection($proprietaire->certifications()->with('medias')->orderBy('ordre')->orderByDesc('date_obtention')->get());
         });
     }
@@ -35,6 +35,10 @@ class CertificationController extends Controller
     {
         $data = $request->validated();
         $data['proprietaire_id'] = $request->user()->proprietaire->id;
+
+        if ($request->hasFile('credential_file')) {
+            $data['url_credential'] = $request->file('credential_file')->store('uploads/certifications/credentials', 'public');
+        }
 
         $certification = Certification::create($data);
 
@@ -57,7 +61,15 @@ class CertificationController extends Controller
     {
         $this->authorizeOwnershipOrFail($request, $certification);
 
-        $certification->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('credential_file')) {
+            $data['url_credential'] = $request->file('credential_file')->store('uploads/certifications/credentials', 'public');
+        }
+
+        unset($data['credential_file']);
+
+        $certification->update($data);
 
         if ($request->hasFile('media')) {
             $certification->medias()->delete();

@@ -24,29 +24,32 @@ package "Projets Portfolio" as Projets {
 
 ProjetPortfolio --|> SoftDeletes
 
-  class MediaProjet {
+  class Media {
     + type: TypeMedia
     + cheminFichier: String
     + urlExterne: String
     + vignette: String
     + titre: String
+    + taille: Integer
+    + largeur: Integer
+    + hauteur: Integer
     + estPrincipal: Boolean
     + ordre: Integer
   }
 
-MediaProjet --|> Timestamps
+Media --|> Timestamps
 }
 
 ' ==================================================
 ' ENUM RELATIONS
 ' ==================================================
-MediaProjet --> TypeMedia
+Media --> TypeMedia
 
 ' ==================================================
 ' RELATIONS
 ' ==================================================
 Proprietaire "1" -- "0..*" ProjetPortfolio : projets
-ProjetPortfolio "1" -- "0..*" MediaProjet : medias
+ProjetPortfolio "1" -- "0..*" Media : medias
 
 legend bottom
   |= Notation |= Signification |

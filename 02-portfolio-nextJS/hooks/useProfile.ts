@@ -35,7 +35,7 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: (data: Record<string, unknown>) => api.put('/profile', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.profile() });
+      queryClient.invalidateQueries({ queryKey: qk.profile(), exact: true });
     },
   });
 }

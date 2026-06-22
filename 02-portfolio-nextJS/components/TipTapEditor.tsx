@@ -93,6 +93,7 @@ export default function TipTapEditor({ content, onChange, placeholder = 'Écrive
       StarterKit.configure({
         heading: { levels: [2, 3, 4] },
         codeBlock: false,
+        link: false,
       }),
       Placeholder.configure({ placeholder }),
       Image.configure({ inline: false, allowBase64: false }),

@@ -6,15 +6,23 @@ class HtmlPurifierService
 {
     private array $allowedTags = [
         'p', 'br', 'strong', 'em', 'u', 's',
-        'h2', 'h3', 'h4',
+        'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
         'ul', 'ol', 'li',
-        'blockquote', 'code', 'pre',
+        'blockquote', 'code', 'pre', 'span',
         'a', 'img',
+        'table', 'thead', 'tbody', 'tr', 'th', 'td',
+        'math', 'mrow', 'mi', 'mo', 'mn', 'msup', 'msub', 'msubsup', 'mfrac',
+        'msqrt', 'mroot', 'mover', 'munder', 'munderover', 'mtext', 'merror',
+        'mpadded', 'mphantom', 'mfenced', 'menclose', 'mspace', 'mstyle',
+        'mmultiscripts', 'mprescripts', 'none', 'mtable', 'mtr', 'mtd', 'mlabeledtr',
     ];
 
     private array $allowedAttributes = [
-        'a'   => ['href', 'target'],
+        '*'   => ['class', 'style'],
+        'a'   => ['href', 'target', 'rel'],
         'img' => ['src', 'alt', 'width', 'height'],
+        'td'  => ['colspan', 'rowspan'],
+        'th'  => ['colspan', 'rowspan'],
     ];
 
     public function purifier(string $html): string

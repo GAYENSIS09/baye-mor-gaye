@@ -1,7 +1,8 @@
 'use client';
 import { useState, useCallback, useRef, useEffect } from 'react';
-import Image from 'next/image';
 import { Icons } from '@/components/ui/Icons';
+import { getMediaUrl } from '@/lib/media';
+import { MediaPreview, MediaGalleryPreview } from '@/components/MediaPreview';
 
 export interface GalleryItem {
   id: number;
@@ -41,29 +42,6 @@ function isVideo(type?: string, url?: string): boolean {
   return false;
 }
 
-function MediaThumbnail({ item, onClick }: { item: GalleryItem; onClick: () => void }) {
-  const thumbSrc = item.vignette || item.url;
-  const isVid = isVideo(item.type, item.url);
-
-  return (
-    <button onClick={onClick} className="relative aspect-video rounded-lg overflow-hidden group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50">
-      {isVid && !isYouTube(item.url, item.type) ? (
-        <video src={item.url} className="object-cover w-full h-full" />
-      ) : (
-        <Image src={thumbSrc} alt={item.titre || ''} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
-      )}
-      {isVid && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/20 transition-colors">
-          <Icons.play className="w-12 h-12 text-white drop-shadow-lg" />
-        </div>
-      )}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-        <p className="text-xs text-white truncate">{item.titre || (isVid ? 'Vidéo' : 'Image')}</p>
-      </div>
-    </button>
-  );
-}
-
 function LightboxContent({ item, onClose }: { item: GalleryItem; onClose: () => void }) {
   const isVid = isVideo(item.type, item.url);
   const ytId = getYouTubeId(item.url);
@@ -97,16 +75,16 @@ function LightboxContent({ item, onClose }: { item: GalleryItem; onClose: () => 
         {isVid && ytId ? (
           <div className="aspect-video rounded-lg overflow-hidden">
             <iframe
-              src={"" + "https://www.youtube.com/embed/" + ytId + "?autoplay=1"}
+              src={"https://www.youtube.com/embed/" + ytId + "?autoplay=1"}
               className="w-full h-full"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
           </div>
         ) : isVid ? (
-          <video src={item.url} controls autoPlay className="max-h-[85vh] mx-auto rounded-lg" />
+          <video src={getMediaUrl(item.url) ?? item.url} controls autoPlay className="max-h-[85vh] mx-auto rounded-lg" />
         ) : (
-          <Image src={item.url} alt={item.titre || ''} width={1920} height={1080} className="object-contain max-h-[85vh] mx-auto rounded-lg" />
+          <img src={getMediaUrl(item.url) ?? item.url} alt={item.titre || ''} className="object-contain max-h-[85vh] mx-auto rounded-lg" />
         )}
         {item.titre && (
           <p className="text-center text-sm text-white/60 mt-3 font-mono">{item.titre}</p>
@@ -129,28 +107,19 @@ export default function MediaGallery({ items }: MediaGalleryProps) {
 
   const galleryItems: GalleryItem[] = items.map((m) => ({
     id: m.id,
-    url: isYouTube(m.url, m.type) && m.url ? (m.url.startsWith('http') ? m.url : 'https://www.youtube.com/watch?v=' + m.url) : m.url,
+    url: getMediaUrl(isYouTube(m.url, m.type) && m.url ? (m.url.startsWith('http') ? m.url : 'https://www.youtube.com/watch?v=' + m.url) : m.url) ?? m.url,
     type: m.type,
     titre: m.titre,
-    vignette: m.vignette,
+    vignette: m.vignette ? getMediaUrl(m.vignette) ?? m.vignette : null,
   }));
 
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        {galleryItems.slice(0, 5).map((item, idx) => (
-          <div key={item.id} className={idx === 0 ? 'col-span-2 row-span-2' : ''}>
-            <MediaThumbnail item={item} onClick={() => openLightbox(idx)} />
-          </div>
-        ))}
-        {galleryItems.length > 5 && (
-          <button onClick={() => openLightbox(5)}
-            className="aspect-video rounded-lg bg-[#222] border border-[#333] flex items-center justify-center text-muted hover:text-off-white hover:border-acid/40 transition-colors font-mono text-sm">
-            +{galleryItems.length - 5}
-          </button>
-        )}
-      </div>
-
+      <MediaGalleryPreview
+        items={galleryItems}
+        maxVisible={5}
+        onItemClick={openLightbox}
+      />
       <div className="flex gap-1.5 justify-center mt-4">
         {galleryItems.map((_, i) => (
           <button key={i} onClick={() => openLightbox(i)}
@@ -164,31 +133,9 @@ export default function MediaGallery({ items }: MediaGalleryProps) {
   );
 }
 
-export function CompactMediaRow({ items }: MediaGalleryProps) {
-  if (!items || items.length === 0) return null;
-
-  const firstImage = items.find((m) => m.type === 'image' || (!isVideo(m.type, m.url)));
-  const extraCount = items.length - 1;
-  const imageUrl = firstImage?.vignette || firstImage?.url || '';
-
-  return (
-    <div className="flex items-center gap-2 mt-3">
-      <div className="relative w-12 h-12 rounded overflow-hidden shrink-0 bg-[#222]">
-        {firstImage ? (
-          <Image src={imageUrl} alt="" fill className="object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted text-xs">+</div>
-        )}
-      </div>
-      {extraCount > 0 && (
-        <span className="text-xs text-muted font-mono">{'+' + extraCount + ' média' + (extraCount > 1 ? 's' : '')}</span>
-      )}
-    </div>
-  );
-}
-
 export function MiniMediaGallery({ items }: MediaGalleryProps) {
   const [expanded, setExpanded] = useState(false);
+  const [lightboxItem, setLightboxItem] = useState<GalleryItem | null>(null);
   const visible = expanded ? items : items.slice(0, 2);
 
   if (!items || items.length === 0) return null;
@@ -198,16 +145,18 @@ export function MiniMediaGallery({ items }: MediaGalleryProps) {
       <div className="flex gap-2 overflow-x-auto pb-1">
         {visible.map((m) => {
           const isVid = isVideo(m.type, m.url);
-          const src = m.vignette || m.url;
+          const rawSrc = m.vignette || m.url;
+          const src = getMediaUrl(rawSrc) ?? rawSrc;
           return (
-            <div key={m.id} className="relative w-20 h-14 shrink-0 rounded overflow-hidden bg-[#222] group">
-              <Image src={src} alt={m.titre || ''} fill className="object-cover" />
+            <button key={m.id} onClick={() => setLightboxItem(m)}
+              className="relative w-20 h-14 shrink-0 rounded overflow-hidden bg-[#222] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50">
+              <MediaPreview src={src} alt={m.titre || ''} fill aspectRatio="video" showPlayIcon={isVid} isVideo={isVid} />
               {isVid && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                   <Icons.play className="w-5 h-5 text-white" />
                 </div>
               )}
-            </div>
+            </button>
           );
         })}
         {items.length > 2 && !expanded && (
@@ -217,6 +166,7 @@ export function MiniMediaGallery({ items }: MediaGalleryProps) {
           </button>
         )}
       </div>
+      {lightboxItem && <LightboxContent item={lightboxItem} onClose={() => setLightboxItem(null)} />}
     </div>
   );
 }

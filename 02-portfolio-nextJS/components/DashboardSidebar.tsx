@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback, useRef, useMemo, useId } from 'react'
 import { Icons, NavIcon } from '@/components/ui/Icons';
 import MediaViewer from '@/components/MediaViewer';
 import { getMediaUrl } from '@/lib/media';
+import { auditLog, useAuditMount, useAuditRender, useAuditHook, useAuditEarlyReturn } from '@/lib/react-audit';
 
 const navGroups = [
   {
@@ -65,6 +66,7 @@ interface DashboardSidebarProps {
 }
 
 export default function DashboardSidebar({ open, onClose }: DashboardSidebarProps) {
+  useAuditMount('DashboardSidebar');
   const { utilisateur, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -73,12 +75,25 @@ export default function DashboardSidebar({ open, onClose }: DashboardSidebarProp
   const [isHovering, setIsHovering] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  useAuditHook('DashboardSidebar', 'useAuth');
+  useAuditHook('DashboardSidebar', 'useRouter');
+  useAuditHook('DashboardSidebar', 'usePathname');
+  useAuditHook('DashboardSidebar', 'useState', { name: 'collapsed' });
+  useAuditHook('DashboardSidebar', 'useState', { name: 'searchQuery' });
+  useAuditHook('DashboardSidebar', 'useState', { name: 'isHovering' });
+  useAuditHook('DashboardSidebar', 'useRef', { name: 'inputRef' });
+
   useEffect(() => {
+    useAuditHook('DashboardSidebar', 'useEffect', { phase: 'init', deps: [] });
     const saved = localStorage.getItem('bmg-dashboard-sidebar');
     if (saved === 'collapsed') setCollapsed(true);
+    return () => {
+      useAuditHook('DashboardSidebar', 'useEffect', { phase: 'cleanup' });
+    };
   }, []);
 
   const toggleCollapsed = useCallback(() => {
+    useAuditHook('DashboardSidebar', 'useCallback', { name: 'toggleCollapsed' });
     setCollapsed(prev => {
       const next = !prev;
       localStorage.setItem('bmg-dashboard-sidebar', next ? 'collapsed' : 'expanded');
@@ -87,6 +102,7 @@ export default function DashboardSidebar({ open, onClose }: DashboardSidebarProp
   }, []);
 
   const filteredGroups = useMemo(() => {
+    useAuditHook('DashboardSidebar', 'useMemo', { name: 'filteredGroups' });
     if (!searchQuery) return navGroups;
     const q = searchQuery.toLowerCase();
     return navGroups.map(group => ({
@@ -96,6 +112,7 @@ export default function DashboardSidebar({ open, onClose }: DashboardSidebarProp
   }, [searchQuery]);
 
   useEffect(() => {
+    useAuditHook('DashboardSidebar', 'useEffect', { phase: 'init', deps: ['collapsed'] });
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
@@ -103,7 +120,10 @@ export default function DashboardSidebar({ open, onClose }: DashboardSidebarProp
       }
     };
     window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    return () => {
+      useAuditHook('DashboardSidebar', 'useEffect', { phase: 'cleanup' });
+      window.removeEventListener('keydown', handler);
+    };
   }, [collapsed]);
 
   const isActive = (href: string) => {
@@ -114,7 +134,10 @@ export default function DashboardSidebar({ open, onClose }: DashboardSidebarProp
   const isExpandedVisual = !collapsed || isHovering;
   const navRef = useRef<HTMLElement>(null);
 
+  useAuditHook('DashboardSidebar', 'useRef', { name: 'navRef' });
+
   const handleNavKeyDown = useCallback((e: React.KeyboardEvent) => {
+    useAuditHook('DashboardSidebar', 'useCallback', { name: 'handleNavKeyDown' });
     const links = navRef.current?.querySelectorAll<HTMLAnchorElement>('a[href]');
     if (!links || links.length === 0) return;
     const currentIndex = Array.from(links).findIndex((el) => el === document.activeElement);
@@ -128,6 +151,8 @@ export default function DashboardSidebar({ open, onClose }: DashboardSidebarProp
       links[prev]?.focus();
     }
   }, []);
+
+  useAuditRender('DashboardSidebar', { open, onClose: 'fn', utilisateur: utilisateur?.id ?? null, collapsed, searchQuery, isHovering, pathname }, {});
 
   return (
     <>

@@ -14,6 +14,6 @@ export function useImportConversion() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { url_externe: string }) => api.post('/conversions/import', data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.edt() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.edt(), exact: true }),
   });
 }

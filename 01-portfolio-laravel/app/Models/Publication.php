@@ -59,6 +59,6 @@ class Publication extends Model
 
     public function medias()
     {
-        return $this->hasMany(MediaPublication::class)->orderBy('ordre');
+        return $this->morphMany(Media::class, 'mediable')->orderBy('ordre');
     }
 }

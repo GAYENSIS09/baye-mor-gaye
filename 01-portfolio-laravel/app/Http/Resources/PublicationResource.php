@@ -25,7 +25,7 @@ class PublicationResource extends JsonResource
             'domaines' => DomaineResource::collection($this->whenLoaded('domaines')),
             'commentaires' => CommentaireResource::collection($this->whenLoaded('commentaires')),
             'likes' => LikeResource::collection($this->whenLoaded('likes')),
-            'medias' => MediaPublicationResource::collection($this->whenLoaded('medias')),
+            'medias' => MediaResource::collection($this->whenLoaded('medias')),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

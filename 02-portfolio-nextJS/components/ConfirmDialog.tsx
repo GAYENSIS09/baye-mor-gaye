@@ -13,7 +13,7 @@ interface ConfirmDialogProps {
   children?: React.ReactNode;
 }
 
-export default function ConfirmDialog({
+export function ConfirmDialog({
   open, title, message, confirmLabel = 'Confirmer', cancelLabel = 'Annuler',
   destructive = false, onConfirm, onCancel, children,
 }: ConfirmDialogProps) {
@@ -111,3 +111,5 @@ export default function ConfirmDialog({
     </div>
   );
 }
+
+export default ConfirmDialog;

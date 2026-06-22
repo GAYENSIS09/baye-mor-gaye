@@ -18,8 +18,14 @@ class CommentaireResource extends JsonResource
                 'nom' => $this->auteur?->nom,
                 'photo' => $this->auteur?->photo,
             ],
+            'parent_id' => $this->parent_id,
             'commentable_id' => $this->commentable_id,
             'commentable_type' => $this->commentable_type,
+            'commentable' => $this->whenLoaded('commentable', fn() => [
+                'id' => $this->commentable->id,
+                'titre' => $this->commentable->titre ?? null,
+                'slug' => $this->commentable->slug ?? null,
+            ]),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

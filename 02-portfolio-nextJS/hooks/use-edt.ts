@@ -21,7 +21,7 @@ export function useCreateEdt() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: Record<string, unknown>) => api.post('/edt', data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.edt() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.edt(), exact: true }),
   });
 }
 
@@ -30,7 +30,7 @@ export function useToggleEdt() {
   return useMutation({
     mutationFn: (data: { id: number; est_actif: boolean }) =>
       api.put(`/edt/${data.id}`, { est_actif: data.est_actif }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.edt() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.edt(), exact: true }),
   });
 }
 
@@ -38,7 +38,7 @@ export function useDeleteEdt() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.delete(`/edt/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.edt() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.edt(), exact: true }),
   });
 }
 
@@ -47,8 +47,8 @@ export function useCreateEvenement() {
   return useMutation({
     mutationFn: (data: Record<string, unknown>) => api.post('/evenements', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.evenements() });
-      queryClient.invalidateQueries({ queryKey: qk.edt() });
+      queryClient.invalidateQueries({ queryKey: qk.evenements(), exact: false });
+      queryClient.invalidateQueries({ queryKey: qk.edt(), exact: true });
     },
   });
 }
@@ -58,8 +58,8 @@ export function useUpdateEvenement() {
   return useMutation({
     mutationFn: ({ id, ...data }: { id: number } & Record<string, unknown>) => api.put(`/evenements/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.evenements() });
-      queryClient.invalidateQueries({ queryKey: qk.edt() });
+      queryClient.invalidateQueries({ queryKey: qk.evenements(), exact: false });
+      queryClient.invalidateQueries({ queryKey: qk.edt(), exact: true });
     },
   });
 }
@@ -69,8 +69,8 @@ export function useDeleteEvenement() {
   return useMutation({
     mutationFn: (id: number) => api.delete(`/evenements/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.evenements() });
-      queryClient.invalidateQueries({ queryKey: qk.edt() });
+      queryClient.invalidateQueries({ queryKey: qk.evenements(), exact: false });
+      queryClient.invalidateQueries({ queryKey: qk.edt(), exact: true });
     },
   });
 }
@@ -78,12 +78,10 @@ export function useDeleteEvenement() {
 export function useEdtImport() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (formData: FormData) => api.post('/edt/import', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+    mutationFn: (formData: FormData) => api.post('/edt/import', formData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.edt() });
-      queryClient.invalidateQueries({ queryKey: qk.conversions() });
+      queryClient.invalidateQueries({ queryKey: qk.edt(), exact: true });
+      queryClient.invalidateQueries({ queryKey: qk.conversions(), exact: true });
     },
   });
 }

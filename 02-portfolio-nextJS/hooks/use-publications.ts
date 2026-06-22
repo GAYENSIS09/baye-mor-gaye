@@ -18,17 +18,10 @@ export function usePublication(slug: string) {
   });
 }
 
-export function usePublicationsDashboard() {
-  return useQuery({
-    queryKey: qk.publicationsDashboard(),
-    queryFn: () => api.get<PaginatedResponse<Publication>>('/publications'),
-  });
-}
-
 export function usePublicationById(id: string | number) {
   return useQuery({
     queryKey: qk.publicationById(id),
-    queryFn: () => api.get<Publication>(`/publications/${id}`),
+    queryFn: () => api.get<Publication>(`/publications/${id}`, { params: { all: 'true' } }),
     enabled: !!id,
   });
 }
@@ -37,7 +30,7 @@ export function useCreatePublication() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: Record<string, unknown>) => api.post('/publications', data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.publications() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false }),
   });
 }
 
@@ -46,8 +39,8 @@ export function useUpdatePublication(id: number) {
   return useMutation({
     mutationFn: (data: Record<string, unknown>) => api.put(`/publications/${id}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.publications() });
-      queryClient.invalidateQueries({ queryKey: ['publication'] });
+      queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false });
+      queryClient.invalidateQueries({ queryKey: ['publication'], exact: false });
     },
   });
 }
@@ -56,6 +49,6 @@ export function useDeletePublication() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.delete(`/publications/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.publications() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false }),
   });
 }

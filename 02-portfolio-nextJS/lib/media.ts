@@ -7,6 +7,17 @@ export function getMediaUrl(path: string | null | undefined): string | null {
   return `${STORAGE_URL}/${path.replace(/^\//, '')}`;
 }
 
+export function processContentImages(html: string): string {
+  return html.replace(/<img\s+[^>]*src="([^"]+)"[^>]*>/gi, (match, src) => {
+    const cleanSrc = src.replace(API_BASE.replace('/api', ''), '').replace(/^\//, '');
+    const resolved = getMediaUrl(cleanSrc);
+    if (resolved && resolved !== src) {
+      return match.replace(`src="${src}"`, `src="${resolved}"`);
+    }
+    return match;
+  });
+}
+
 export function formatFileSize(bytes: number | null): string {
   if (!bytes || bytes === 0) return '';
   if (bytes < 1024) return `${bytes} o`;

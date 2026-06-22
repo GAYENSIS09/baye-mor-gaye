@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class MediaPublicationResource extends JsonResource
+class MediaResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
@@ -13,10 +13,13 @@ class MediaPublicationResource extends JsonResource
             'id' => $this->id,
             'type' => $this->type,
             'chemin_fichier' => $this->chemin_fichier,
+            'url_externe' => $this->url_externe,
+            'vignette' => $this->vignette,
+            'titre' => $this->titre,
             'taille' => $this->taille,
             'largeur' => $this->largeur,
             'hauteur' => $this->hauteur,
-            'titre' => $this->titre,
+            'est_principal' => $this->est_principal,
             'ordre' => $this->ordre,
             'created_at' => $this->created_at?->toIso8601String(),
         ];

@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CompetenceFormSchema, type CompetenceFormData } from '@/schemas/forms';
@@ -12,7 +12,10 @@ import ConfirmDialog from '@/components/ConfirmDialog';
 import CompetenceBar from '@/components/CompetenceBar';
 import type { Competence } from '@/types/api';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { Skeleton } from '@/components/Skeleton';
 import { Icons } from '@/components/ui/Icons';
+import { SectionHeader } from '@/components/SectionHeader';
+import { ActionButton, IconButton } from '@/components/ActionBar';
 
 const NIVEAUX = ['debutant', 'intermediaire', 'avance', 'expert'];
 
@@ -25,7 +28,9 @@ export default function SkillsPage() {
   const deleteCompetence = useDeleteCompetence();
   const updateCompetence = useUpdateCompetence();
   const toast = useToast();
+  const [showForm, setShowForm] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [filter, setFilter] = useState('');
 
   const {
     register,
@@ -34,18 +39,40 @@ export default function SkillsPage() {
     reset,
   } = useForm<CompetenceFormData>({
     resolver: zodResolver(CompetenceFormSchema),
-    defaultValues: {
-      nom: '',
-      categorie: '',
-      niveau: 'debutant',
-    },
+    defaultValues: { nom: '', categorie: '', niveau: 'debutant' },
   });
+
+  const categories = useMemo(() => {
+    const cats = new Set<string>();
+    competences.forEach((c) => cats.add(c.categorie || 'Autre'));
+    return Array.from(cats).sort();
+  }, [competences]);
+
+  const grouped = useMemo(() => {
+    const groups = competences.reduce<{ categorie: string; skills: Competence[] }[]>((acc, comp) => {
+      const cat = comp.categorie || 'Autre';
+      if (filter && cat !== filter) return acc;
+      let group = acc.find((g) => g.categorie === cat);
+      if (!group) {
+        group = { categorie: cat, skills: [] };
+        acc.push(group);
+      }
+      group.skills.push(comp);
+      return acc;
+    }, []);
+    return groups.sort((a, b) => categories.indexOf(a.categorie) - categories.indexOf(b.categorie));
+  }, [competences, filter, categories]);
+
+  function resetForm() {
+    reset({ nom: '', categorie: '', niveau: 'debutant' });
+  }
 
   async function onSubmit(data: CompetenceFormData) {
     try {
       await createCompetence.mutateAsync(data);
       toast.success('Compétence ajoutée');
-      reset({ nom: '', categorie: '', niveau: 'debutant' });
+      resetForm();
+      setShowForm(false);
     } catch {
       toast.error("Erreur lors de l'ajout");
     }
@@ -70,88 +97,137 @@ export default function SkillsPage() {
   if (!utilisateur) return null;
 
   return (
-    <div className="max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6 text-off-white">Compétences</h1>
+    <div className="max-w-4xl mx-auto">
+      <SectionHeader
+        title="Compétences"
+        actions={
+          <ActionButton variant="primary" onClick={() => setShowForm(!showForm)}>
+            {showForm ? 'Annuler' : 'Nouvelle compétence'}
+          </ActionButton>
+        }
+      />
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
-        <h2 className="font-semibold text-off-white">Nouvelle compétence</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div>
-            <input id="skills-nom" {...register("nom")} placeholder="Nom" required autoComplete="off"
-              className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-            {errors.nom && <p className="text-red-400 text-xs mt-1">{errors.nom.message}</p>}
-          </div>
-          <div>
-            <input id="skills-categorie" {...register("categorie")} placeholder="Catégorie (optionnelle)" autoComplete="off"
-              className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-          </div>
-          <div>
-            <select id="skills-niveau" {...register("niveau")}
-              className="w-full border border-[#333] rounded px-3 py-2 bg-[#111] text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50">
-              {NIVEAUX.map((n) => <option key={n} value={n}>{n}</option>)}
-            </select>
-            {errors.niveau && <p className="text-red-400 text-xs mt-1">{errors.niveau.message}</p>}
-          </div>
+      {showForm && (
+        <div className="bg-[#111] border border-[#222] rounded-lg p-4 mb-6">
+          <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3">
+            <h3 className="font-body font-semibold text-off-white text-base">Nouvelle compétence</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <input id="skills-nom" {...register("nom")} placeholder="Nom *" required autoComplete="off" className="input-base" />
+                {errors.nom && <p className="text-red-400 text-xs mt-1">{errors.nom.message}</p>}
+              </div>
+              <div>
+                <input id="skills-categorie" {...register("categorie")} placeholder="Catégorie" autoComplete="off" className="input-base" />
+              </div>
+              <div>
+                <select id="skills-niveau" {...register("niveau")} className="input-base">
+                  {NIVEAUX.map((n) => <option key={n} value={n}>{n}</option>)}
+                </select>
+                {errors.niveau && <p className="text-red-400 text-xs mt-1">{errors.niveau.message}</p>}
+              </div>
+            </div>
+            <ActionButton type="submit" disabled={isSubmitting} variant="primary">
+              {isSubmitting ? 'Ajout...' : 'Ajouter'}
+            </ActionButton>
+          </form>
         </div>
-        <button type="submit" disabled={isSubmitting} className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
-          Ajouter
-        </button>
-      </form>
+      )}
 
       {isError ? (
         <div className="text-center py-16">
           <p className="text-muted font-mono text-sm mb-4" role="alert">Erreur chargement compétences</p>
-          <button onClick={() => refetch()} className="bg-acid text-black px-4 py-2 font-mono text-xs uppercase tracking-widest hover:bg-acid/90 transition-colors rounded">
-            Réessayer
-          </button>
+          <ActionButton variant="primary" onClick={() => refetch()}>Réessayer</ActionButton>
         </div>
       ) : isLoading ? (
-        <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-16 bg-[#222] rounded animate-pulse" />)}</div>
-      ) : (
-        <div className="space-y-1 bg-[#111] rounded border border-[#222] p-2">
-          {competences.map((c) => {
-            const niveauActuel = c.niveaux[0]?.niveau || 'debutant';
-            const isEditing = editingId === c.id;
-            return (
-              <div key={c.id} className="flex items-center gap-2 group">
-                <div className="flex-1">
-                  {isEditing ? (
-                    <div className="flex items-center gap-2 px-3 py-2">
-                      <span className="text-sm text-off-white min-w-[120px] font-mono">{c.nom}</span>
-                      <select value={editNiveau} onChange={(e) => setEditNiveau(e.target.value)}
-                        className="border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50">
-                        {NIVEAUX.map((n) => <option key={n} value={n}>{n}</option>)}
-                      </select>
-                      <button onClick={() => saveEdit(c.id)}
-                        className="text-xs text-acid font-mono hover:text-acid/80 transition-colors">
-                        Sauver
-                      </button>
-                      <button onClick={() => setEditingId(null)}
-                        className="text-xs text-muted font-mono hover:text-off-white transition-colors">
-                        Annuler
-                      </button>
-                    </div>
-                  ) : (
-                    <CompetenceBar name={c.nom} niveau={niveauActuel} />
-                  )}
+        <div className="space-y-8">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="animate-pulse">
+              <Skeleton className="h-4 w-24 rounded mb-4" />
+              <div className="bg-[#111] border border-[#222] rounded-lg overflow-hidden">
+                <div className="p-3 space-y-3">
+                  {Array.from({ length: 3 }).map((_, j) => (
+                    <Skeleton key={j} className="h-10 w-full rounded" />
+                  ))}
                 </div>
-                {!isEditing && (
-                  <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity pr-2">
-                    <button onClick={() => startEdit(c)}
-                      className="text-xs text-muted hover:text-off-white font-mono transition-colors">
-                      Niveau
-                    </button>
-                    <button onClick={() => setConfirmDelete(c.id)}
-                      className="p-2 text-red-400 hover:text-red-300 transition-colors rounded hover:bg-red-400/10" aria-label="Supprimer">
-                      <Icons.trash className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
               </div>
-            );
-          })}
-          {competences.length === 0 && <div className="text-center py-12"><svg className="w-10 h-10 mx-auto text-muted/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" /></svg><p className="text-muted font-mono text-sm">Aucune compétence.</p></div>}
+            </div>
+          ))}
         </div>
+      ) : (
+        <>
+          {categories.length > 1 && (
+            <div className="flex gap-2 mb-6 flex-wrap">
+              <button onClick={() => setFilter('')}
+                className={`px-3 py-1.5 rounded font-mono text-xs uppercase tracking-widest transition-colors ${
+                  !filter ? 'bg-acid text-black' : 'bg-[#222] text-muted hover:text-off-white'
+                }`}>
+                Toutes
+              </button>
+              {categories.map((cat) => (
+                <button key={cat} onClick={() => setFilter(cat)}
+                  className={`px-3 py-1.5 rounded font-mono text-xs uppercase tracking-widest transition-colors ${
+                    filter === cat ? 'bg-acid text-black' : 'bg-[#222] text-muted hover:text-off-white'
+                  }`}>
+                  {cat}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {grouped.length === 0 ? (
+            <div className="text-center py-16">
+              <Icons.file className="w-10 h-10 mx-auto text-muted/30 mb-3" aria-hidden />
+              <p className="text-muted font-mono text-sm">Aucune compétence à afficher.</p>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {grouped.map((group) => (
+                <div key={group.categorie}>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-mono text-xs text-acid uppercase tracking-widest">{group.categorie}</h3>
+                    <span className="text-xs text-muted font-mono">{group.skills.length}</span>
+                  </div>
+                  <div className="bg-[#111] border border-[#222] rounded-lg overflow-hidden divide-y divide-[#222]">
+                    {group.skills.map((skill) => {
+                      const niveauActuel = skill.niveaux[0]?.niveau || 'debutant';
+                      const isEditing = editingId === skill.id;
+                      return (
+                        <div key={skill.id} className="group relative">
+                          {isEditing ? (
+                            <div className="flex items-center gap-2 px-3 py-2">
+                              <span className="text-sm text-off-white min-w-[120px] font-mono">{skill.nom}</span>
+                              <select value={editNiveau} onChange={(e) => setEditNiveau(e.target.value)}
+                                className="border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50">
+                                {NIVEAUX.map((n) => <option key={n} value={n}>{n}</option>)}
+                              </select>
+                              <ActionButton size="sm" onClick={() => saveEdit(skill.id)} variant="primary">Sauver</ActionButton>
+                              <ActionButton size="sm" onClick={() => setEditingId(null)} variant="ghost">Annuler</ActionButton>
+                            </div>
+                          ) : (
+                            <div className="flex items-center">
+                              <div className="flex-1">
+                                <CompetenceBar
+                                  name={skill.nom}
+                                  niveau={niveauActuel}
+                                  surligne={skill.niveaux[0]?.est_surligne}
+                                  icone={skill.icone}
+                                />
+                              </div>
+                              <div className="flex items-center gap-1 pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <IconButton onClick={() => startEdit(skill)} icon={<Icons.edit className="w-4 h-4" />} label="Niveau" variant="ghost" size="sm" />
+                                <IconButton onClick={() => setConfirmDelete(skill.id)} icon={<Icons.trash className="w-4 h-4" />} label="Supprimer" variant="danger" size="sm" />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       <ConfirmDialog open={confirmDelete !== null} title="Supprimer la compétence" message="Cette action est irréversible." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDelete) { try { await deleteCompetence.mutateAsync(confirmDelete); toast.success('Compétence supprimée'); } catch { toast.error('Erreur lors de la suppression'); } setConfirmDelete(null); } } } onCancel={() => setConfirmDelete(null)} />

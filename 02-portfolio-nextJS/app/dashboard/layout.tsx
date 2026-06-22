@@ -8,19 +8,31 @@ import NotificationBell from '@/components/NotificationBell';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs';
 import { Icons } from '@/components/ui/Icons';
+import { auditLog, useAuditMount, useAuditRender, useAuditHook, useAuditEarlyReturn } from '@/lib/react-audit';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  useAuditMount('DashboardLayout');
   const { utilisateur, loading } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  useAuditHook('DashboardLayout', 'useAuth');
+  useAuditHook('DashboardLayout', 'useRouter');
+  useAuditHook('DashboardLayout', 'useState', { name: 'sidebarOpen' });
+
   useEffect(() => {
+    useAuditHook('DashboardLayout', 'useEffect', { phase: 'init', deps: ['utilisateur', 'loading', 'router'] });
     if (!loading && !utilisateur) {
+      auditLog.query('DashboardLayout', '/login (redirect)', undefined, undefined, undefined, undefined);
       router.push('/login');
     }
+    return () => {
+      useAuditHook('DashboardLayout', 'useEffect', { phase: 'cleanup' });
+    };
   }, [utilisateur, loading, router]);
 
   if (loading) {
+    useAuditEarlyReturn('DashboardLayout', 'loading');
     return (
       <div className="min-h-screen bg-off-black flex items-center justify-center" role="status">
         <div className="flex flex-col items-center gap-3">
@@ -31,7 +43,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  if (!utilisateur) return null;
+  if (!utilisateur) {
+    useAuditEarlyReturn('DashboardLayout', 'no utilisateur');
+    return null;
+  }
+
+  useAuditRender('DashboardLayout', { utilisateur: utilisateur.id, loading, sidebarOpen }, {});
 
   return (
     <ToastProvider>

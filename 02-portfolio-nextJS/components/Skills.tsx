@@ -2,6 +2,7 @@
 import { useState, useMemo } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import CompetenceBar from "@/components/CompetenceBar";
+import { SectionHeader } from "@/components/SectionHeader";
 
 export default function CompetencesSection() {
   const { profile, loading, error } = useProfile();
@@ -32,29 +33,17 @@ export default function CompetencesSection() {
   return (
     <section id="skills" className="py-32 px-6 bg-off-black">
       <div className="max-w-6xl mx-auto">
-        <div className="flex items-baseline gap-6 mb-8">
-          <span className="font-mono text-acid text-xs uppercase tracking-widest">03</span>
-          <h2 className="font-display text-5xl md:text-7xl text-white uppercase tracking-tight">Compétences</h2>
-        </div>
-
-        {categories.length > 1 && (
-          <div className="flex gap-2 mb-12 flex-wrap">
-            <button onClick={() => setFilter('')}
-              className={`px-3 py-1.5 rounded font-mono text-xs uppercase tracking-widest transition-colors ${
-                !filter ? 'bg-acid text-black' : 'bg-[#222] text-muted hover:text-off-white'
-              }`}>
-              Toutes
-            </button>
-            {categories.map((cat) => (
-              <button key={cat} onClick={() => setFilter(cat)}
-                className={`px-3 py-1.5 rounded font-mono text-xs uppercase tracking-widest transition-colors ${
-                  filter === cat ? 'bg-acid text-black' : 'bg-[#222] text-muted hover:text-off-white'
-                }`}>
-                {cat}
-              </button>
-            ))}
-          </div>
-        )}
+        <SectionHeader
+          number="03"
+          title="Compétences"
+          filters={[
+            { value: '', label: 'Toutes' },
+            ...categories.map((cat) => ({ value: cat, label: cat })),
+          ]}
+          activeFilter={filter}
+          onFilterChange={(value) => setFilter(value)}
+          filterVariant="tabs"
+        />
 
         {loading ? (
           <div className="text-center py-16">

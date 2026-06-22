@@ -47,14 +47,17 @@ export interface Domaine {
   ressources_count?: number;
 }
 
-export interface MediaQualification {
+export interface Media {
   id: number;
-  qualifiable_type: string;
-  qualifiable_id: number;
   type: string;
-  chemin_fichier: string;
+  chemin_fichier: string | null;
+  url_externe: string | null;
+  vignette: string | null;
   titre: string | null;
   taille: number | null;
+  largeur: number | null;
+  hauteur: number | null;
+  est_principal: boolean;
   ordre: number;
 }
 
@@ -68,7 +71,7 @@ export interface Experience {
   est_actuel: boolean;
   lieu: string | null;
   ordre: number;
-  medias: MediaQualification[];
+  medias: Media[];
 }
 
 export interface Formation {
@@ -79,7 +82,7 @@ export interface Formation {
   domaine_etude: string | null;
   date_debut: string;
   date_fin: string | null;
-  medias: MediaQualification[];
+  medias: Media[];
 }
 
 export interface Certification {
@@ -90,7 +93,7 @@ export interface Certification {
   date_obtention: string;
   date_expiration: string | null;
   url_credential: string | null;
-  medias: MediaQualification[];
+  medias: Media[];
 }
 
 export interface Projet {
@@ -108,32 +111,12 @@ export interface Projet {
   publie_le: string | null;
   est_publie: boolean;
   nombre_vues?: number;
-  medias: ProjetMedia[];
+  medias: Media[];
   likes?: Like[];
   commentaires?: Commentaire[];
 }
 
-export interface MediaPublication {
-  id: number;
-  type: string;
-  chemin_fichier: string;
-  taille: number | null;
-  largeur: number | null;
-  hauteur: number | null;
-  titre: string | null;
-  ordre: number;
-}
 
-export interface ProjetMedia {
-  id: number;
-  type: string;
-  chemin_fichier: string;
-  url_externe: string | null;
-  vignette: string | null;
-  titre: string | null;
-  est_principal: boolean;
-  ordre: number;
-}
 
 export interface Publication {
   id: number;
@@ -151,7 +134,7 @@ export interface Publication {
   domaines: Domaine[];
   commentaires: Commentaire[];
   likes: Like[];
-  medias: MediaPublication[];
+  medias: Media[];
 }
 
 export interface Commentaire {
@@ -197,7 +180,7 @@ export interface Ressource {
   est_publique: boolean;
   created_at: string;
   domaine: Domaine | null;
-  media?: MediaQualification[];
+  medias?: Media[];
 }
 
 export interface Rappel {

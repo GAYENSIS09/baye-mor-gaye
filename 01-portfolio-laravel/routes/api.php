@@ -21,7 +21,7 @@ use App\Http\Controllers\Api\CertificationController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\VuePageController;
 use App\Http\Controllers\Api\UploadController;
-use App\Http\Controllers\Api\MediaQualificationController;
+use App\Http\Controllers\Api\MediaController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:15,60');
@@ -56,15 +56,17 @@ Route::get('/certifications/{certification}', [CertificationController::class, '
 
 Route::post('/contact', [ContactController::class, 'store'])->middleware('throttle:10,60');
 
+// Logout — must handle expired tokens, so avoid auth:sanctum
+Route::post('/logout', [AuthController::class, 'logout']);
+
 // Public read routes for competences and domaines
 Route::get('/competences', [CompetenceController::class, 'index']);
 Route::get('/competences/{competence}', [CompetenceController::class, 'show']);
 Route::get('/domaines', [DomaineController::class, 'index']);
 Route::get('/domaines/{domaine}', [DomaineController::class, 'show']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
-    Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
@@ -79,7 +81,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/commentaires/en-attente', [CommentaireController::class, 'enAttente']);
     Route::post('/commentaires', [CommentaireController::class, 'store']);
     Route::put('/commentaires/{commentaire}/approuver', [CommentaireController::class, 'approuver']);
-    Route::delete('/commentaires/{commentaire}/rejeter', [CommentaireController::class, 'rejeter']);
+    Route::put('/commentaires/{commentaire}/rejeter', [CommentaireController::class, 'rejeter']);
     Route::put('/commentaires/{commentaire}', [CommentaireController::class, 'update']);
     Route::patch('/commentaires/{commentaire}', [CommentaireController::class, 'update']);
     Route::delete('/commentaires/{commentaire}', [CommentaireController::class, 'destroy']);
@@ -121,8 +123,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/upload', [UploadController::class, 'store']);
     Route::post('/upload/image', [UploadController::class, 'uploadImage']);
-    Route::post('/media-qualifications', [MediaQualificationController::class, 'store']);
-    Route::delete('/media-qualifications/{mediaQualification}', [MediaQualificationController::class, 'destroy']);
+    Route::post('/media', [MediaController::class, 'store']);
+    Route::put('/media/{media}', [MediaController::class, 'update']);
+    Route::delete('/media/{media}', [MediaController::class, 'destroy']);
 
     Route::apiResource('ressources', RessourceController::class)
         ->except(['index', 'show']);

@@ -12,23 +12,23 @@ class ContentSecurityPolicy
     {
         $response = $next($request);
 
-        if (!$request->is('api/*')) {
-            return $response;
-        }
-
         $csp = implode('; ', [
             "default-src 'self'",
             "script-src 'self'",
             "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' data: https:",
+            "img-src 'self' data: blob: https: http://localhost:8000",
             "font-src 'self'",
             "connect-src 'self'",
+            "media-src 'self' https:",
+            "frame-src 'self' https:",
             "frame-ancestors 'none'",
             "form-action 'self'",
             "base-uri 'self'",
         ]);
 
-        $response->headers->set('Content-Security-Policy', $csp);
+        if ($request->is('api/*')) {
+            $response->headers->set('Content-Security-Policy', $csp);
+        }
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'DENY');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
