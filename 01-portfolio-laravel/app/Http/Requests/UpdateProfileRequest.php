@@ -21,6 +21,7 @@ class UpdateProfileRequest extends FormRequest
             'url_linkedin' => 'nullable|url|max:255',
             'url_github' => 'nullable|url|max:255',
             'nom' => 'nullable|string|max:255',
+            'email' => 'nullable|email|max:255',
             'photo' => 'nullable|string',
         ];
     }

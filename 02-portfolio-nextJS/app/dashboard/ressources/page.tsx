@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { RessourceFormSchema, type RessourceFormData } from '@/schemas/forms';
@@ -68,6 +68,11 @@ export default function RessourcesDashboardPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [confirmDeleteMedia, setConfirmDeleteMedia] = useState<number | null>(null);
+  const [viewMedia, setViewMedia] = useState<{ url: string; titre?: string } | null>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState('');
+  const [mediaLink, setMediaLink] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const editingData = editingRessource
     ? ressources.find(r => r.id === editingRessource) ?? null
@@ -76,14 +81,26 @@ export default function RessourcesDashboardPage() {
   const toast = useToast();
 
   const form = useForm<RessourceFormData>({
-    resolver: zodResolver(RessourceFormSchema),
-    defaultValues: { titre: '', domaine_id: undefined },
+    resolver: zodResolver(RessourceFormSchema) as any,
+    defaultValues: { titre: '', domaine_id: undefined, est_publique: true },
   });
 
   function resetForm() {
-    form.reset({ titre: '', description: '', domaine_id: undefined });
+    form.reset({ titre: '', description: '', domaine_id: undefined, est_publique: true });
     setEditingRessource(null);
     setShowCreateForm(false);
+    setMediaFile(null);
+    setMediaPreview('');
+    setMediaLink('');
+  }
+
+  function handleMediaChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setMediaFile(f);
+    const reader = new FileReader();
+    reader.onload = () => setMediaPreview(reader.result as string);
+    reader.readAsDataURL(f);
   }
 
   function startEdit(r: NonNullable<typeof editingData>) {
@@ -92,13 +109,20 @@ export default function RessourcesDashboardPage() {
       titre: r.titre,
       description: r.description || '',
       domaine_id: r.domaine?.id ?? undefined,
+      est_publique: r.est_publique ?? true,
     });
   }
 
   async function onSubmit(data: RessourceFormData) {
     try {
       if (editingRessource) {
-        await updateRessource.mutateAsync({ id: editingRessource, ...data });
+        await updateRessource.mutateAsync({
+          id: editingRessource,
+          titre: data.titre,
+          description: data.description || undefined,
+          domaine_id: data.domaine_id || undefined,
+          est_publique: data.est_publique ?? true,
+        });
         toast.success('Ressource modifiée');
         resetForm();
       } else {
@@ -110,6 +134,31 @@ export default function RessourcesDashboardPage() {
         });
         const ressourceId = (res as { id?: number })?.id ?? (res as { data?: { id?: number } })?.data?.id;
         if (!ressourceId) throw new Error('No ID returned');
+
+        if (mediaFile) {
+          const isImage = mediaFile.type.startsWith('image/');
+          const uploaded = isImage ? await uploadImage(mediaFile, 'ressources') : await uploadFile(mediaFile, 'ressources');
+          const type = isImage ? 'image' : mediaFile.type === 'application/pdf' ? 'document' : 'document';
+          const titre = 'name' in uploaded ? uploaded.name : mediaFile.name;
+          await createMedia.mutateAsync({
+            mediable_type: 'App\\Models\\Ressource',
+            mediable_id: ressourceId,
+            type,
+            chemin_fichier: uploaded.path,
+            titre: titre || mediaFile.name,
+          });
+        }
+
+        if (mediaLink) {
+          const isYoutube = mediaLink.includes('youtube.com') || mediaLink.includes('youtu.be');
+          await createMedia.mutateAsync({
+            mediable_type: 'App\\Models\\Ressource',
+            mediable_id: ressourceId,
+            type: isYoutube ? 'youtube' : 'lien',
+            chemin_fichier: mediaLink,
+            titre: mediaLink,
+          });
+        }
 
         toast.success('Ressource ajoutée');
         resetForm();
@@ -143,6 +192,27 @@ export default function RessourcesDashboardPage() {
     }
 
     e.target.value = '';
+  }
+
+  async function handleAddLink(url: string) {
+    if (!url || !editingRessource) return;
+    try {
+      await createMedia.mutateAsync({
+        mediable_type: 'App\\Models\\Ressource',
+        mediable_id: editingRessource,
+        type: url.includes('youtube.com') || url.includes('youtu.be') ? 'youtube' : 'lien',
+        chemin_fichier: url,
+        titre: url,
+      });
+      toast.success('Lien ajouté');
+    } catch {
+      toast.error("Erreur lors de l'ajout du lien");
+    }
+  }
+
+  function promptAddLink() {
+    const url = window.prompt('URL du lien (https://...)');
+    if (url) handleAddLink(url.trim());
   }
 
   async function handleDeleteMedia(mediaId: number) {
@@ -200,6 +270,42 @@ export default function RessourcesDashboardPage() {
                 ))}
               </select>
             </div>
+            <div className="flex items-center gap-2">
+              <input type="checkbox" id="ressource-publique" {...form.register("est_publique")} className="accent-acid" />
+              <label htmlFor="ressource-publique" className="text-sm text-off-white">Publique</label>
+            </div>
+
+            {!editingRessource && (
+              <>
+                <div className="border-t border-[#222] pt-3">
+                  <p className="text-xs font-mono text-muted uppercase tracking-wider mb-2">
+                    Média <span className="text-[10px] lowercase text-muted/60">(optionnel — fichier ou lien)</span>
+                  </p>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs text-muted mb-1">Fichier (image, PDF, vidéo...)</label>
+                      <input type="file" accept="image/*,.pdf,.mp4,.webm,.ogg,.mov" onChange={handleMediaChange}
+                        className="w-full text-sm text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-[#222] file:text-off-white file:text-xs file:font-mono hover:file:bg-[#333]" />
+                      {mediaPreview && (
+                        <img src={mediaPreview} alt="" className="mt-2 max-h-20 rounded object-contain border border-[#222]" />
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-xs text-muted mb-1">Ou URL du média (YouTube, PDF, image...)</label>
+                      <input type="url" placeholder="https://..." value={mediaLink} onChange={(e) => setMediaLink(e.target.value)}
+                        className="input-base" />
+                      {mediaLink && (
+                        <p className="text-xs text-muted mt-1 font-mono truncate">
+                          <Icons.external className="w-3 h-3 inline mr-1" />
+                          {mediaLink}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
             <ActionButton type="submit" disabled={form.formState.isSubmitting} variant="primary">
               {form.formState.isSubmitting ? 'Enregistrement...' : editingRessource ? 'Enregistrer' : 'Ajouter'}
             </ActionButton>
@@ -228,13 +334,12 @@ export default function RessourcesDashboardPage() {
             {ressources.map((r) => {
               const imageMedia = r.medias?.find(m => m.type === 'image');
               const cover = imageMedia ? getMediaUrlFromPath(imageMedia.chemin_fichier) : null;
-              const fileMedias = r.medias?.filter(m => m.type !== 'image') ?? [];
               return (
                 <div key={r.id}>
                   <CardContainer hover className="p-4">
                     <div className="flex items-start gap-4">
                       {cover ? (
-                        <div className="w-16 h-12 rounded overflow-hidden bg-[#222] shrink-0 relative">
+                        <div className="w-16 h-12 rounded overflow-hidden bg-[#222] shrink-0 relative cursor-pointer" onClick={() => setViewMedia({ url: cover, titre: r.titre })}>
                           <Image src={cover} alt="" fill className="object-cover" unoptimized />
                         </div>
                       ) : (
@@ -256,12 +361,16 @@ export default function RessourcesDashboardPage() {
                         )}
                         {(r.medias && r.medias.length > 0) && (
                           <div className="flex flex-wrap gap-1.5 mt-2">
-                            {r.medias.map(m => (
-                              <span key={m.id} className="inline-flex items-center gap-1 text-[10px] font-mono text-muted bg-[#1a1a1a] px-1.5 py-0.5 rounded">
-                                {typeIcon(m.type)}
-                                {MEDIA_TYPE_LABELS[m.type] || m.type}
-                              </span>
-                            ))}
+                            {r.medias.map(m => {
+                              const url = getMediaUrlFromPath(m.chemin_fichier);
+                              return (
+                                <button key={m.id} type="button" onClick={() => url ? setViewMedia({ url, titre: m.titre ?? undefined }) : undefined}
+                                  className="inline-flex items-center gap-1 text-[10px] font-mono text-muted bg-[#1a1a1a] px-1.5 py-0.5 rounded hover:bg-[#2a2a2a] transition-colors cursor-pointer">
+                                  {typeIcon(m.type)}
+                                  {MEDIA_TYPE_LABELS[m.type] || m.type}
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
@@ -288,11 +397,18 @@ export default function RessourcesDashboardPage() {
                     <CardContainer className="mt-2 p-4 border-acid/30">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="text-xs font-mono text-muted uppercase tracking-wider">Médias attachés</h4>
-                        <label className="flex items-center gap-1.5 cursor-pointer text-xs text-acid hover:text-acid/80 transition-colors font-mono">
-                          <Icons.plus className="w-3.5 h-3.5" aria-hidden />
-                          Ajouter un fichier
-                          <input type="file" onChange={handleMediaUpload} className="hidden" />
-                        </label>
+                        <div className="flex items-center gap-2">
+                          <label className="flex items-center gap-1.5 cursor-pointer text-xs text-acid hover:text-acid/80 transition-colors font-mono">
+                            <Icons.plus className="w-3.5 h-3.5" aria-hidden />
+                            Fichier
+                            <input type="file" onChange={handleMediaUpload} className="hidden" />
+                          </label>
+                          <span className="text-muted text-[10px]">|</span>
+                          <span className="flex items-center gap-1.5 text-xs text-acid hover:text-acid/80 transition-colors font-mono cursor-pointer" onClick={promptAddLink}>
+                            <Icons.external className="w-3.5 h-3.5" aria-hidden />
+                            Lien
+                          </span>
+                        </div>
                       </div>
                       {(!r.medias || r.medias.length === 0) ? (
                         <p className="text-xs text-muted font-mono text-center py-4">Aucun média. Ajoutez un fichier (PDF, image, vidéo...)</p>
@@ -302,14 +418,18 @@ export default function RessourcesDashboardPage() {
                             const url = getMediaUrlFromPath(m.chemin_fichier);
                             return (
                               <div key={m.id} className="flex items-center gap-3 bg-[#0A0A0A] rounded p-2">
-                                <div className="w-10 h-10 rounded overflow-hidden bg-[#222] shrink-0 flex items-center justify-center">
+                                <div className="w-10 h-10 rounded overflow-hidden bg-[#222] shrink-0 flex items-center justify-center cursor-pointer" onClick={() => url ? setViewMedia({ url, titre: m.titre ?? undefined }) : null}>
                                   {m.type === 'image' && url ? (
                                     <Image src={url} alt="" width={40} height={40} className="object-cover w-full h-full" unoptimized />
+                                  ) : m.type === 'lien' || m.type === 'youtube' ? (
+                                    <a href={url ?? '#'} target="_blank" rel="noopener noreferrer" className="text-muted hover:text-acid transition-colors" onClick={(e) => e.stopPropagation()}>
+                                      <Icons.external className="w-4 h-4" />
+                                    </a>
                                   ) : (
                                     <span className="text-muted">{typeIcon(m.type)}</span>
                                   )}
                                 </div>
-                                <div className="flex-1 min-w-0">
+                                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => url ? setViewMedia({ url, titre: m.titre ?? undefined }) : null}>
                                   <p className="text-xs text-off-white truncate">{m.titre || 'Sans titre'}</p>
                                   <p className="text-[10px] text-muted font-mono">{MEDIA_TYPE_LABELS[m.type] || m.type}{m.est_principal ? ' • Principal' : ''}</p>
                                 </div>
@@ -348,6 +468,26 @@ export default function RessourcesDashboardPage() {
       <ConfirmDialog open={confirmDelete !== null} title="Supprimer la ressource" message="Cette action est irréversible." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDelete) { try { await deleteRessource.mutateAsync(confirmDelete); toast.success('Ressource supprimée'); } catch { toast.error('Erreur lors de la suppression'); } setConfirmDelete(null); } } } onCancel={() => setConfirmDelete(null)} />
 
       <ConfirmDialog open={confirmDeleteMedia !== null} title="Supprimer le média" message="Ce fichier sera définitivement supprimé." destructive confirmLabel="Supprimer" onConfirm={() => { if (confirmDeleteMedia) handleDeleteMedia(confirmDeleteMedia); } } onCancel={() => setConfirmDeleteMedia(null)} />
+
+      {viewMedia && (
+        <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4" onClick={() => setViewMedia(null)} role="dialog" aria-modal="true" aria-label={viewMedia.titre || 'Média'}>
+          <button onClick={() => setViewMedia(null)} className="absolute top-4 right-4 text-white/70 hover:text-white z-10 transition-colors" aria-label="Fermer">
+            <Icons.close className="w-8 h-8" />
+          </button>
+          <div className="relative max-w-5xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+            {viewMedia.url.startsWith('http') && (viewMedia.url.match(/\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)$/i) || viewMedia.url.startsWith('data:image/')) ? (
+              <div className="relative w-full h-[70vh]">
+                <Image src={viewMedia.url} alt={viewMedia.titre || ''} fill className="object-contain" unoptimized />
+              </div>
+            ) : viewMedia.url.match(/\.(mp4|webm|ogg|mov)$/i) ? (
+              <video src={viewMedia.url} controls className="max-h-[85vh] mx-auto rounded-lg" />
+            ) : (
+              <iframe src={viewMedia.url} className="w-full h-[80vh] rounded-lg" title={viewMedia.titre || 'Média'} />
+            )}
+            {viewMedia.titre && <p className="text-center text-sm text-white/60 mt-3 font-mono">{viewMedia.titre}</p>}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

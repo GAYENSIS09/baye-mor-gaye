@@ -18,6 +18,7 @@ class StoreCompetenceRequest extends FormRequest
             'categorie' => 'nullable|string|max:255',
             'icone' => 'nullable|string|max:255',
             'niveau' => 'nullable|in:debutant,intermediaire,avance,expert',
+            'est_surligne' => 'boolean',
         ];
     }
 }

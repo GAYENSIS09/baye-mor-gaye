@@ -4,10 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Media extends Model
 {
     use HasFactory;
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::deleting(function (Media $media) {
+            if ($media->chemin_fichier && Storage::disk('public')->exists($media->chemin_fichier)) {
+                Storage::disk('public')->delete($media->chemin_fichier);
+            }
+            if ($media->vignette && Storage::disk('public')->exists($media->vignette)) {
+                Storage::disk('public')->delete($media->vignette);
+            }
+        });
+    }
 
     protected $fillable = [
         'mediable_type',

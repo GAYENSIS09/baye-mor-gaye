@@ -10,16 +10,23 @@ import { useRouter } from 'next/navigation';
 import { useCreateProjet } from '@/hooks/mutations';
 import { useToast } from '@/contexts/ToastContext';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { useCreateProjetMedia } from '@/hooks/mutations';
+import { uploadFile } from '@/lib/upload';
+import { Icons } from '@/components/ui/Icons';
 
 export default function NewProjetPage() {
   const { utilisateur, loading: authLoading } = useAuth();
   const router = useRouter();
   const createProjet = useCreateProjet();
+  const createMedia = useCreateProjetMedia();
   const toast = useToast();
   const [techInput, setTechInput] = useState('');
   const [technologies, setTechnologies] = useState<string[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState('');
+  const [mediaLink, setMediaLink] = useState('');
 
   const {
     register,
@@ -51,6 +58,15 @@ export default function NewProjetPage() {
     setTechnologies(technologies.filter((x) => x !== t));
   }
 
+  function handleMediaChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setMediaFile(f);
+    const reader = new FileReader();
+    reader.onload = () => setMediaPreview(reader.result as string);
+    reader.readAsDataURL(f);
+  }
+
   async function onSubmit(data: ProjetFormData) {
     let imageCouverture: string | undefined;
     if (imageFile) {
@@ -66,11 +82,38 @@ export default function NewProjetPage() {
       setUploading(false);
     }
     try {
-      await createProjet.mutateAsync({
+      const res = await createProjet.mutateAsync({
         ...data,
         technologies: technologies.length > 0 ? technologies : undefined,
         image_couverture: imageCouverture,
       });
+      const projectId = (res as { id?: number })?.id ?? (res as { data?: { id?: number } })?.data?.id;
+      if ((mediaFile || mediaLink) && projectId) {
+        if (mediaFile) {
+          const isImage = mediaFile.type.startsWith('image/');
+          const uploaded = isImage
+            ? await uploadImage(mediaFile, 'projets')
+            : await uploadFile(mediaFile, 'projets');
+          const type = isImage ? 'image' : (mediaFile.type.startsWith('video/') ? 'video' : 'fichier');
+          await createMedia.mutateAsync({
+            mediable_type: 'App\\Models\\ProjetPortfolio',
+            mediable_id: projectId,
+            type,
+            chemin_fichier: isImage ? uploaded.url : uploaded.path,
+            titre: mediaFile.name,
+          });
+        }
+        if (mediaLink) {
+          const isYoutube = /youtube\.com|youtu\.be/.test(mediaLink);
+          await createMedia.mutateAsync({
+            mediable_type: 'App\\Models\\ProjetPortfolio',
+            mediable_id: projectId,
+            type: isYoutube ? 'youtube' : 'lien',
+            chemin_fichier: mediaLink,
+            titre: mediaLink,
+          });
+        }
+      }
       toast.success('Projet créé');
       router.push('/dashboard/projets');
     } catch {
@@ -128,6 +171,32 @@ export default function NewProjetPage() {
           <input id="image-couverture" type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)} autoComplete="off"
             className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
           {uploading && <p className="text-xs text-muted mt-1">Upload en cours...</p>}
+        </div>
+        <div className="border-t border-[#222] pt-3">
+          <p className="text-xs font-mono text-muted uppercase tracking-wider mb-2">
+            Médias <span className="text-[10px] lowercase text-muted/60">(optionnel — fichier ou lien)</span>
+          </p>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs text-muted mb-1">Fichier (image, PDF, vidéo...)</label>
+              <input type="file" accept="image/*,.pdf,.mp4,.webm,.ogg,.mov" onChange={handleMediaChange}
+                className="w-full text-sm text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-[#222] file:text-off-white file:text-xs file:font-mono hover:file:bg-[#333]" />
+              {mediaPreview && (
+                <img src={mediaPreview} alt="" className="mt-2 max-h-20 rounded object-contain border border-[#222]" />
+              )}
+            </div>
+            <div>
+              <label className="block text-xs text-muted mb-1">Ou URL du média (YouTube, PDF, image...)</label>
+              <input type="url" placeholder="https://..." value={mediaLink} onChange={(e) => setMediaLink(e.target.value)}
+                className="input-base" />
+              {mediaLink && (
+                <p className="text-xs text-muted mt-1 font-mono truncate">
+                  <Icons.external className="w-3 h-3 inline mr-1" />
+                  {mediaLink}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
         <div>
           <label htmlFor="date-realisation" className="block text-sm font-medium text-off-white">Date de realisation</label>

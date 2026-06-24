@@ -33,6 +33,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (nom: string, email: string, password: string, passwordConfirmation: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -101,6 +102,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUtilisateur(res.utilisateur);
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    useAuditHook('AuthProvider', 'useCallback', { name: 'refreshUser' });
+    try {
+      const res = await api.get<Utilisateur>('/me');
+      setUtilisateur(res);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        clearToken();
+      }
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     useAuditHook('AuthProvider', 'useCallback', { name: 'logout' });
     try {
@@ -115,7 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useAuditRender('AuthProvider', { children: '...' }, { utilisateur: utilisateur?.id ?? null, loading });
 
   return (
-    <AuthContext.Provider value={{ utilisateur, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ utilisateur, loading, login, register, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

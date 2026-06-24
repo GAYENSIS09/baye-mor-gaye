@@ -1,10 +1,19 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 const STORAGE_URL = API_BASE.replace('/api', '/storage');
 
-export function getMediaUrl(path: string | null | undefined): string | null {
+export function getMediaUrl(path: string | null | undefined, bust?: string | number | null): string | null {
   if (!path) return null;
-  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:') || path.startsWith('data:')) return path;
-  return `${STORAGE_URL}/${path.replace(/^\//, '')}`;
+  if (path.startsWith('blob:') || path.startsWith('data:')) return path;
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    if (bust && !path.includes('t=')) {
+      const sep = path.includes('?') ? '&' : '?';
+      return `${path}${sep}t=${bust}`;
+    }
+    return path;
+  }
+  let url = `${STORAGE_URL}/${path.replace(/^\//, '')}`;
+  if (bust) url += `?t=${bust}`;
+  return url;
 }
 
 export function processContentImages(html: string): string {

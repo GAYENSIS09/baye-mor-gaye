@@ -53,3 +53,20 @@ export function useDeleteProjet() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.projets(), exact: false }),
   });
 }
+
+export function useCreateProjetMedia() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { mediable_type: string; mediable_id: number; type: string; chemin_fichier: string; titre?: string; est_principal?: boolean }) =>
+      api.post('/media', data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.projets(), exact: false }),
+  });
+}
+
+export function useDeleteProjetMedia() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/media/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.projets(), exact: false }),
+  });
+}

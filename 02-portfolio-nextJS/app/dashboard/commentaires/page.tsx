@@ -25,21 +25,29 @@ export default function CommentairesDashboardPage() {
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const toast = useToast();
 
+  const [pendingIds, setPendingIds] = useState<Set<number>>(new Set());
+
   async function approve(id: number) {
+    setPendingIds(prev => new Set(prev).add(id));
     try {
       await approveCommentaire.mutateAsync(id);
       toast.success('Commentaire approuvé');
     } catch {
       toast.error("Erreur lors de l'approbation");
+    } finally {
+      setPendingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
     }
   }
 
   async function remove(id: number) {
+    setPendingIds(prev => new Set(prev).add(id));
     try {
       await deleteCommentaire.mutateAsync(id);
       toast.success('Commentaire supprimé');
     } catch {
       toast.error('Erreur lors de la suppression');
+    } finally {
+      setPendingIds(prev => { const next = new Set(prev); next.delete(id); return next; });
     }
   }
 
@@ -85,13 +93,13 @@ export default function CommentairesDashboardPage() {
                 Sur {c.commentable_type === 'App\\Models\\Publication' ? 'publication' : 'projet'} : {c.commentable?.titre || `#${c.commentable?.id}`}
               </p>
               <div className="flex gap-2">
-                <ActionButton variant="primary" size="sm" onClick={() => approve(c.id)}>
-                  Approuver
+                <ActionButton variant="primary" size="sm" onClick={() => approve(c.id)} disabled={pendingIds.has(c.id)}>
+                  {pendingIds.has(c.id) ? '...' : 'Approuver'}
                 </ActionButton>
-                <ActionButton variant="ghost" size="sm" onClick={() => setConfirmDelete(c.id)}>
+                <ActionButton variant="ghost" size="sm" onClick={() => setConfirmDelete(c.id)} disabled={pendingIds.has(c.id)}>
                   <Icons.trash className="w-4 h-4 inline mr-1" /> Supprimer
                 </ActionButton>
-                <ActionButton variant="secondary" size="sm" onClick={() => setReplyTo(replyTo === c.id ? null : c.id)}>
+                <ActionButton variant="secondary" size="sm" onClick={() => setReplyTo(replyTo === c.id ? null : c.id)} disabled={pendingIds.has(c.id)}>
                   Répondre
                 </ActionButton>
               </div>

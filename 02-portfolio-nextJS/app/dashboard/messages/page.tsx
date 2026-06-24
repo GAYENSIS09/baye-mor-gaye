@@ -21,7 +21,7 @@ export default function ContactsDashboardPage() {
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const params: Record<string, string> = { page: String(currentPage) };
-  if (filterNonLus) params.est_lu = 'false';
+  if (filterNonLus) params.non_lus = 'true';
   const { data: contactsResponse, isLoading, isError, refetch } = useContacts(params);
   const contacts = contactsResponse?.data ?? [];
   const lastPage = contactsResponse?.last_page ?? 1;

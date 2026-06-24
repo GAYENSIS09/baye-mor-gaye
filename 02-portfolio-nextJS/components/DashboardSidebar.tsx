@@ -292,7 +292,9 @@ export default function DashboardSidebar({ open, onClose }: DashboardSidebarProp
         <div className={`border-t border-[#222] mt-auto ${isExpandedVisual ? 'p-3' : 'p-2'}`}>
           <div className={`flex items-center gap-3 px-2 py-2 ${isExpandedVisual ? '' : 'justify-center'}`}>
             {utilisateur?.photo ? (
-              <MediaViewer src={getMediaUrl(utilisateur.photo) || ''} alt="" width={32} height={32} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+              <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                <MediaViewer src={getMediaUrl(utilisateur.photo) || ''} alt="" fill className="object-cover" />
+              </div>
             ) : (
               <div className="w-8 h-8 rounded-full bg-[#222] flex items-center justify-center text-acid font-mono text-xs flex-shrink-0" aria-hidden="true">
                 {utilisateur?.nom?.[0]?.toUpperCase() || 'U'}

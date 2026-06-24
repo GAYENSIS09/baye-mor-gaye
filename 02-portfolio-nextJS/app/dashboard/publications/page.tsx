@@ -3,11 +3,13 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePublications, useDomaines } from '@/hooks/queries';
 import { useDeletePublication } from '@/hooks/mutations';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { qk } from '@/lib/query-keys';
+import { getMediaUrl } from '@/lib/media';
 import { Domaine } from '@/types/api';
 import { Pagination } from '@/components/ActionBar';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -110,25 +112,44 @@ export default function PublicationsDashboardPage() {
         <>
           <ResponsiveGrid columns={1} gap={4}>
             {publications.map((p) => (
-              <CardContainer key={p.id} hover className="p-4 flex items-center justify-between">
-                <CardContent className="p-0 flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <CardTitle className="text-base truncate">{p.titre}</CardTitle>
-                    <StatusBadge variant={p.est_publie ? 'success' : 'warning'} size="sm">
-                      {p.est_publie ? 'Publié' : 'Brouillon'}
-                    </StatusBadge>
-                    <span className="text-xs text-muted bg-[#222] px-2 py-0.5 rounded">{p.type}</span>
+              <CardContainer key={p.id} hover className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-12 rounded overflow-hidden bg-[#222] shrink-0 relative">
+                    {(() => {
+                      const cover = p.image_couverture || p.medias?.find(m => m.type === 'image')?.chemin_fichier;
+                      const coverUrl = cover ? getMediaUrl(cover) : null;
+                      return coverUrl ? (
+                        <Image src={coverUrl} alt="" fill className="object-cover" unoptimized />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Icons.file className="w-5 h-5 text-muted" />
+                        </div>
+                      );
+                    })()}
                   </div>
-                  <CardDescription className="text-sm">
-                    {p.publie_le ? new Date(p.publie_le).toLocaleDateString('fr-FR') : 'Non publié'}
-                    {(p.domaines?.length ?? 0) > 0 && (
-                      <span> — {p.domaines.map((d: Domaine, i) => (
-                        <span key={d.id}>{i > 0 && ', '}<Link href="/dashboard/domaines" className="text-acid hover:underline">{d.nom}</Link></span>
-                      ))}</span>
+                  <CardContent className="p-0 flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <CardTitle className="text-base truncate">{p.titre}</CardTitle>
+                      <StatusBadge variant={p.est_publie ? 'success' : 'warning'} size="sm">
+                        {p.est_publie ? 'Publié' : 'Brouillon'}
+                      </StatusBadge>
+                      <span className="text-xs text-muted bg-[#222] px-2 py-0.5 rounded">{p.type}</span>
+                    </div>
+                    <CardDescription className="text-sm">
+                      {p.publie_le ? new Date(p.publie_le).toLocaleDateString('fr-FR') : 'Non publié'}
+                      {(p.domaines?.length ?? 0) > 0 && (
+                        <span> — {p.domaines.map((d: Domaine, i) => (
+                          <span key={d.id}>{i > 0 && ', '}<Link href="/dashboard/domaines" className="text-acid hover:underline">{d.nom}</Link></span>
+                        ))}</span>
+                      )}
+                    </CardDescription>
+                    {p.medias && p.medias.length > 0 && (
+                      <p className="text-[10px] text-muted font-mono mt-1">
+                        {p.medias.length} média{p.medias.length > 1 ? 's' : ''}
+                      </p>
                     )}
-                  </CardDescription>
-                </CardContent>
-                <CardActions className="mt-0 pt-0 border-0 flex-shrink-0 ml-4">
+                  </CardContent>
+                  <CardActions className="mt-0 pt-0 border-0 flex-shrink-0 ml-4">
                   <IconButton
                     onClick={() => togglePublier.mutate({ id: p.id, est_publie: !p.est_publie })}
                     icon={p.est_publie ? <Icons.folder className="w-4 h-4" /> : <Icons.external className="w-4 h-4" />}
@@ -152,7 +173,8 @@ export default function PublicationsDashboardPage() {
                     size="sm"
                   />
                 </CardActions>
-              </CardContainer>
+              </div>
+            </CardContainer>
             ))}
           </ResponsiveGrid>
 

@@ -52,3 +52,20 @@ export function useDeletePublication() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false }),
   });
 }
+
+export function useCreatePublicationMedia() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { mediable_type: string; mediable_id: number; type: string; chemin_fichier: string; titre?: string; est_principal?: boolean }) =>
+      api.post('/media', data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false }),
+  });
+}
+
+export function useDeletePublicationMedia() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`/media/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false }),
+  });
+}

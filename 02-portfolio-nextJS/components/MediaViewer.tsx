@@ -39,7 +39,6 @@ export default function MediaViewer({
 }: MediaViewerProps) {
   const resolvedSrc = getMediaUrl(src) ?? src
   const type = getMediaType(resolvedSrc)
-  const isExternal = resolvedSrc.startsWith("http")
 
   if (type === "image") {
     return (
@@ -51,7 +50,7 @@ export default function MediaViewer({
         fill={fill}
         className={className}
         sizes={fill ? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" : undefined}
-        unoptimized={isExternal}
+        unoptimized
       />
     )
   }

@@ -7,8 +7,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { PublicationFormSchema, type PublicationFormData } from '@/schemas/forms';
 import { useRouter } from 'next/navigation';
 import { useDomaines } from '@/hooks/queries';
-import { useCreatePublication } from '@/hooks/mutations';
+import { useCreatePublication, useCreatePublicationMedia } from '@/hooks/mutations';
 import { useToast } from '@/contexts/ToastContext';
+import { uploadFile, uploadImage } from '@/lib/upload';
+import { Icons } from '@/components/ui/Icons';
 import TipTapEditor from '@/components/TipTapEditor';
 import Dropzone from '@/components/Dropzone';
 import { LoadingScreen } from '@/components/LoadingScreen';
@@ -18,10 +20,14 @@ export default function NewPublicationPage() {
   const router = useRouter();
   const { data: domaines = [] } = useDomaines();
   const createPublication = useCreatePublication();
+  const createMedia = useCreatePublicationMedia();
   const toast = useToast();
   const [contenu, setContenu] = useState('');
   const [selectedDomaines, setSelectedDomaines] = useState<number[]>([]);
   const [imageCouverture, setImageCouverture] = useState('');
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState('');
+  const [mediaLink, setMediaLink] = useState('');
 
   const {
     register,
@@ -44,15 +50,51 @@ export default function NewPublicationPage() {
     setValue('contenu', value, { shouldValidate: false });
   }
 
+  function handleMediaChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setMediaFile(f);
+    const reader = new FileReader();
+    reader.onload = () => setMediaPreview(reader.result as string);
+    reader.readAsDataURL(f);
+  }
+
   async function onSubmit(data: PublicationFormData) {
     try {
-      await createPublication.mutateAsync({
+      const res = await createPublication.mutateAsync({
         ...data,
         contenu,
         contenu_html: contenu || undefined,
         image_couverture: imageCouverture || undefined,
         domaines: selectedDomaines.length > 0 ? selectedDomaines : undefined,
       });
+      const projectId = (res as { id?: number })?.id ?? (res as { data?: { id?: number } })?.data?.id;
+      if (projectId) {
+        if (mediaFile) {
+          const isImage = mediaFile.type.startsWith('image/');
+          const uploaded = isImage
+            ? await uploadImage(mediaFile, 'publications')
+            : await uploadFile(mediaFile, 'publications');
+          const type = isImage ? 'image' : (mediaFile.type.startsWith('video/') ? 'video' : 'fichier');
+          await createMedia.mutateAsync({
+            mediable_type: 'App\\Models\\Publication',
+            mediable_id: projectId,
+            type,
+            chemin_fichier: isImage ? uploaded.url : uploaded.path,
+            titre: mediaFile.name,
+          });
+        }
+        if (mediaLink) {
+          const isYoutube = /youtube\.com|youtu\.be/.test(mediaLink);
+          await createMedia.mutateAsync({
+            mediable_type: 'App\\Models\\Publication',
+            mediable_id: projectId,
+            type: isYoutube ? 'youtube' : 'lien',
+            chemin_fichier: mediaLink,
+            titre: mediaLink,
+          });
+        }
+      }
       toast.success('Publication créée');
       router.push('/dashboard/publications');
     } catch {
@@ -111,6 +153,32 @@ export default function NewPublicationPage() {
         <div>
           <label className="block text-sm font-medium text-off-white mb-1">Image de couverture</label>
           <Dropzone onUpload={(url) => setImageCouverture(url)} />
+        </div>
+        <div className="border-t border-[#222] pt-3">
+          <p className="text-xs font-mono text-muted uppercase tracking-wider mb-2">
+            Médias <span className="text-[10px] lowercase text-muted/60">(optionnel — fichier ou lien)</span>
+          </p>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs text-muted mb-1">Fichier (image, PDF, vidéo...)</label>
+              <input type="file" accept="image/*,.pdf,.mp4,.webm,.ogg,.mov" onChange={handleMediaChange}
+                className="w-full text-sm text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-[#222] file:text-off-white file:text-xs file:font-mono hover:file:bg-[#333]" />
+              {mediaPreview && (
+                <img src={mediaPreview} alt="" className="mt-2 max-h-20 rounded object-contain border border-[#222]" />
+              )}
+            </div>
+            <div>
+              <label className="block text-xs text-muted mb-1">Ou URL du média (YouTube, PDF, image...)</label>
+              <input type="url" placeholder="https://..." value={mediaLink} onChange={(e) => setMediaLink(e.target.value)}
+                className="input-base" />
+              {mediaLink && (
+                <p className="text-xs text-muted mt-1 font-mono truncate">
+                  <Icons.external className="w-3 h-3 inline mr-1" />
+                  {mediaLink}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <input type="checkbox" id="publier" {...register("est_publie")} className="accent-acid" />

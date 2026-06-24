@@ -34,11 +34,8 @@ class CertificationController extends Controller
     public function store(StoreCertificationRequest $request)
     {
         $data = $request->validated();
+        unset($data['media']);
         $data['proprietaire_id'] = $request->user()->proprietaire->id;
-
-        if ($request->hasFile('credential_file')) {
-            $data['url_credential'] = $request->file('credential_file')->store('uploads/certifications/credentials', 'public');
-        }
 
         $certification = Certification::create($data);
 
@@ -63,13 +60,11 @@ class CertificationController extends Controller
 
         $data = $request->validated();
 
-        if ($request->hasFile('credential_file')) {
-            $data['url_credential'] = $request->file('credential_file')->store('uploads/certifications/credentials', 'public');
-        }
-
-        unset($data['credential_file']);
-
         $certification->update($data);
+
+        if ($request->boolean('supprimer_media')) {
+            $certification->medias()->delete();
+        }
 
         if ($request->hasFile('media')) {
             $certification->medias()->delete();

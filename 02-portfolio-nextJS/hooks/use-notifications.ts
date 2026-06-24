@@ -8,7 +8,8 @@ export function useNotifications(params?: Record<string, string>, enabled?: bool
     queryKey: qk.notifications(params),
     queryFn: () => api.get<PaginatedResponse<Notification>>('/notifications', { params: params as Record<string, string> }),
     enabled,
-    refetchInterval: enabled ? 30000 : undefined,
+    refetchInterval: enabled ? 10_000 : undefined,
+    refetchIntervalInBackground: true,
     retry: false,
   });
 }

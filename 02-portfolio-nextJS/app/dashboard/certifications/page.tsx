@@ -11,6 +11,7 @@ import { Certification } from '@/types/api';
 import { useToast } from '@/contexts/ToastContext';
 import MediaViewer from '@/components/MediaViewer';
 import { getMediaUrl } from '@/lib/media';
+import { ApiError } from '@/lib/api';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import EmptyState from '@/components/EmptyState';
 import { LoadingScreen } from '@/components/LoadingScreen';
@@ -19,8 +20,11 @@ import { Icons } from '@/components/ui/Icons';
 import { SectionHeader } from '@/components/SectionHeader';
 import { ActionButton, IconButton } from '@/components/ActionBar';
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
+function formatDate(dateStr?: string | null) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
 }
 
 export default function CertificationsPage() {
@@ -35,42 +39,31 @@ export default function CertificationsPage() {
   const [saving, setSaving] = useState(false);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState('');
-  const [credentialFile, setCredentialFile] = useState<File | null>(null);
-  const [credentialPreview, setCredentialPreview] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
-
+  const [existingMedia, setExistingMedia] = useState<{ id: number; chemin: string } | null>(null);
+  const [removeMedia, setRemoveMedia] = useState(false);
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<CertificationFormData>({
     resolver: zodResolver(CertificationFormSchema),
     defaultValues: {
-      titre: '', organisme: '', description: '', url_credential: '', date_obtention: '', date_expiration: '',
+      titre: '', organisme: '', description: '', date_obtention: '', date_expiration: '',
     },
   });
 
   function resetForm() {
     reset({
-      titre: '', organisme: '', description: '', url_credential: '', date_obtention: '', date_expiration: '',
+      titre: '', organisme: '', description: '', date_obtention: '', date_expiration: '',
     });
     setEditId(null);
     setShowForm(false);
     setMediaFile(null);
     setMediaPreview('');
-    setCredentialFile(null);
-    setCredentialPreview('');
-  }
-
-  function handleCredentialChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    setCredentialFile(f);
-    const reader = new FileReader();
-    reader.onload = () => setCredentialPreview(reader.result as string);
-    reader.readAsDataURL(f);
+    setExistingMedia(null);
+    setRemoveMedia(false);
   }
 
   function handleMediaChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -85,12 +78,11 @@ export default function CertificationsPage() {
   async function onSubmit(data: CertificationFormData) {
     setSaving(true);
     try {
-      const payload = { ...data, description: data.description || undefined, url_credential: data.url_credential || undefined };
-      if (mediaFile || credentialFile) {
+      const payload = { ...data, description: data.description || undefined };
+      if (mediaFile) {
         const fd = new FormData();
-        Object.entries(payload).forEach(([k, v]) => { if (v !== undefined) fd.append(k, String(v)); });
-        if (mediaFile) fd.append('media', mediaFile);
-        if (credentialFile) fd.append('credential_file', credentialFile);
+        Object.entries(payload).forEach(([k, v]) => { if (v !== undefined && v !== null) fd.append(k, typeof v === 'boolean' ? (v ? '1' : '0') : String(v)); });
+        fd.append('media', mediaFile);
         if (editId) {
           fd.append('_method', 'PUT');
           fd.append('id', String(editId));
@@ -98,16 +90,14 @@ export default function CertificationsPage() {
         } else {
           await createCert.mutateAsync(fd);
         }
+      } else if (editId) {
+        await updateCert.mutateAsync({ id: editId, ...payload, media_id: existingMedia?.id, supprimer_media: removeMedia });
       } else {
-        if (editId) {
-          await updateCert.mutateAsync({ id: editId, ...payload });
-        } else {
-          await createCert.mutateAsync(payload);
-        }
+        await createCert.mutateAsync(payload);
       }
       toast.success(editId ? 'Certification modifiée' : 'Certification ajoutée');
       resetForm();
-    } catch { toast.error("Erreur lors de l'enregistrement"); }
+    } catch (e) { toast.error(e instanceof ApiError ? e.message : "Erreur lors de l'enregistrement"); }
     finally { setSaving(false); }
   }
 
@@ -118,22 +108,17 @@ export default function CertificationsPage() {
       description: c.description || '',
       date_obtention: c.date_obtention?.split('T')[0] || '',
       date_expiration: c.date_expiration?.split('T')[0] || '',
-      url_credential: c.url_credential || '',
     });
     setEditId(c.id);
     setShowForm(true);
     if (c.medias?.length > 0) {
-      setMediaPreview(getMediaUrl(c.medias[0].chemin_fichier) || '');
+      setMediaPreview(getMediaUrl(c.medias[0].chemin_fichier, c.medias[0].id) || '');
+      setExistingMedia({ id: c.medias[0].id, chemin: c.medias[0].chemin_fichier || '' });
     } else {
       setMediaPreview('');
+      setExistingMedia(null);
     }
     setMediaFile(null);
-    setCredentialFile(null);
-    if (c.url_credential && !c.url_credential.startsWith('http://') && !c.url_credential.startsWith('https://')) {
-      setCredentialPreview(getMediaUrl(c.url_credential) || '');
-    } else {
-      setCredentialPreview('');
-    }
   }
 
   if (authLoading) return <LoadingScreen />;
@@ -168,10 +153,6 @@ export default function CertificationsPage() {
                 {errors.date_obtention && <p className="text-red-400 text-xs mt-1">{errors.date_obtention.message}</p>}
               </div>
               <div>
-                <input id="cert-url" type="url" {...register("url_credential")} placeholder="URL du justificatif" autoComplete="url" className="input-base" />
-                {errors.url_credential && <p className="text-red-400 text-xs mt-1">{errors.url_credential.message}</p>}
-              </div>
-              <div>
                 <input id="cert-expiration" type="date" {...register("date_expiration")} placeholder="Date d'expiration" className="input-base" />
               </div>
             </div>
@@ -180,20 +161,15 @@ export default function CertificationsPage() {
             </div>
             <div>
               <label htmlFor="cert-media" className="label-base">Image (optionnel)</label>
-              <input id="cert-media" type="file" accept="image/*" onChange={handleMediaChange} className="w-full text-sm text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-[#222] file:text-off-white file:text-xs file:font-mono hover:file:bg-[#333]" />
+              <input id="cert-media" type="file" accept="image/*,.pdf" onChange={handleMediaChange} className="w-full text-sm text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-[#222] file:text-off-white file:text-xs file:font-mono hover:file:bg-[#333]" />
+              {editId && existingMedia && !mediaFile && (
+                <p className="text-xs text-muted mt-1 font-mono">Fichier actuel : {existingMedia.chemin.split('/').pop()}</p>
+              )}
+              {editId && existingMedia && !mediaFile && !removeMedia && (
+                <button type="button" onClick={() => { setRemoveMedia(true); setMediaPreview(''); }} className="text-xs text-red-400 hover:text-red-300 mt-1 underline">Supprimer l'image</button>
+              )}
+              {removeMedia && <p className="text-xs text-amber-400 mt-1">L'image sera supprimée à l'enregistrement.</p>}
               {mediaPreview && <img src={mediaPreview} alt="" className="mt-2 max-h-32 rounded object-contain border border-[#222]" />}
-            </div>
-            <div>
-              <label htmlFor="cert-credential" className="label-base">Justificatif (optionnel — PDF, image)</label>
-              <input id="cert-credential" type="file" accept=".pdf,image/*" onChange={handleCredentialChange} className="w-full text-sm text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-[#222] file:text-off-white file:text-xs file:font-mono hover:file:bg-[#333]" />
-              {credentialPreview && (
-                <a href={credentialPreview} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-acid hover:underline mt-1 font-mono">
-                  Voir le justificatif <Icons.external className="w-3 h-3" />
-                </a>
-              )}
-              {!credentialPreview && watch('url_credential')?.startsWith('http') && (
-                <p className="text-xs text-muted mt-1">Justificatif externe : {watch('url_credential')}</p>
-              )}
             </div>
             <ActionButton type="submit" disabled={saving || isSubmitting} variant="primary">
               {saving || isSubmitting ? 'Enregistrement...' : (editId ? 'Modifier' : 'Ajouter')}
@@ -250,18 +226,9 @@ export default function CertificationsPage() {
                         <p className="text-xs text-muted mt-1">Expire le {formatDate(c.date_expiration)}</p>
                       )}
                       {c.medias?.length > 0 && (
-                        <MediaViewer src={getMediaUrl(c.medias[0].chemin_fichier) ?? ''} alt="" width={200} height={96} className="mt-3 max-h-24 rounded object-contain border border-[#222]" />
-                      )}
-                      {c.url_credential && (
-                        c.url_credential.startsWith('http://') || c.url_credential.startsWith('https://') ? (
-                          <a href={c.url_credential} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-acid hover:underline mt-2 font-mono">
-                            Voir le certificat <Icons.external className="w-3 h-3" />
-                          </a>
-                        ) : (
-                          <a href={getMediaUrl(c.url_credential) || '#'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-acid hover:underline mt-2 font-mono">
-                            Voir le justificatif <Icons.view className="w-3 h-3" />
-                          </a>
-                        )
+                        <div className="mt-3 relative w-full md:w-80 h-40 rounded overflow-hidden border border-[#222]">
+                          <MediaViewer src={getMediaUrl(c.medias[0].chemin_fichier, c.medias[0].id) ?? ''} alt="" fill className="object-cover" />
+                        </div>
                       )}
                     </div>
                     <div className="flex gap-1 shrink-0 mt-1">
@@ -276,7 +243,7 @@ export default function CertificationsPage() {
         </div>
       )}
 
-      <ConfirmDialog open={confirmDelete !== null} title="Supprimer la certification" message="Cette action est irréversible." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDelete) { try { await deleteCert.mutateAsync(confirmDelete); toast.success('Certification supprimée'); } catch { toast.error('Erreur lors de la suppression'); } setConfirmDelete(null); } } } onCancel={() => setConfirmDelete(null)} />
+      <ConfirmDialog open={confirmDelete !== null} title="Supprimer la certification" message="Cette action est irréversible." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDelete) { try { await deleteCert.mutateAsync(confirmDelete); toast.success('Certification supprimée'); } catch (e) { toast.error(e instanceof ApiError ? e.message : 'Erreur lors de la suppression'); } setConfirmDelete(null); } } } onCancel={() => setConfirmDelete(null)} />
     </div>
   );
 }

@@ -14,51 +14,63 @@ class CertificationSeeder extends Seeder
     {
         $proprietaire = Proprietaire::first();
 
-        $certifications = [
-            ['Introduction a l\'Intelligence Artificielle', 'Coursera', 'Certification en IA couvrant les fondamentaux du Machine Learning.', '2025-03-15', null, 'seeders/certifications/credential-ia.pdf', 0, 'seeders/certifications/cover-ia.jpg'],
-            ['Laravel Developer', 'Laracasts', 'Maitrise du framework Laravel (11) : Eloquent, API, tests.', '2024-11-01', null, 'seeders/certifications/credential-laravel.pdf', 1, 'seeders/certifications/cover-laravel.jpg'],
-            ['Python pour la Data Science', 'DataCamp', 'Analyse de donnees avec Pandas, NumPy et Matplotlib.', '2025-01-15', '2027-01-15', 'seeders/certifications/credential-python.pdf', 2, 'seeders/certifications/cover-python.jpg'],
+        $colors = ['#00c8ff', '#ff6b6b', '#51cf66'];
+        $covers = ['ia', 'laravel', 'python'];
+        $iconPaths = [
+            'ia' => 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
+            'laravel' => 'M13 2L3 7l10 5 10-5-10-5zM3 17l10 5 10-5M3 12l10 5 10-5',
+            'python' => 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
         ];
 
-        foreach ($certifications as [$titre, $organisme, $description, $dateObtention, $dateExpiration, $credentialPath, $ordre, $mediaPath]) {
-            foreach ([[$credentialPath, 'pdf'], [$mediaPath, 'jpg']] as [$path, $ext]) {
-                if (!Storage::disk('public')->exists($path)) {
-                    if ($ext === 'pdf') {
-                        Storage::disk('public')->put($path, 
-                            "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj\n4 0 obj\n<< /Length 44 >>\nstream\nBT /F1 24 Tf 100 700 Td ($titre) Tj ET\nendstream\nendobj\n5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\nxref\n0 6\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000266 00000 n \n0000000362 00000 n \ntrailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n437\n%%%%EOF"
-                        );
-                    } else {
-                        Storage::disk('public')->put($path, '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
-                            <rect fill="#1a1a2e" width="400" height="300"/>
-                            <rect fill="#16213e" x="20" y="20" width="360" height="260" rx="8"/>
-                            <text x="200" y="120" text-anchor="middle" fill="#e0e0e0" font-family="Arial" font-size="28" font-weight="bold">' . htmlspecialchars($titre, ENT_QUOTES) . '</text>
-                            <text x="200" y="170" text-anchor="middle" fill="#888" font-family="Arial" font-size="16">' . htmlspecialchars($organisme, ENT_QUOTES) . '</text>
-                            <text x="200" y="220" text-anchor="middle" fill="#555" font-family="Arial" font-size="12">Placeholder - ' . htmlspecialchars($dateObtention, ENT_QUOTES) . '</text>
-                        </svg>');
-                    }
-                }
-            }
+        $certifications = [
+            ['Introduction a l\'Intelligence Artificielle', 'Coursera', 'Certification en IA couvrant les fondamentaux du Machine Learning.', '2025-03-15', null, 0],
+            ['Laravel Developer', 'Laracasts', 'Maitrise du framework Laravel (11) : Eloquent, API, tests.', '2024-11-01', null, 1],
+            ['Python pour la Data Science', 'DataCamp', 'Analyse de donnees avec Pandas, NumPy et Matplotlib.', '2025-01-15', '2027-01-15', 2],
+        ];
 
+        foreach ($certifications as $i => [$titre, $organisme, $description, $dateObtention, $dateExpiration, $ordre]) {
             $cert = Certification::updateOrCreate(
                 ['proprietaire_id' => $proprietaire->id, 'titre' => $titre, 'organisme' => $organisme],
                 compact('titre', 'organisme', 'description', 'ordre') + [
                     'proprietaire_id' => $proprietaire->id,
                     'date_obtention' => $dateObtention,
                     'date_expiration' => $dateExpiration,
-                    'url_credential' => $credentialPath,
                 ]
             );
 
-            if ($cert->wasRecentlyCreated || !$cert->medias()->count()) {
-                Media::firstOrCreate(
-                    ['mediable_id' => $cert->id, 'mediable_type' => Certification::class, 'type' => 'image'],
-                    [
-                        'chemin_fichier' => $mediaPath,
-                        'titre' => $titre . ' - Couverture',
-                        'ordre' => 0,
-                    ]
-                );
+            $slug = $covers[$i];
+            $color = $colors[$i];
+            $svgContent = <<<SVG
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="280" viewBox="0 0 400 280">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:{$color};stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:{$color};stop-opacity:0.05" />
+    </linearGradient>
+  </defs>
+  <rect width="400" height="280" rx="8" fill="#1a1a1a"/>
+  <rect width="400" height="280" rx="8" fill="url(#bg)"/>
+  <rect x="1" y="1" width="398" height="278" rx="7" fill="none" stroke="{$color}" stroke-opacity="0.3" stroke-width="1.5"/>
+  <text x="200" y="90" text-anchor="middle" font-family="system-ui,sans-serif" font-size="16" font-weight="600" fill="{$color}">{$organisme}</text>
+  <text x="200" y="170" text-anchor="middle" font-family="system-ui,sans-serif" font-size="22" font-weight="700" fill="#ffffff">{$titre}</text>
+  <circle cx="200" cy="210" r="3" fill="{$color}" opacity="0.6"/>
+  <rect x="80" y="230" width="240" height="28" rx="14" fill="{$color}" fill-opacity="0.1" stroke="{$color}" stroke-opacity="0.3" stroke-width="1"/>
+  <text x="200" y="249" text-anchor="middle" font-family="system-ui,sans-serif" font-size="11" fill="{$color}" opacity="0.8">CREDENTIAL</text>
+</svg>
+SVG;
+
+            $coverPath = "seeders/certifications/cover-{$slug}.svg";
+            if (!Storage::disk('public')->exists($coverPath)) {
+                Storage::disk('public')->put($coverPath, $svgContent);
             }
+
+            $cert->medias()->delete();
+            $cert->medias()->create([
+                'type' => 'image',
+                'chemin_fichier' => $coverPath,
+                'titre' => $titre,
+                'ordre' => 0,
+            ]);
         }
     }
 }

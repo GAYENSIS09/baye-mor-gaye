@@ -94,7 +94,7 @@ class PublicationController extends Controller
         }
 
         Cache::forget('publications.publies');
-        return PublicationResource::make($publication->load('domaines'));
+        return PublicationResource::make($publication->load(['domaines', 'commentaires.auteur', 'likes.auteur', 'medias']));
     }
 
     public function update(UpdatePublicationRequest $request, Publication $publication)
@@ -121,7 +121,7 @@ class PublicationController extends Controller
         }
 
         Cache::forget('publications.publies');
-        return PublicationResource::make($publication->load('domaines'));
+        return PublicationResource::make($publication->load(['domaines', 'commentaires.auteur', 'likes.auteur', 'medias']));
     }
 
     public function destroy(Request $request, Publication $publication)

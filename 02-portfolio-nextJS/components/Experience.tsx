@@ -3,11 +3,9 @@ import { useState } from "react";
 import { useExperiences, useFormations, useCertifications } from "@/hooks/queries";
 import { MiniMediaGallery } from "@/components/MediaGallery";
 import type { GalleryItem } from "@/components/MediaGallery";
-import type { Media, Certification } from "@/types/api";
+import type { Media } from "@/types/api";
 import { getMediaUrl } from "@/lib/media";
-import { CardContainer, CardContent, CardTitle, CardDescription, CardMeta, CardTags } from "@/components/CardContainer";
 import { SectionHeader } from "@/components/SectionHeader";
-import { Icons } from "@/components/ui/Icons";
 
 function toGalleryItems(medias?: Media[]): GalleryItem[] {
   if (!medias) return [];
@@ -21,8 +19,11 @@ function toGalleryItems(medias?: Media[]): GalleryItem[] {
 
 type FilterValue = 'tout' | 'experience' | 'formation' | 'certification';
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
+function formatDate(dateStr?: string | null) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
 }
 
 function TimelineItem({ children }: { children: React.ReactNode }) {
@@ -34,12 +35,12 @@ function TimelineItem({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ExperienceCard({ item }: { item: { type: FilterValue; id: string; date: string; content: React.ReactNode } }) {
+function ExperienceCard({ item }: { item: { type: FilterValue; id: string; date: string; date_fin?: string | null; est_actuel?: boolean; content: React.ReactNode } }) {
   return (
     <TimelineItem>
       <div className="self-start">
         <p className="font-mono text-xs text-muted uppercase tracking-widest">
-          {formatDate(item.date)} – {item.type === 'experience' || item.type === 'formation' ? 'Présent' : ''}
+          {formatDate(item.date)}{item.est_actuel ? ' – Présent' : (item.date_fin ? ' – ' + formatDate(item.date_fin) : '')}
         </p>
       </div>
       <div>{item.content}</div>
@@ -54,11 +55,13 @@ export default function ExperienceTimeline() {
   const { data: certifications = [], isLoading: loadingCert } = useCertifications();
   const loading = loadingExp || loadingForm || loadingCert;
 
-  const items: { type: FilterValue; id: string; date: string; content: React.ReactNode }[] = [
+  const items: { type: FilterValue; id: string; date: string; date_fin?: string | null; est_actuel?: boolean; content: React.ReactNode }[] = [
     ...experiences.map((exp) => ({
       type: 'experience' as FilterValue,
       id: `exp-${exp.id}`,
       date: exp.date_debut,
+      date_fin: exp.date_fin,
+      est_actuel: exp.est_actuel,
       content: (
         <>
           <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
@@ -79,6 +82,8 @@ export default function ExperienceTimeline() {
       type: 'formation' as FilterValue,
       id: `form-${f.id}`,
       date: f.date_debut,
+      date_fin: f.date_fin,
+      est_actuel: !f.date_fin,
       content: (
         <>
           <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
@@ -98,15 +103,6 @@ export default function ExperienceTimeline() {
     })),
     ...certifications.map((c) => {
       const certGalleryItems = toGalleryItems(c.medias);
-      const hasLocalCredential = c.url_credential && !c.url_credential.startsWith('http://') && !c.url_credential.startsWith('https://');
-      if (hasLocalCredential) {
-        certGalleryItems.push({
-          id: -(c.id),
-          url: getMediaUrl(c.url_credential!) ?? c.url_credential!,
-          type: 'pdf',
-          titre: `${c.titre} - Certificat`,
-        });
-      }
       return {
         type: 'certification' as FilterValue,
         id: `cert-${c.id}`,
@@ -123,12 +119,6 @@ export default function ExperienceTimeline() {
             {c.description && <p className="text-muted text-sm">{c.description}</p>}
             {c.date_expiration && (
               <p className="text-xs text-muted mt-1">Expire le {formatDate(c.date_expiration)}</p>
-            )}
-            {c.url_credential && c.url_credential.startsWith('http') && (
-              <a href={c.url_credential} target="_blank" rel="noopener noreferrer"
-                className="inline-block mt-2 text-xs text-acid hover:underline font-mono">
-                Voir le certificat ↗
-              </a>
             )}
             {certGalleryItems.length > 0 && (
               <MiniMediaGallery items={certGalleryItems} />

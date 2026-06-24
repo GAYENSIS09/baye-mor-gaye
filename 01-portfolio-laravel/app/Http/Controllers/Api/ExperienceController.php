@@ -35,6 +35,7 @@ class ExperienceController extends Controller
     {
         $data = $request->validated();
         $data['proprietaire_id'] = $request->user()->proprietaire->id;
+        unset($data['media']);
 
         $experience = Experience::create($data);
 
@@ -57,7 +58,13 @@ class ExperienceController extends Controller
     {
         $this->authorizeOwnershipOrFail($request, $experience);
 
-        $experience->update($request->validated());
+        $data = $request->validated();
+        unset($data['media']);
+        $experience->update($data);
+
+        if ($request->boolean('supprimer_media')) {
+            $experience->medias()->delete();
+        }
 
         if ($request->hasFile('media')) {
             $experience->medias()->delete();

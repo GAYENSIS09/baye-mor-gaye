@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useProfilePublic } from '@/hooks/queries';
 import { useKpi } from '@/hooks/useKpi';
 import Link from 'next/link';
@@ -66,13 +66,13 @@ function ProfileSkeleton() {
 
 function QualificationMedia({ medias, size = 'md', onOpen }: { medias: Media[]; size?: 'sm' | 'md' | 'lg'; onOpen?: (m: Media) => void }) {
   if (!medias || medias.length === 0) return null;
-  const dim = size === 'sm' ? 'w-12 h-12' : size === 'lg' ? 'w-24 h-24' : 'w-16 h-16';
+  const dim = size === 'sm' ? 'w-16 h-16' : size === 'lg' ? 'w-32 h-32' : 'w-24 h-24';
   const first = medias[0];
   const src = getMediaUrl(first.chemin_fichier);
   if (!src) return null;
 
   return (
-    <button onClick={() => onOpen?.(first)} className={`${dim} relative rounded-lg overflow-hidden shrink-0 bg-[#222] border border-[#333] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50`}>
+    <button onClick={() => onOpen?.(first)} className={`${dim} relative rounded-lg overflow-hidden shrink-0 bg-[#222] border border-[#333] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50`} type="button">
       <MediaViewer src={src} alt={first.titre || ''} fill className="object-cover group-hover:scale-105 transition-transform duration-300" />
       {medias.length > 1 && (
         <span className="absolute -top-1 -right-1 w-5 h-5 bg-acid text-black text-[10px] font-mono rounded-full flex items-center justify-center font-bold z-10">
@@ -155,35 +155,16 @@ function FormationCard({ formation, onMediaOpen }: { formation: Formation; onMed
 
 function CertificationCard({ cert, onMediaOpen }: { cert: Certification; onMediaOpen?: (m: Media) => void }) {
   const date = new Date(cert.date_obtention).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
-  const hasLocalCredential = cert.url_credential && !cert.url_credential.startsWith('http://') && !cert.url_credential.startsWith('https://');
-  const handleMediaOpen = useCallback((m: Media) => {
-    if (hasLocalCredential) {
-      onMediaOpen?.({
-        id: -1, type: 'pdf', chemin_fichier: cert.url_credential!,
-        titre: `${cert.titre} - Certificat`, taille: null, largeur: null, hauteur: null,
-        url_externe: null, vignette: null, est_principal: false, ordre: 0,
-      } as Media);
-    } else {
-      onMediaOpen?.(m);
-    }
-  }, [cert, hasLocalCredential, onMediaOpen]);
   return (
     <div className="bg-[#111] rounded-lg border border-[#222] p-4 hover:border-acid/20 transition-colors group">
       <div className="flex gap-4">
-        <QualificationMedia medias={cert.medias} onOpen={handleMediaOpen} />
+        <QualificationMedia medias={cert.medias} onOpen={onMediaOpen} />
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold text-off-white group-hover:text-acid transition-colors">{cert.titre}</h4>
           <p className="text-acid text-sm">{cert.organisme}</p>
           <p className="text-muted text-xs font-mono mt-0.5">{date}</p>
           {cert.description && (
             <p className="text-muted text-sm mt-2 line-clamp-2">{cert.description}</p>
-          )}
-          {cert.url_credential && cert.url_credential.startsWith('http') && (
-            <a href={cert.url_credential} target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-acid text-xs hover:underline mt-2 font-mono">
-              Voir le certificat
-              <Icons.external className="w-3 h-3" />
-            </a>
           )}
         </div>
       </div>
@@ -242,8 +223,8 @@ export default function ProfilPage() {
         <div className="bg-[#111] rounded-lg border border-[#222] p-6 md:p-8 animate-fade-in">
           <div className="flex flex-col md:flex-row items-start gap-6 mb-6">
             {profile.photo && (
-              <div className="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-2 border-acid/20 shrink-0">
-                <MediaViewer src={getMediaUrl(profile.photo) || ''} alt={profile.nom} width={112} height={112} className="object-cover w-full h-full" />
+              <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-2 border-acid/20 shrink-0">
+                <MediaViewer src={getMediaUrl(profile.photo, profile.updated_at) || ''} alt={profile.nom} fill className="object-cover" />
               </div>
             )}
             <div className="flex-1">
@@ -308,7 +289,7 @@ export default function ProfilPage() {
         {kpiData && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-up" style={{ animationDelay: '0.1s', opacity: 0 }}>
             <KpiCard label="Années d'exp." value={kpiData.years} suffix="+" />
-            <KpiCard label="Projets" value={profile.competences?.length ?? 0} />
+            <KpiCard label="Compétences" value={kpiData.competences} />
             <KpiCard label="Formations" value={kpiData.formations} />
             <KpiCard label="Certifications" value={kpiData.certifications} />
           </div>

@@ -10,6 +10,8 @@ import { useCreateExperience, useUpdateExperience, useDeleteExperience } from '@
 import { Experience } from '@/types/api';
 import { useToast } from '@/contexts/ToastContext';
 import MediaViewer from '@/components/MediaViewer';
+import { getMediaUrl } from '@/lib/media';
+import { ApiError } from '@/lib/api';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import EmptyState from '@/components/EmptyState';
 import { LoadingScreen } from '@/components/LoadingScreen';
@@ -18,16 +20,11 @@ import { Icons } from '@/components/ui/Icons';
 import { SectionHeader } from '@/components/SectionHeader';
 import { ActionButton, ActionBar, IconButton } from '@/components/ActionBar';
 
-const STORAGE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '/storage') || 'http://localhost:8000/storage';
-
-function getMediaUrl(path: string | null | undefined): string | null {
-  if (!path) return null;
-  if (path.startsWith('http://') || path.startsWith('https://')) return path;
-  return `${STORAGE_URL}/${path.replace(/^\//, '')}`;
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
+function formatDate(dateStr?: string | null) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
 }
 
 export default function ExperiencesPage() {
@@ -42,7 +39,9 @@ export default function ExperiencesPage() {
   const [saving, setSaving] = useState(false);
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState('');
+  const [existingMedia, setExistingMedia] = useState<{ id: number; chemin: string } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [removeMedia, setRemoveMedia] = useState(false);
 
   const {
     register,
@@ -67,6 +66,8 @@ export default function ExperiencesPage() {
     setShowForm(false);
     setMediaFile(null);
     setMediaPreview('');
+    setExistingMedia(null);
+    setRemoveMedia(false);
   }
 
   function handleMediaChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -81,10 +82,11 @@ export default function ExperiencesPage() {
   async function onSubmit(data: ExperienceFormData) {
     setSaving(true);
     try {
-      const payload = { ...data, date_fin: data.est_actuel ? null : (data.date_fin || undefined) };
+      const payload = { ...data, date_fin: data.est_actuel ? '' : (data.date_fin || undefined) };
+
       if (mediaFile) {
         const fd = new FormData();
-        Object.entries(payload).forEach(([k, v]) => { if (v !== undefined) fd.append(k, String(v)); });
+        Object.entries(payload).forEach(([k, v]) => { if (v !== undefined && v !== null) fd.append(k, typeof v === 'boolean' ? (v ? '1' : '0') : String(v)); });
         fd.append('media', mediaFile);
         if (editId) {
           fd.append('_method', 'PUT');
@@ -93,16 +95,14 @@ export default function ExperiencesPage() {
         } else {
           await createExp.mutateAsync(fd);
         }
+      } else if (editId) {
+        await updateExp.mutateAsync({ id: editId, ...payload, media_id: existingMedia?.id, supprimer_media: removeMedia });
       } else {
-        if (editId) {
-          await updateExp.mutateAsync({ id: editId, ...payload });
-        } else {
-          await createExp.mutateAsync(payload);
-        }
+        await createExp.mutateAsync(payload);
       }
       toast.success(editId ? 'Expérience modifiée' : 'Expérience ajoutée');
       resetForm();
-    } catch { toast.error("Erreur lors de l'enregistrement"); }
+    } catch (e) { toast.error(e instanceof ApiError ? e.message : "Erreur lors de l'enregistrement"); }
     finally { setSaving(false); }
   }
 
@@ -119,9 +119,11 @@ export default function ExperiencesPage() {
     setEditId(exp.id);
     setShowForm(true);
     if (exp.medias?.length > 0) {
-      setMediaPreview(getMediaUrl(exp.medias[0].chemin_fichier) || '');
+      setMediaPreview(getMediaUrl(exp.medias[0].chemin_fichier, exp.medias[0].id) || '');
+      setExistingMedia({ id: exp.medias[0].id, chemin: exp.medias[0].chemin_fichier || '' });
     } else {
       setMediaPreview('');
+      setExistingMedia(null);
     }
     setMediaFile(null);
   }
@@ -174,6 +176,13 @@ export default function ExperiencesPage() {
             <div>
               <label htmlFor="exp-media" className="label-base">Image (optionnel)</label>
               <input id="exp-media" type="file" accept="image/*" onChange={handleMediaChange} className="w-full text-sm text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-[#222] file:text-off-white file:text-xs file:font-mono hover:file:bg-[#333]" />
+              {editId && existingMedia && !mediaFile && (
+                <p className="text-xs text-muted mt-1 font-mono">Fichier actuel : {existingMedia.chemin.split('/').pop()}</p>
+              )}
+              {editId && existingMedia && !mediaFile && !removeMedia && (
+                <button type="button" onClick={() => { setRemoveMedia(true); setMediaPreview(''); }} className="text-xs text-red-400 hover:text-red-300 mt-1 underline">Supprimer l'image</button>
+              )}
+              {removeMedia && <p className="text-xs text-amber-400 mt-1">L'image sera supprimée à l'enregistrement.</p>}
               {mediaPreview && <img src={mediaPreview} alt="" className="mt-2 max-h-32 rounded object-contain border border-[#222]" />}
             </div>
             <ActionButton type="submit" disabled={saving || isSubmitting} variant="primary">
@@ -229,7 +238,9 @@ export default function ExperiencesPage() {
                       {exp.lieu && <p className="text-sm text-muted mb-2">{exp.lieu}</p>}
                       {exp.description && <p className="text-muted text-sm leading-relaxed">{exp.description}</p>}
                       {exp.medias?.length > 0 && (
-                        <MediaViewer src={getMediaUrl(exp.medias[0].chemin_fichier) ?? ''} alt="" width={200} height={96} className="mt-3 max-h-24 rounded object-contain border border-[#222]" />
+                        <div className="mt-3 relative w-full md:w-80 h-40 rounded overflow-hidden border border-[#222]">
+                          <MediaViewer src={getMediaUrl(exp.medias[0].chemin_fichier, exp.medias[0].id) ?? ''} alt="" fill className="object-cover" />
+                        </div>
                       )}
                     </div>
                     <div className="flex gap-1 shrink-0 mt-1">
@@ -244,7 +255,7 @@ export default function ExperiencesPage() {
         </div>
       )}
 
-      <ConfirmDialog open={confirmDelete !== null} title="Supprimer l'expérience" message="Cette action est irréversible." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDelete) { try { await deleteExp.mutateAsync(confirmDelete); toast.success('Expérience supprimée'); } catch { toast.error('Erreur lors de la suppression'); } setConfirmDelete(null); } } } onCancel={() => setConfirmDelete(null)} />
+      <ConfirmDialog open={confirmDelete !== null} title="Supprimer l'expérience" message="Cette action est irréversible." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDelete) { try { await deleteExp.mutateAsync(confirmDelete); toast.success('Expérience supprimée'); } catch (e) { toast.error(e instanceof ApiError ? e.message : 'Erreur lors de la suppression'); } setConfirmDelete(null); } } } onCancel={() => setConfirmDelete(null)} />
     </div>
   );
 }

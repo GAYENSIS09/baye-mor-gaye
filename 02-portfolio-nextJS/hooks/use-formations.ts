@@ -13,7 +13,7 @@ export function useFormations() {
 export function useCreateFormation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => api.post('/formations', data),
+    mutationFn: (data: Record<string, unknown> | FormData) => api.post('/formations', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.formations(), exact: true });
       queryClient.invalidateQueries({ queryKey: qk.profile(), exact: true });
@@ -27,9 +27,9 @@ export function useUpdateFormation() {
     mutationFn: (arg: ({ id: number } & Record<string, unknown>) | FormData) => {
       if (arg instanceof FormData) {
         const id = Number(arg.get('id'));
-        arg.delete('_method');
         arg.delete('id');
-        return api.put(`/formations/${id}`, arg);
+        arg.append('_method', 'PUT');
+        return api.post(`/formations/${id}`, arg);
       }
       const { id, ...data } = arg;
       return api.put(`/formations/${id}`, data);

@@ -44,6 +44,7 @@ function isVideo(type?: string, url?: string): boolean {
 
 function LightboxContent({ item, onClose }: { item: GalleryItem; onClose: () => void }) {
   const isVid = isVideo(item.type, item.url);
+  const isPdf = !isVid && (item.type === 'pdf' || item.type === 'document' || !!item.url.match(/\.pdf$/i));
   const ytId = getYouTubeId(item.url);
   const lightboxRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -83,6 +84,12 @@ function LightboxContent({ item, onClose }: { item: GalleryItem; onClose: () => 
           </div>
         ) : isVid ? (
           <video src={getMediaUrl(item.url) ?? item.url} controls autoPlay className="max-h-[85vh] mx-auto rounded-lg" />
+        ) : isPdf ? (
+          <object data={getMediaUrl(item.url) ?? item.url} type="application/pdf" className="w-full h-[85vh] rounded-lg">
+            <iframe src={getMediaUrl(item.url) ?? item.url} className="w-full h-[85vh] rounded-lg" title={item.titre || 'PDF'}>
+              <p className="text-white/60 text-sm">Votre navigateur ne supporte pas l&apos;affichage des PDF.</p>
+            </iframe>
+          </object>
         ) : (
           <img src={getMediaUrl(item.url) ?? item.url} alt={item.titre || ''} className="object-contain max-h-[85vh] mx-auto rounded-lg" />
         )}
@@ -149,19 +156,14 @@ export function MiniMediaGallery({ items }: MediaGalleryProps) {
           const src = getMediaUrl(rawSrc) ?? rawSrc;
           return (
             <button key={m.id} onClick={() => setLightboxItem(m)}
-              className="relative w-20 h-14 shrink-0 rounded overflow-hidden bg-[#222] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50">
-              <MediaPreview src={src} alt={m.titre || ''} fill aspectRatio="video" showPlayIcon={isVid} isVideo={isVid} />
-              {isVid && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                  <Icons.play className="w-5 h-5 text-white" />
-                </div>
-              )}
+              className="relative w-36 h-24 shrink-0 rounded overflow-hidden bg-[#222] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50">
+              <MediaPreview src={src} alt={m.titre || ''} fill aspectRatio="auto" showPlayIcon={isVid} isVideo={isVid} />
             </button>
           );
         })}
         {items.length > 2 && !expanded && (
           <button onClick={() => setExpanded(true)}
-            className="w-14 h-14 shrink-0 rounded bg-[#222] border border-[#333] flex items-center justify-center text-xs text-muted hover:text-off-white transition-colors font-mono">
+            className="w-24 h-24 shrink-0 rounded bg-[#222] border border-[#333] flex items-center justify-center text-sm text-muted hover:text-off-white transition-colors font-mono">
             {'+' + (items.length - 2)}
           </button>
         )}

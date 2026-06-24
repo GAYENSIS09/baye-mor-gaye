@@ -32,7 +32,7 @@ class RessourceController extends Controller
         $data = $request->validated();
         $data['proprietaire_id'] = $request->user()->proprietaire->id;
 
-        return RessourceResource::make(Ressource::create($data));
+        return RessourceResource::make(Ressource::create($data)->load('domaine', 'medias'));
     }
 
     public function update(UpdateRessourceRequest $request, Ressource $ressource)

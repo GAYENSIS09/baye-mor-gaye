@@ -11,6 +11,7 @@ import { Formation } from '@/types/api';
 import { useToast } from '@/contexts/ToastContext';
 import MediaViewer from '@/components/MediaViewer';
 import { getMediaUrl } from '@/lib/media';
+import { ApiError } from '@/lib/api';
 import Link from 'next/link';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import EmptyState from '@/components/EmptyState';
@@ -20,8 +21,11 @@ import { Icons } from '@/components/ui/Icons';
 import { SectionHeader } from '@/components/SectionHeader';
 import { ActionButton, IconButton } from '@/components/ActionBar';
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
+function formatDate(dateStr?: string | null) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString("fr-FR", { month: "short", year: "numeric" });
 }
 
 export default function FormationsPage() {
@@ -37,6 +41,8 @@ export default function FormationsPage() {
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [existingMedia, setExistingMedia] = useState<{ id: number; chemin: string } | null>(null);
+  const [removeMedia, setRemoveMedia] = useState(false);
 
   const {
     register,
@@ -58,6 +64,8 @@ export default function FormationsPage() {
     setShowForm(false);
     setMediaFile(null);
     setMediaPreview('');
+    setExistingMedia(null);
+    setRemoveMedia(false);
   }
 
   function handleMediaChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -76,7 +84,7 @@ export default function FormationsPage() {
       const payload = { ...rest, domaine_etude: domaine || undefined, description: data.description || undefined, date_fin: data.date_fin || undefined };
       if (mediaFile) {
         const fd = new FormData();
-        Object.entries(payload).forEach(([k, v]) => { if (v !== undefined) fd.append(k, String(v)); });
+        Object.entries(payload).forEach(([k, v]) => { if (v !== undefined && v !== null) fd.append(k, typeof v === 'boolean' ? (v ? '1' : '0') : String(v)); });
         fd.append('media', mediaFile);
         if (editId) {
           fd.append('_method', 'PUT');
@@ -85,16 +93,14 @@ export default function FormationsPage() {
         } else {
           await createForm.mutateAsync(fd);
         }
+      } else if (editId) {
+        await updateForm.mutateAsync({ id: editId, ...payload, media_id: existingMedia?.id, supprimer_media: removeMedia });
       } else {
-        if (editId) {
-          await updateForm.mutateAsync({ id: editId, ...payload });
-        } else {
-          await createForm.mutateAsync(payload);
-        }
+        await createForm.mutateAsync(payload);
       }
       toast.success(editId ? 'Formation modifiée' : 'Formation ajoutée');
       resetForm();
-    } catch { toast.error("Erreur lors de l'enregistrement"); }
+    } catch (e) { toast.error(e instanceof ApiError ? e.message : "Erreur lors de l'enregistrement"); }
     finally { setSaving(false); }
   }
 
@@ -110,9 +116,11 @@ export default function FormationsPage() {
     setEditId(f.id);
     setShowForm(true);
     if (f.medias?.length > 0) {
-      setMediaPreview(getMediaUrl(f.medias[0].chemin_fichier) || '');
+      setMediaPreview(getMediaUrl(f.medias[0].chemin_fichier, f.medias[0].id) || '');
+      setExistingMedia({ id: f.medias[0].id, chemin: f.medias[0].chemin_fichier || '' });
     } else {
       setMediaPreview('');
+      setExistingMedia(null);
     }
     setMediaFile(null);
   }
@@ -161,6 +169,13 @@ export default function FormationsPage() {
             <div>
               <label htmlFor="form-media" className="label-base">Image (optionnel)</label>
               <input id="form-media" type="file" accept="image/*" onChange={handleMediaChange} className="w-full text-sm text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-[#222] file:text-off-white file:text-xs file:font-mono hover:file:bg-[#333]" />
+              {editId && existingMedia && !mediaFile && (
+                <p className="text-xs text-muted mt-1 font-mono">Fichier actuel : {existingMedia.chemin.split('/').pop()}</p>
+              )}
+              {editId && existingMedia && !mediaFile && !removeMedia && (
+                <button type="button" onClick={() => { setRemoveMedia(true); setMediaPreview(''); }} className="text-xs text-red-400 hover:text-red-300 mt-1 underline">Supprimer l'image</button>
+              )}
+              {removeMedia && <p className="text-xs text-amber-400 mt-1">L'image sera supprimée à l'enregistrement.</p>}
               {mediaPreview && <img src={mediaPreview} alt="" className="mt-2 max-h-32 rounded object-contain border border-[#222]" />}
             </div>
             <ActionButton type="submit" disabled={saving || isSubmitting} variant="primary">
@@ -220,7 +235,9 @@ export default function FormationsPage() {
                       )}
                       {f.description && <p className="text-muted text-sm mt-2 leading-relaxed">{f.description}</p>}
                       {f.medias?.length > 0 && (
-                        <MediaViewer src={getMediaUrl(f.medias[0].chemin_fichier) ?? ''} alt="" width={200} height={96} className="mt-3 max-h-24 rounded object-contain border border-[#222]" />
+                        <div className="mt-3 relative w-full md:w-80 h-40 rounded overflow-hidden border border-[#222]">
+                          <MediaViewer src={getMediaUrl(f.medias[0].chemin_fichier, f.medias[0].id) ?? ''} alt="" fill className="object-cover" />
+                        </div>
                       )}
                     </div>
                     <div className="flex gap-1 shrink-0 mt-1">
@@ -235,7 +252,7 @@ export default function FormationsPage() {
         </div>
       )}
 
-      <ConfirmDialog open={confirmDelete !== null} title="Supprimer la formation" message="Cette action est irréversible." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDelete) { try { await deleteForm.mutateAsync(confirmDelete); toast.success('Formation supprimée'); } catch { toast.error('Erreur lors de la suppression'); } setConfirmDelete(null); } } } onCancel={() => setConfirmDelete(null)} />
+      <ConfirmDialog open={confirmDelete !== null} title="Supprimer la formation" message="Cette action est irréversible." destructive confirmLabel="Supprimer" onConfirm={async () => { if (confirmDelete) { try { await deleteForm.mutateAsync(confirmDelete); toast.success('Formation supprimée'); } catch (e) { toast.error(e instanceof ApiError ? e.message : 'Erreur lors de la suppression'); } setConfirmDelete(null); } } } onCancel={() => setConfirmDelete(null)} />
     </div>
   );
 }

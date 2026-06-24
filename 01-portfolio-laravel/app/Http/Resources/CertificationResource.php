@@ -14,7 +14,6 @@ class CertificationResource extends JsonResource
             'titre' => $this->titre,
             'organisme' => $this->organisme,
             'description' => $this->description,
-            'url_credential' => $this->url_credential,
             'date_obtention' => $this->date_obtention?->toIso8601String(),
             'date_expiration' => $this->date_expiration?->toIso8601String(),
             'medias' => MediaResource::collection($this->whenLoaded('medias')),

@@ -8,6 +8,8 @@ import { ProfileFormSchema, type ProfileFormData } from '@/schemas/forms';
 import { useUpdateProfile } from '@/hooks/mutations';
 import MediaViewer from '@/components/MediaViewer';
 import { getMediaUrl } from '@/lib/media';
+import { ApiError } from '@/lib/api';
+import { useToast } from '@/contexts/ToastContext';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { CardContainer } from '@/components/CardContainer';
 import { SectionHeader } from '@/components/SectionHeader';
@@ -15,10 +17,11 @@ import { ActionButton, ActionBar } from '@/components/ActionBar';
 import { Label } from '@/components/ui/Label';
 
 export default function ProfileDashboardPage() {
-  const { utilisateur, loading, logout } = useAuth();
+  const { utilisateur, loading, refreshUser } = useAuth();
   const updateProfile = useUpdateProfile();
+  const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [photoUrl, setPhotoUrl] = useState(utilisateur?.photo ?? '');
+  const [photoUrl, setPhotoUrl] = useState(getMediaUrl(utilisateur?.photo) ?? '');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -31,6 +34,7 @@ export default function ProfileDashboardPage() {
     resolver: zodResolver(ProfileFormSchema),
     defaultValues: {
       nom: utilisateur?.nom ?? '',
+      email: utilisateur?.email ?? '',
       bio: utilisateur?.proprietaire?.bio ?? '',
       titre_professionnel: utilisateur?.proprietaire?.titre_professionnel ?? '',
       localisation: utilisateur?.proprietaire?.localisation ?? '',
@@ -49,23 +53,23 @@ export default function ProfileDashboardPage() {
     setSaving(true);
     setSaved(false);
     try {
-      let photo = photoUrl || undefined;
+      const payload: Record<string, unknown> = { ...data };
       if (photoFile) {
         const reader = new FileReader();
-        photo = await new Promise((resolve, reject) => {
+        payload.photo = await new Promise((resolve, reject) => {
           reader.onload = () => resolve(reader.result as string);
           reader.onerror = reject;
           reader.readAsDataURL(photoFile);
         });
       }
-      await updateProfile.mutateAsync({
-        ...data,
-        photo,
-      });
+      const result = await updateProfile.mutateAsync(payload) as { photo?: string };
       setSaved(true);
       setPhotoFile(null);
-    } catch {
-      console.error('Erreur mise a jour profil');
+      const newPhoto = getMediaUrl(result?.photo);
+      if (newPhoto) setPhotoUrl(newPhoto);
+      await refreshUser();
+    } catch (e) {
+      toast.error(e instanceof ApiError ? e.message : "Erreur lors de l'enregistrement");
     } finally {
       setSaving(false);
     }
@@ -84,8 +88,8 @@ export default function ProfileDashboardPage() {
 
           <div className="flex items-center gap-4 mb-6">
             {(photoUrl || utilisateur.photo) && (
-              <div className="w-16 h-16 rounded-full overflow-hidden border border-[#222] shrink-0">
-                <MediaViewer src={getMediaUrl(photoUrl) || getMediaUrl(utilisateur.photo!) || ''} alt="" width={64} height={64} className="object-cover w-full h-full" />
+              <div className="relative w-16 h-16 rounded-full overflow-hidden border border-[#222] shrink-0">
+                <MediaViewer src={photoUrl || getMediaUrl(utilisateur.photo) || ''} alt="" fill className="object-cover" />
               </div>
             )}
             <div className="flex-1">
@@ -107,8 +111,9 @@ export default function ProfileDashboardPage() {
 
           <div>
             <Label htmlFor="profile-email">Email</Label>
-            <input id="profile-email" value={utilisateur.email} disabled
-              className="w-full border border-[#333] rounded px-3 py-2 bg-[#0A0A0A] text-muted" />
+            <input id="profile-email" {...register("email")} type="email" autoComplete="email"
+              className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+            {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
           </div>
 
           <div>

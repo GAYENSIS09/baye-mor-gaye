@@ -92,7 +92,6 @@ export interface Certification {
   description: string | null;
   date_obtention: string;
   date_expiration: string | null;
-  url_credential: string | null;
   medias: Media[];
 }
 

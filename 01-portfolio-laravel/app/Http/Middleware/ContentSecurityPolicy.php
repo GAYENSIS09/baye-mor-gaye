@@ -12,25 +12,24 @@ class ContentSecurityPolicy
     {
         $response = $next($request);
 
+        $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+
         $csp = implode('; ', [
             "default-src 'self'",
             "script-src 'self'",
             "style-src 'self' 'unsafe-inline'",
-            "img-src 'self' data: blob: https: http://localhost:8000",
+            "img-src 'self' data: blob: https: {$frontendUrl}",
             "font-src 'self'",
-            "connect-src 'self'",
+            "connect-src 'self' {$frontendUrl}",
             "media-src 'self' https:",
             "frame-src 'self' https:",
-            "frame-ancestors 'none'",
+            "frame-ancestors 'self' {$frontendUrl}",
             "form-action 'self'",
             "base-uri 'self'",
         ]);
 
-        if ($request->is('api/*')) {
-            $response->headers->set('Content-Security-Policy', $csp);
-        }
+        $response->headers->set('Content-Security-Policy', $csp);
         $response->headers->set('X-Content-Type-Options', 'nosniff');
-        $response->headers->set('X-Frame-Options', 'DENY');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
 
         return $response;

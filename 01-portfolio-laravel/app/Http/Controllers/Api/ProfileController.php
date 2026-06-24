@@ -77,13 +77,13 @@ class ProfileController extends Controller
             $utilisateur->update(['nom' => $data['nom']]);
         }
 
-        if (isset($data['photo'])) {
-            if (str_starts_with($data['photo'], 'data:image/')) {
-                $path = $this->saveBase64Image($data['photo'], 'profils');
-                $utilisateur->update(['photo' => $path]);
-            } else {
-                $utilisateur->update(['photo' => $data['photo']]);
-            }
+        if (isset($data['email'])) {
+            $utilisateur->update(['email' => $data['email']]);
+        }
+
+        if (isset($data['photo']) && str_starts_with($data['photo'], 'data:image/')) {
+            $path = $this->saveBase64Image($data['photo'], 'profils');
+            $utilisateur->update(['photo' => $path]);
         }
 
         $proprietaire = $utilisateur->proprietaire;
@@ -106,14 +106,24 @@ class ProfileController extends Controller
 
     private function saveBase64Image(string $base64, string $folder = 'profils'): string
     {
+        if (!str_contains($base64, ',')) {
+            throw new \InvalidArgumentException('Format base64 invalide : virgule manquante.');
+        }
+
         $suffix = str_starts_with($base64, 'data:image/png') ? 'png' : 'jpg';
         $filename = 'photo-' . now()->format('YmdHis') . '-' . Str::random(10) . '.' . $suffix;
         $relativePath = "uploads/{$folder}/{$filename}";
 
         $imageData = substr($base64, strpos($base64, ',') + 1);
-        $decoded = base64_decode($imageData);
+        $decoded = base64_decode(trim($imageData));
 
-        Storage::disk('public')->put($relativePath, $decoded);
+        if ($decoded === false) {
+            throw new \RuntimeException('Le décodage base64 de l\'image a échoué.');
+        }
+
+        if (!Storage::disk('public')->put($relativePath, $decoded)) {
+            throw new \RuntimeException("Impossible d'écrire le fichier sur le disque : {$relativePath}");
+        }
 
         return $relativePath;
     }

@@ -75,7 +75,7 @@ class ProjetPortfolioController extends Controller
         }
 
         Cache::forget('projets.publies');
-        return ProjetPortfolioResource::make(ProjetPortfolio::create($data));
+        return ProjetPortfolioResource::make(ProjetPortfolio::create($data)->load(['commentaires.auteur', 'likes.auteur', 'medias']));
     }
 
     public function update(UpdateProjetPortfolioRequest $request, ProjetPortfolio $projetPortfolio)
@@ -90,7 +90,7 @@ class ProjetPortfolioController extends Controller
 
         $projetPortfolio->update($data);
         Cache::forget('projets.publies');
-        return ProjetPortfolioResource::make($projetPortfolio);
+        return ProjetPortfolioResource::make($projetPortfolio->load(['commentaires.auteur', 'likes.auteur', 'medias']));
     }
 
     public function destroy(Request $request, ProjetPortfolio $projetPortfolio)

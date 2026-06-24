@@ -37,7 +37,7 @@ export const ExperienceFormSchema = z.object({
   date_debut: z.string().min(1, 'La date de début est requise'),
   date_fin: z.string().optional().nullable(),
   est_actuel: z.boolean(),
-  type: z.string().max(50).optional().nullable(),
+  ordre: z.number().optional().nullable(),
 });
 
 export type ExperienceFormData = z.infer<typeof ExperienceFormSchema>;
@@ -49,6 +49,7 @@ export const FormationFormSchema = z.object({
   domaine: z.string().max(255).optional().nullable(),
   date_debut: z.string().min(1, 'La date de début est requise'),
   date_fin: z.string().optional().nullable(),
+  ordre: z.number().optional().nullable(),
 });
 
 export type FormationFormData = z.infer<typeof FormationFormSchema>;
@@ -57,9 +58,9 @@ export const CertificationFormSchema = z.object({
   titre: z.string().min(1, 'Le titre est requis').max(255),
   organisme: z.string().min(1, "L'organisme est requis").max(255),
   description: z.string().optional().nullable(),
-  url_credential: z.string().url('URL invalide').max(500).optional().nullable().or(z.literal('')),
   date_obtention: z.string().min(1, "La date d'obtention est requise"),
   date_expiration: z.string().optional().nullable(),
+  ordre: z.number().optional().nullable(),
 });
 
 export type CertificationFormData = z.infer<typeof CertificationFormSchema>;
@@ -69,6 +70,7 @@ export const CompetenceFormSchema = z.object({
   categorie: z.string().max(255).optional().nullable(),
   icone: z.string().max(255).optional().nullable(),
   niveau: z.enum(['debutant', 'intermediaire', 'avance', 'expert']).optional().nullable(),
+  est_surligne: z.boolean().optional(),
 });
 
 export type CompetenceFormData = z.infer<typeof CompetenceFormSchema>;
@@ -116,7 +118,10 @@ export const RessourceFormSchema = z.object({
   titre: z.string().min(1, 'Le titre est requis').max(255),
   description: z.string().optional().nullable(),
   est_publique: z.boolean().optional(),
-  domaine_id: z.number().optional().nullable(),
+  domaine_id: z.preprocess(
+    (v) => (v === '' || v === undefined || v === null ? undefined : Number(v)),
+    z.number().optional()
+  ).nullable(),
 });
 
 export type RessourceFormData = z.infer<typeof RessourceFormSchema>;
@@ -132,6 +137,7 @@ export type ContactFormData = z.infer<typeof ContactFormSchema>;
 
 export const ProfileFormSchema = z.object({
   nom: z.string().min(1, 'Le nom est requis'),
+  email: z.string().email('Email invalide'),
   bio: z.string().optional().nullable(),
   titre_professionnel: z.string().max(255).optional().nullable(),
   localisation: z.string().max(255).optional().nullable(),
@@ -145,7 +151,7 @@ export type ProfileFormData = z.infer<typeof ProfileFormSchema>;
 export const CommentaireFormSchema = z.object({
   contenu: z.string().min(2, 'Minimum 2 caractères').max(2000, 'Maximum 2000 caractères'),
   commentable_id: z.number(),
-  commentable_type: z.enum(['publication', 'projet']),
+  commentable_type: z.enum(['publications', 'projets']),
 });
 
 export type CommentaireFormData = z.infer<typeof CommentaireFormSchema>;

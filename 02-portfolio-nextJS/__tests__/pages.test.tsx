@@ -16,6 +16,7 @@ const mockAuthValue = {
   login: vi.fn(),
   register: vi.fn(),
   logout: vi.fn(),
+  refreshUser: vi.fn(),
 };
 
 function AuthWrapper({ children }: { children: ReactNode }) {

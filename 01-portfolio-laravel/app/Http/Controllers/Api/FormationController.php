@@ -35,6 +35,7 @@ class FormationController extends Controller
     {
         $data = $request->validated();
         $data['proprietaire_id'] = $request->user()->proprietaire->id;
+        unset($data['media']);
 
         $formation = Formation::create($data);
 
@@ -57,7 +58,13 @@ class FormationController extends Controller
     {
         $this->authorizeOwnershipOrFail($request, $formation);
 
-        $formation->update($request->validated());
+        $data = $request->validated();
+        unset($data['media']);
+        $formation->update($data);
+
+        if ($request->boolean('supprimer_media')) {
+            $formation->medias()->delete();
+        }
 
         if ($request->hasFile('media')) {
             $formation->medias()->delete();

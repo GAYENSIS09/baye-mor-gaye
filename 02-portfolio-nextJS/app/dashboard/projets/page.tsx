@@ -3,6 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useProjects } from '@/hooks/queries';
 import { useDeleteProjet } from '@/hooks/mutations';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -13,6 +14,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { Projet } from '@/types/api';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { Icons } from '@/components/ui/Icons';
+import { getMediaUrl } from '@/lib/media';
 import { Skeleton } from '@/components/Skeleton';
 import { CardContainer, CardContent, CardTitle, CardTags, CardActions } from '@/components/CardContainer';
 import { SectionHeader } from '@/components/SectionHeader';
@@ -110,42 +112,62 @@ export default function ProjetsDashboardPage() {
         <>
           <ResponsiveGrid columns={1} gap={4}>
             {projets.map((p) => (
-              <CardContainer key={p.id} hover className="p-4 flex items-center justify-between">
-                <CardContent className="p-0 flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <CardTitle className="text-base truncate">{p.titre}</CardTitle>
-                    <StatusBadge variant={p.est_publie ? 'success' : 'warning'} size="sm">
-                      {p.est_publie ? 'Publié' : 'Brouillon'}
-                    </StatusBadge>
+              <CardContainer key={p.id} hover className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-12 rounded overflow-hidden bg-[#222] shrink-0 relative">
+                    {(() => {
+                      const cover = p.image_couverture || p.medias?.find(m => m.type === 'image')?.chemin_fichier;
+                      const coverUrl = cover ? getMediaUrl(cover) : null;
+                      return coverUrl ? (
+                        <Image src={coverUrl} alt="" fill className="object-cover" unoptimized />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Icons.file className="w-5 h-5 text-muted" />
+                        </div>
+                      );
+                    })()}
                   </div>
-                  {p.technologies && p.technologies.length > 0 && (
-                    <CardTags tags={p.technologies} maxVisible={5} className="mt-1" />
-                  )}
-                </CardContent>
-                <CardActions className="mt-0 pt-0 border-0 flex-shrink-0 ml-4">
-                  <IconButton
-                    onClick={() => handleTogglePublier(p)}
-                    icon={p.est_publie ? <Icons.folder className="w-4 h-4" /> : <Icons.external className="w-4 h-4" />}
-                    label={p.est_publie ? 'Archiver' : 'Publier'}
-                    variant="ghost"
-                    size="sm"
-                  />
-                  <Link href={`/dashboard/projets/${p.id}/edit`}>
+                  <CardContent className="p-0 flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <CardTitle className="text-base truncate">{p.titre}</CardTitle>
+                      <StatusBadge variant={p.est_publie ? 'success' : 'warning'} size="sm">
+                        {p.est_publie ? 'Publié' : 'Brouillon'}
+                      </StatusBadge>
+                    </div>
+                    {p.technologies && p.technologies.length > 0 && (
+                      <CardTags tags={p.technologies} maxVisible={5} className="mt-1" />
+                    )}
+                    {p.medias && p.medias.length > 0 && (
+                      <p className="text-[10px] text-muted font-mono mt-1">
+                        {p.medias.length} média{p.medias.length > 1 ? 's' : ''}
+                      </p>
+                    )}
+                  </CardContent>
+                  <CardActions className="mt-0 pt-0 border-0 flex-shrink-0 ml-4">
                     <IconButton
-                      icon={<Icons.edit className="w-4 h-4" />}
-                      label="Modifier"
+                      onClick={() => handleTogglePublier(p)}
+                      icon={p.est_publie ? <Icons.folder className="w-4 h-4" /> : <Icons.external className="w-4 h-4" />}
+                      label={p.est_publie ? 'Archiver' : 'Publier'}
                       variant="ghost"
                       size="sm"
                     />
-                  </Link>
-                  <IconButton
-                    onClick={() => setDeleteTarget(p.id)}
-                    icon={<Icons.trash className="w-4 h-4" />}
-                    label="Supprimer"
-                    variant="danger"
-                    size="sm"
-                  />
-                </CardActions>
+                    <Link href={`/dashboard/projets/${p.id}/edit`}>
+                      <IconButton
+                        icon={<Icons.edit className="w-4 h-4" />}
+                        label="Modifier"
+                        variant="ghost"
+                        size="sm"
+                      />
+                    </Link>
+                    <IconButton
+                      onClick={() => setDeleteTarget(p.id)}
+                      icon={<Icons.trash className="w-4 h-4" />}
+                      label="Supprimer"
+                      variant="danger"
+                      size="sm"
+                    />
+                  </CardActions>
+                </div>
               </CardContainer>
             ))}
           </ResponsiveGrid>

@@ -23,6 +23,10 @@ export default function SkillsPage() {
   const { utilisateur, loading: authLoading } = useAuth();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editNiveau, setEditNiveau] = useState('');
+  const [editNom, setEditNom] = useState('');
+  const [editCategorie, setEditCategorie] = useState('');
+  const [EditIcone, setEditIcone] = useState('');
+  const [editEstSurligne, setEditEstSurligne] = useState(false);
   const { data: competences = [], isLoading, isError, refetch } = useCompetences();
   const createCompetence = useCreateCompetence();
   const deleteCompetence = useDeleteCompetence();
@@ -39,7 +43,7 @@ export default function SkillsPage() {
     reset,
   } = useForm<CompetenceFormData>({
     resolver: zodResolver(CompetenceFormSchema),
-    defaultValues: { nom: '', categorie: '', niveau: 'debutant' },
+    defaultValues: { nom: '', categorie: '', icone: '', niveau: 'debutant', est_surligne: false },
   });
 
   const categories = useMemo(() => {
@@ -64,7 +68,7 @@ export default function SkillsPage() {
   }, [competences, filter, categories]);
 
   function resetForm() {
-    reset({ nom: '', categorie: '', niveau: 'debutant' });
+    reset({ nom: '', categorie: '', icone: '', niveau: 'debutant', est_surligne: false });
   }
 
   async function onSubmit(data: CompetenceFormData) {
@@ -81,12 +85,23 @@ export default function SkillsPage() {
   function startEdit(c: Competence) {
     setEditingId(c.id);
     setEditNiveau(c.niveaux[0]?.niveau || 'debutant');
+    setEditNom(c.nom);
+    setEditCategorie(c.categorie || '');
+    setEditIcone(c.icone || '');
+    setEditEstSurligne(c.niveaux[0]?.est_surligne ?? false);
   }
 
   async function saveEdit(id: number) {
     try {
-      await updateCompetence.mutateAsync({ id, niveau: editNiveau });
-      toast.success('Niveau mis à jour');
+      await updateCompetence.mutateAsync({
+        id,
+        nom: editNom,
+        categorie: editCategorie || undefined,
+        icone: EditIcone || undefined,
+        niveau: editNiveau,
+        est_surligne: editEstSurligne,
+      });
+      toast.success('Compétence mise à jour');
       setEditingId(null);
     } catch {
       toast.error('Erreur lors de la mise à jour');
@@ -120,10 +135,19 @@ export default function SkillsPage() {
                 <input id="skills-categorie" {...register("categorie")} placeholder="Catégorie" autoComplete="off" className="input-base" />
               </div>
               <div>
+                <input id="skills-icone" {...register("icone")} placeholder="Icône (emoji ou URL)" autoComplete="off" className="input-base" />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div>
                 <select id="skills-niveau" {...register("niveau")} className="input-base">
                   {NIVEAUX.map((n) => <option key={n} value={n}>{n}</option>)}
                 </select>
                 {errors.niveau && <p className="text-red-400 text-xs mt-1">{errors.niveau.message}</p>}
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="skills-surligne" {...register("est_surligne")} className="accent-acid" />
+                <label htmlFor="skills-surligne" className="text-sm text-off-white">Surligné</label>
               </div>
             </div>
             <ActionButton type="submit" disabled={isSubmitting} variant="primary">
@@ -194,12 +218,21 @@ export default function SkillsPage() {
                       return (
                         <div key={skill.id} className="group relative">
                           {isEditing ? (
-                            <div className="flex items-center gap-2 px-3 py-2">
-                              <span className="text-sm text-off-white min-w-[120px] font-mono">{skill.nom}</span>
+                            <div className="flex flex-wrap items-center gap-2 px-3 py-2">
+                              <input value={editNom} onChange={(e) => setEditNom(e.target.value)}
+                                className="w-32 border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+                              <input value={editCategorie} onChange={(e) => setEditCategorie(e.target.value)} placeholder="Catégorie"
+                                className="w-28 border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+                              <input value={EditIcone} onChange={(e) => setEditIcone(e.target.value)} placeholder="Icône"
+                                className="w-20 border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
                               <select value={editNiveau} onChange={(e) => setEditNiveau(e.target.value)}
                                 className="border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50">
                                 {NIVEAUX.map((n) => <option key={n} value={n}>{n}</option>)}
                               </select>
+                              <label className="flex items-center gap-1 text-xs text-muted cursor-pointer">
+                                <input type="checkbox" checked={editEstSurligne} onChange={(e) => setEditEstSurligne(e.target.checked)} className="accent-acid" />
+                                Surligné
+                              </label>
                               <ActionButton size="sm" onClick={() => saveEdit(skill.id)} variant="primary">Sauver</ActionButton>
                               <ActionButton size="sm" onClick={() => setEditingId(null)} variant="ghost">Annuler</ActionButton>
                             </div>

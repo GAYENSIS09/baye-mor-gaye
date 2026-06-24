@@ -40,7 +40,7 @@ class EvenementController extends Controller
         $this->authorizeOwnershipOrFail($request, $evenement->emploiDuTemps);
 
         $evenement->update($request->validated());
-        return EvenementResource::make($evenement);
+        return EvenementResource::make($evenement->load(['emploiDuTemps', 'conversions', 'rappels']));
     }
 
     public function destroy(Request $request, Evenement $evenement)
@@ -55,6 +55,6 @@ class EvenementController extends Controller
         $emploiDuTemps = \App\Models\EmploiDuTemps::findOrFail($request->validated('emploi_du_temps_id'));
         $this->authorizeOwnershipOrFail($request, $emploiDuTemps);
 
-        return EvenementResource::make(Evenement::create($request->validated()));
+        return EvenementResource::make(Evenement::create($request->validated())->load(['emploiDuTemps', 'conversions', 'rappels']));
     }
 }

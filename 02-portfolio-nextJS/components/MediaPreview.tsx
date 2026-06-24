@@ -49,12 +49,14 @@ export function MediaPreview({
   isVideo = false,
 }: MediaPreviewProps) {
   const resolvedSrc = src ? getMediaUrl(src) : null;
-  
-  if (!resolvedSrc) {
+
+  const isDoc = !isVideo && resolvedSrc ? !!resolvedSrc.match(/\.(pdf)$/i) : false;
+
+  if (!resolvedSrc || isDoc) {
     return (
       <div className={`relative bg-[#1a1a1a] ${sizeClasses[size]} ${className} flex items-center justify-center`}>
         {fallback || (
-          <Icons.file className="w-8 h-8 text-muted/50" aria-hidden />
+          <Icons.document className="w-10 h-10 text-off-white/60" aria-hidden />
         )}
       </div>
     );
@@ -63,29 +65,12 @@ export function MediaPreview({
   const isVideoType = isVideo || resolvedSrc.match(/\.(mp4|webm|ogg|mov)$/i);
   const mediaType = resolvedSrc.startsWith('http') ? 'external' : 'local';
 
-  if (fill) {
-    return (
-      <div className={`relative ${aspectClasses[aspectRatio]} overflow-hidden rounded-xl ${className}`} onClick={onClick}>
-        <Image
-          src={resolvedSrc}
-          alt={alt}
-          fill
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          priority={priority}
-          unoptimized={mediaType === 'external'}
-        />
-        {showPlayIcon && isVideoType && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/20 transition-colors">
-            <Icons.play className="w-12 h-12 text-white drop-shadow-lg" />
-          </div>
-        )}
-      </div>
-    );
-  }
+  const containerClasses = fill
+    ? `absolute inset-0 ${aspectClasses[aspectRatio]} overflow-hidden rounded-xl ${className}`
+    : `relative ${sizeClasses[size]} ${className}`;
 
   return (
-    <div className={`relative ${sizeClasses[size]} ${className}`} onClick={onClick}>
+    <div className={containerClasses} onClick={onClick}>
       <Image
         src={resolvedSrc}
         alt={alt}
@@ -97,7 +82,7 @@ export function MediaPreview({
       />
       {showPlayIcon && isVideoType && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/20 transition-colors">
-          <Icons.play className="w-8 h-8 text-white drop-shadow-lg" />
+          <Icons.play className={`${fill ? 'w-12 h-12' : 'w-8 h-8'} text-white drop-shadow-lg`} />
         </div>
       )}
     </div>
@@ -151,11 +136,6 @@ export function MediaGalleryPreview({
                   showPlayIcon={isVid}
                   isVideo={isVid}
                 />
-              )}
-              {isVid && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/20 transition-colors">
-                  <Icons.play className="w-12 h-12 text-white drop-shadow-lg" />
-                </div>
               )}
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2">
                 <p className="text-xs text-white truncate">{item.titre || (isVid ? 'Vidéo' : 'Image')}</p>

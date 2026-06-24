@@ -53,6 +53,7 @@ class CompetenceController extends Controller
             'proprietaire_id' => $proprietaireId,
             'competence_id' => $competence->id,
             'niveau' => $data['niveau'] ?? 'debutant',
+            'est_surligne' => $data['est_surligne'] ?? false,
         ]);
 
         Cache::forget("competences.user.{$proprietaireId}");
@@ -69,15 +70,16 @@ class CompetenceController extends Controller
         $data = $request->validated();
 
         $niveau = $data['niveau'] ?? null;
+        $estSurligne = $data['est_surligne'] ?? null;
         unset($data['niveau']);
 
         $competence->update($data);
 
-        if ($niveau) {
+        if ($niveau || $estSurligne !== null) {
             $proprietaire = $request->user()->proprietaire;
             NiveauCompetence::updateOrCreate(
                 ['proprietaire_id' => $proprietaire->id, 'competence_id' => $competence->id],
-                ['niveau' => $niveau]
+                array_filter(['niveau' => $niveau, 'est_surligne' => $estSurligne], fn($v) => $v !== null)
             );
         }
 

@@ -88,7 +88,7 @@ function ResourceCard({ resource, onPreview }: { resource: Ressource; onPreview?
   const firstMedia = resource.medias?.[0];
   const icon = firstMedia ? getMediaTypeIcon(firstMedia) : <Icons.file className="w-5 h-5" aria-hidden />;
 
-  if (!firstMedia && !cover) return null;
+  // Show card even without media - use a fallback icon
 
   return (
     <button onClick={() => onPreview?.(resource)}

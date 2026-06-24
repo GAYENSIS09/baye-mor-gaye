@@ -10,7 +10,6 @@ export function useProfilePublic() {
   return useQuery({
     queryKey: qk.profile(),
     queryFn: () => api.get<ProfilePublic>('/profile/public'),
-    staleTime: 60_000,
   });
 }
 
@@ -35,7 +34,8 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: (data: Record<string, unknown>) => api.put('/profile', data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: qk.profile(), exact: true });
+      queryClient.invalidateQueries({ queryKey: qk.profile(), exact: true, refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'], exact: true, refetchType: 'all' });
     },
   });
 }

@@ -15,7 +15,6 @@ class Certification extends Model
         'description',
         'date_obtention',
         'date_expiration',
-        'url_credential',
         'ordre',
     ];
 

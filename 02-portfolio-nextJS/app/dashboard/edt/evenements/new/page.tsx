@@ -22,6 +22,7 @@ function NewEvenementForm() {
   const [lieu, setLieu] = useState('');
   const [couleur, setCouleur] = useState('#3b82f6');
   const [estJourneeComplete, setEstJourneeComplete] = useState(false);
+  const [statut, setStatut] = useState('planifie');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -44,6 +45,7 @@ function NewEvenementForm() {
         lieu: lieu || undefined,
         couleur,
         est_journee_complete: estJourneeComplete,
+        statut,
       });
       router.push('/dashboard/edt');
     } catch {
@@ -97,8 +99,18 @@ function NewEvenementForm() {
           <input id="lieu" name="lieu" value={lieu} onChange={(e) => setLieu(e.target.value)} autoComplete="off"
             className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
         </div>
-        <div className="flex items-center gap-4">
-          <div>
+          <div className="flex items-center gap-4">
+            <div>
+              <label htmlFor="statut" className="block text-sm font-medium text-off-white">Statut</label>
+              <select id="statut" name="statut" value={statut} onChange={(e) => setStatut(e.target.value)}
+                className="w-full border border-[#333] rounded px-3 py-2 bg-[#111] text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50">
+                <option value="planifie">Planifié</option>
+                <option value="confirme">Confirmé</option>
+                <option value="termine">Terminé</option>
+                <option value="annule">Annulé</option>
+              </select>
+            </div>
+            <div>
             <label htmlFor="couleur" className="block text-sm font-medium text-off-white">Couleur</label>
             <input id="couleur" name="couleur" type="color" value={couleur} onChange={(e) => setCouleur(e.target.value)}
               className="w-10 h-10 border border-[#333] rounded bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />

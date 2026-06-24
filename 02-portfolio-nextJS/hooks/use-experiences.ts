@@ -27,9 +27,9 @@ export function useUpdateExperience() {
     mutationFn: (arg: ({ id: number } & Record<string, unknown>) | FormData) => {
       if (arg instanceof FormData) {
         const id = Number(arg.get('id'));
-        arg.delete('_method');
         arg.delete('id');
-        return api.put(`/experiences/${id}`, arg);
+        arg.append('_method', 'PUT');
+        return api.post(`/experiences/${id}`, arg);
       }
       const { id, ...data } = arg;
       return api.put(`/experiences/${id}`, data);

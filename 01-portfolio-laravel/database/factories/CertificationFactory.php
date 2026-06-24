@@ -19,7 +19,6 @@ class CertificationFactory extends Factory
             'description' => fake()->paragraph(),
             'date_obtention' => fake()->date(),
             'date_expiration' => fake()->optional()->date(),
-            'url_credential' => fake()->url(),
             'ordre' => fake()->numberBetween(0, 10),
         ];
     }
