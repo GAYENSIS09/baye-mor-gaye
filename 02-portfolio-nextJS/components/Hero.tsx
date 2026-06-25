@@ -137,9 +137,11 @@ export default function Hero() {
               </span>
             </div>
 
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-8 mb-8">
-              <ProprietaireAvatar photo={getMediaUrl(photo)} nom={profile?.nom || ""} />
-              <div className="text-center md:text-left">
+            <div className="flex flex-row items-center gap-4 md:gap-8 mb-8">
+              <div className="shrink-0">
+                <ProprietaireAvatar photo={getMediaUrl(photo)} nom={profile?.nom || ""} />
+              </div>
+              <div className="min-w-0">
                 <ProprietaireTitre prenom={prenom} nom={nom} />
               </div>
             </div>
