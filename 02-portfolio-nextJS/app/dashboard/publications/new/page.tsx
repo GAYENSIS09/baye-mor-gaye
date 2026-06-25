@@ -68,19 +68,21 @@ export default function NewPublicationPage() {
         image_couverture: imageCouverture || undefined,
         domaines: selectedDomaines.length > 0 ? selectedDomaines : undefined,
       });
-      const projectId = (res as { id?: number })?.id ?? (res as { data?: { id?: number } })?.data?.id;
-      if (projectId) {
+      const publicationId = (res as { id?: number })?.id ?? (res as { data?: { id?: number } })?.data?.id;
+      if (publicationId) {
         if (mediaFile) {
-          const isImage = mediaFile.type.startsWith('image/');
-          const uploaded = isImage
+          const uploaded = mediaFile.type.startsWith('image/')
             ? await uploadImage(mediaFile, 'publications')
             : await uploadFile(mediaFile, 'publications');
-          const type = isImage ? 'image' : (mediaFile.type.startsWith('video/') ? 'video' : 'fichier');
+          const type = mediaFile.type.startsWith('image/') ? 'image'
+            : mediaFile.type.startsWith('video/') ? 'video'
+            : mediaFile.type === 'application/pdf' ? 'document'
+            : 'document';
           await createMedia.mutateAsync({
             mediable_type: 'App\\Models\\Publication',
-            mediable_id: projectId,
+            mediable_id: publicationId,
             type,
-            chemin_fichier: isImage ? uploaded.url : uploaded.path,
+            chemin_fichier: uploaded.path,
             titre: mediaFile.name,
           });
         }
@@ -88,7 +90,7 @@ export default function NewPublicationPage() {
           const isYoutube = /youtube\.com|youtu\.be/.test(mediaLink);
           await createMedia.mutateAsync({
             mediable_type: 'App\\Models\\Publication',
-            mediable_id: projectId,
+            mediable_id: publicationId,
             type: isYoutube ? 'youtube' : 'lien',
             chemin_fichier: mediaLink,
             titre: mediaLink,

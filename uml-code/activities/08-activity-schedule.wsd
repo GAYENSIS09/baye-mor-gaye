@@ -9,7 +9,7 @@ partition Propriétaire {
     :Créer EDT\n(semaine, année);
   elseif (Importer) then
     :Upload image/PDF\nd'EDT externe;
-    :Valider via\nPaliGemma 2;
+    :Valider via\nOllama / llava;
   else (Charger)
     :Sélectionner EDT\nexistant;
   endif
@@ -20,7 +20,7 @@ partition Propriétaire {
 
 partition Système {
   if (Import réussi ?) then (Oui)
-    :Insérer événements\ndepuis PaliGemma;
+    :Insérer événements\ndepuis Ollama;
   endif
   :Valider et\npersister en base;
 }

@@ -36,13 +36,13 @@ export default function ProjetsDashboardPage() {
   if (techFilter) params.technologie = techFilter;
   if (statutFilter) params.statut = statutFilter;
 
-  const { data: projetsResponse, isLoading, isError, refetch } = useProjects(params);
+  const { data: projetsResponse, isLoading, isError, refetch } = useProjects(params, !!utilisateur);
   const deleteProjet = useDeleteProjet();
 
   const togglePublier = useMutation({
     mutationFn: ({ id, est_publie }: { id: number; est_publie: boolean }) =>
       api.put(`/projets/${id}`, { est_publie }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.projets() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.projets(), exact: false }),
   });
 
   const projets = projetsResponse?.data ?? [];
@@ -58,9 +58,12 @@ export default function ProjetsDashboardPage() {
 
   async function handleDelete() {
     if (!deleteTarget) return;
-    await deleteProjet.mutateAsync(deleteTarget);
-    setDeleteTarget(null);
-    refetch();
+    try {
+      await deleteProjet.mutateAsync(deleteTarget);
+      setDeleteTarget(null);
+    } catch {
+      // error toast handled by mutation
+    }
   }
 
   const allTechs = [...new Set(projets.flatMap((p: Projet) => p.technologies ?? []))].sort();
@@ -150,6 +153,7 @@ export default function ProjetsDashboardPage() {
                       label={p.est_publie ? 'Archiver' : 'Publier'}
                       variant="ghost"
                       size="sm"
+                      disabled={togglePublier.isPending}
                     />
                     <Link href={`/dashboard/projets/${p.id}/edit`}>
                       <IconButton

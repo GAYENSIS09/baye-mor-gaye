@@ -10,6 +10,7 @@ use App\Models\Experience;
 use App\Models\Proprietaire;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class ExperienceController extends Controller
 {
@@ -33,58 +34,63 @@ class ExperienceController extends Controller
 
     public function store(StoreExperienceRequest $request)
     {
-        $data = $request->validated();
-        $data['proprietaire_id'] = $request->user()->proprietaire->id;
-        unset($data['media']);
+        return DB::transaction(function () use ($request) {
+            $data = $request->validated();
+            $data['proprietaire_id'] = $request->user()->proprietaire->id;
+            unset($data['media']);
 
-        $experience = Experience::create($data);
+            $experience = Experience::create($data);
 
-        if ($request->hasFile('media')) {
-            $path = $request->file('media')->store('uploads/experiences', 'public');
-            $experience->medias()->create([
-                'type' => 'image',
-                'chemin_fichier' => $path,
-                'titre' => $data['titre'] ?? null,
-                'ordre' => 0,
-            ]);
-        }
+            if ($request->hasFile('media')) {
+                $path = $request->file('media')->store('uploads/experiences', 'public');
+                $experience->medias()->create([
+                    'type' => 'image',
+                    'chemin_fichier' => $path,
+                    'titre' => $data['titre'] ?? null,
+                    'ordre' => 0,
+                ]);
+            }
 
-        Cache::forget('profile.public');
-        Cache::forget('experiences.public');
-        return ExperienceResource::make($experience->load('medias'));
+            Cache::forget('profile.public');
+            Cache::forget('experiences.public');
+            return ExperienceResource::make($experience->load('medias'));
+        });
     }
 
     public function update(UpdateExperienceRequest $request, Experience $experience)
     {
         $this->authorizeOwnershipOrFail($request, $experience);
 
-        $data = $request->validated();
-        unset($data['media']);
-        $experience->update($data);
+        return DB::transaction(function () use ($request, $experience) {
+            $data = $request->validated();
+            unset($data['media']);
+            $experience->update($data);
 
-        if ($request->boolean('supprimer_media')) {
-            $experience->medias()->delete();
-        }
+            if ($request->boolean('supprimer_media')) {
+                $experience->medias()->delete();
+            }
 
-        if ($request->hasFile('media')) {
-            $experience->medias()->delete();
-            $path = $request->file('media')->store('uploads/experiences', 'public');
-            $experience->medias()->create([
-                'type' => 'image',
-                'chemin_fichier' => $path,
-                'titre' => $experience->titre,
-                'ordre' => 0,
-            ]);
-        }
+            if ($request->hasFile('media')) {
+                $experience->medias()->delete();
+                $path = $request->file('media')->store('uploads/experiences', 'public');
+                $experience->medias()->create([
+                    'type' => 'image',
+                    'chemin_fichier' => $path,
+                    'titre' => $experience->titre,
+                    'ordre' => 0,
+                ]);
+            }
 
-        Cache::forget('profile.public');
-        Cache::forget('experiences.public');
-        return ExperienceResource::make($experience->load('medias'));
+            Cache::forget('profile.public');
+            Cache::forget('experiences.public');
+            return ExperienceResource::make($experience->load('medias'));
+        });
     }
 
     public function destroy(Request $request, Experience $experience)
     {
         $this->authorizeOwnershipOrFail($request, $experience);
+        $experience->medias()->delete();
         $experience->delete();
         Cache::forget('profile.public');
         Cache::forget('experiences.public');

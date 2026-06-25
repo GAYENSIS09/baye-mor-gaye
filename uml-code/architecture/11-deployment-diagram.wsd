@@ -45,7 +45,7 @@ node "Hôte" as Host {
 
 node "Services Externes" as Services {
   artifact "SMTP / Mailhog" as Mail
-  artifact "PaliGemma 2 10B" as PaliGemma
+  artifact "Ollama / llava\n(API locale:11434)" as Ollama
   artifact "Laravel Echo\n(WebSocket 6001)" as Echo
 }
 
@@ -60,7 +60,7 @@ NginxC --> Volumes : assets statiques
 
 PHPC --> DBC : PDO (3306)
 PHPC --> Volumes : stockage fichiers
-PHPC --> PaliGemma : API HTTPS
+PHPC --> Ollama : API HTTP (host.docker.internal:11434)
 PHPC --> Mail : SMTP (587)
 
 WSC --> PHPC : artisan / composer
@@ -77,7 +77,7 @@ legend top
   | workspace | PHP-CLI + Node | Composer, npm, artisan |
   | db | MySQL 8.0 | Base de données relationnelle |
   | frontend | Node 22 Alpine + Next.js | Application React SSR |
-  | Vision IA | PaliGemma 2 10B | OCR emplois du temps |
+  | Vision IA | Ollama / llava 7B | OCR emplois du temps |
 end legend
 
 @enduml

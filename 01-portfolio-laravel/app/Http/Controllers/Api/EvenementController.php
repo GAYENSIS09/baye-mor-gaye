@@ -32,19 +32,25 @@ class EvenementController extends Controller
 
     public function show(Evenement $evenement)
     {
-        return EvenementResource::make($evenement->load(['emploiDuTemps', 'conversions', 'rappels']));
+        return EvenementResource::make($evenement->load('emploiDuTemps'));
     }
 
     public function update(UpdateEvenementRequest $request, Evenement $evenement)
     {
+        if (!$evenement->emploiDuTemps) {
+            abort(403, 'Action non autorisée.');
+        }
         $this->authorizeOwnershipOrFail($request, $evenement->emploiDuTemps);
 
         $evenement->update($request->validated());
-        return EvenementResource::make($evenement->load(['emploiDuTemps', 'conversions', 'rappels']));
+        return EvenementResource::make($evenement->load('emploiDuTemps'));
     }
 
     public function destroy(Request $request, Evenement $evenement)
     {
+        if (!$evenement->emploiDuTemps) {
+            abort(403, 'Action non autorisée.');
+        }
         $this->authorizeOwnershipOrFail($request, $evenement->emploiDuTemps);
         $evenement->delete();
         return response()->noContent();
@@ -55,6 +61,6 @@ class EvenementController extends Controller
         $emploiDuTemps = \App\Models\EmploiDuTemps::findOrFail($request->validated('emploi_du_temps_id'));
         $this->authorizeOwnershipOrFail($request, $emploiDuTemps);
 
-        return EvenementResource::make(Evenement::create($request->validated())->load(['emploiDuTemps', 'conversions', 'rappels']));
+        return EvenementResource::make(Evenement::create($request->validated())->load('emploiDuTemps'));
     }
 }

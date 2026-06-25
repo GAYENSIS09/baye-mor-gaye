@@ -14,6 +14,16 @@ class VuePageController extends Controller
     {
         $data = $request->validated();
 
+        $modelClass = match ($data['page']) {
+            'publication' => Publication::class,
+            'projet'      => ProjetPortfolio::class,
+        };
+
+        $model = $modelClass::find($data['page_id']);
+        if (!$model) {
+            return response()->json(['message' => 'Page introuvable.'], 404);
+        }
+
         VuePage::create([
             'page'              => $data['page'],
             'page_id'           => $data['page_id'],
@@ -23,11 +33,7 @@ class VuePageController extends Controller
             'visite_le'         => now(),
         ]);
 
-        $model = match ($data['page']) {
-            'publication' => Publication::class,
-            'projet'      => ProjetPortfolio::class,
-        };
-        $model::where('id', $data['page_id'])->increment('nombre_vues');
+        $model->increment('nombre_vues');
 
         return response()->json(['message' => 'Vue enregistrée'], 201);
     }

@@ -34,7 +34,7 @@ class AuthController extends Controller
         $token = $utilisateur->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'utilisateur' => $utilisateur,
+            'utilisateur' => UtilisateurResource::make($utilisateur->load('proprietaire')),
             'token' => $token,
         ], 201);
     }
@@ -56,7 +56,7 @@ class AuthController extends Controller
         $token = $utilisateur->createToken('auth-token')->plainTextToken;
 
         return response()->json([
-            'utilisateur' => $utilisateur->load('proprietaire'),
+            'utilisateur' => UtilisateurResource::make($utilisateur->load('proprietaire')),
             'token' => $token,
         ]);
     }

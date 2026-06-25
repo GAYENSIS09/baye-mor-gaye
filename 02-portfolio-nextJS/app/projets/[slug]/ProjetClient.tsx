@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useProject } from '@/hooks/queries';
-import { useParams, notFound } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import MediaViewer from '@/components/MediaViewer';
 import { LikeButton } from '@/components/LikeButton';
@@ -11,8 +11,9 @@ import CommentSection from '@/components/CommentSection';
 import MediaGallery from '@/components/MediaGallery';
 import { SectionHeader } from '@/components/SectionHeader';
 import { api } from '@/lib/api';
-import { Like } from '@/types/api';
+import type { Like } from '@/types/api';
 import { Icons } from '@/components/ui/Icons';
+import Link from 'next/link';
 
 export default function ProjetClient() {
   const params = useParams();
@@ -27,7 +28,16 @@ export default function ProjetClient() {
   }, [projet?.id]);
 
   if (isLoading) return <div className="p-8 text-center text-muted">Chargement...</div>;
-  if (isError || !projet) return notFound();
+  if (isError || !projet) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted font-mono text-sm mb-4">Projet introuvable.</p>
+          <Link href="/projets" className="text-acid font-mono text-xs uppercase tracking-widest hover:underline">Retour aux projets</Link>
+        </div>
+      </div>
+    );
+  }
 
   const liked = utilisateur ? projet.likes?.some((l: Like) => l.auteur_id === utilisateur.id) : false;
   const likesCount = projet.likes?.length ?? 0;

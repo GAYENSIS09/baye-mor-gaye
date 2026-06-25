@@ -6,6 +6,7 @@ use App\Models\Publication;
 use App\Services\BaseCrudService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class PublicationService extends BaseCrudService
@@ -62,52 +63,56 @@ class PublicationService extends BaseCrudService
 
     public function store(array $data): Model
     {
-        $data['slug'] = Str::slug($data['titre']) . '-' . Str::random(6);
+        return DB::transaction(function () use ($data) {
+            $data['slug'] = Str::slug($data['titre']) . '-' . Str::random(6);
 
-        if (!empty($data['contenu_html'])) {
-            $data['contenu_html'] = app(HtmlPurifierService::class)->purifier($data['contenu_html']);
-        }
+            if (!empty($data['contenu_html'])) {
+                $data['contenu_html'] = app(HtmlPurifierService::class)->purifier($data['contenu_html']);
+            }
 
-        if ($data['est_publie'] ?? false) {
-            $data['publie_le'] = now();
-        }
+            if ($data['est_publie'] ?? false) {
+                $data['publie_le'] = now();
+            }
 
-        $domaines = $data['domaines'] ?? null;
-        unset($data['domaines']);
+            $domaines = $data['domaines'] ?? null;
+            unset($data['domaines']);
 
-        $publication = Publication::create($data);
+            $publication = Publication::create($data);
 
-        if ($domaines) {
-            $publication->domaines()->sync($domaines);
-        }
+            if ($domaines) {
+                $publication->domaines()->sync($domaines);
+            }
 
-        $this->clearCache();
+            $this->clearCache();
 
-        return $publication->load('domaines');
+            return $publication->load('domaines');
+        });
     }
 
     public function update(Model $publication, array $data): Model
     {
-        if (!empty($data['contenu_html'])) {
-            $data['contenu_html'] = app(HtmlPurifierService::class)->purifier($data['contenu_html']);
-        }
+        return DB::transaction(function () use ($publication, $data) {
+            if (!empty($data['contenu_html'])) {
+                $data['contenu_html'] = app(HtmlPurifierService::class)->purifier($data['contenu_html']);
+            }
 
-        if (isset($data['est_publie']) && $data['est_publie'] && !$publication->publie_le) {
-            $data['publie_le'] = now();
-        }
+            if (isset($data['est_publie']) && $data['est_publie'] && !$publication->publie_le) {
+                $data['publie_le'] = now();
+            }
 
-        $domaines = $data['domaines'] ?? null;
-        unset($data['domaines']);
+            $domaines = $data['domaines'] ?? null;
+            unset($data['domaines']);
 
-        $publication->update($data);
+            $publication->update($data);
 
-        if (isset($domaines)) {
-            $publication->domaines()->sync($domaines);
-        }
+            if (isset($domaines)) {
+                $publication->domaines()->sync($domaines);
+            }
 
-        $this->clearCache();
+            $this->clearCache();
 
-        return $publication->load('domaines');
+            return $publication->load('domaines');
+        });
     }
 
     protected function clearCache(): void

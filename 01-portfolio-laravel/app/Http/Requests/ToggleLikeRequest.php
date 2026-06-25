@@ -16,8 +16,8 @@ class ToggleLikeRequest extends FormRequest
         return [
             'likeable_type' => 'required_without_all:publication_id,projet_id|in:publication,projet_portfolio,commentaire',
             'likeable_id' => 'required_without_all:publication_id,projet_id|integer',
-            'publication_id' => 'required_without_all:likeable_type,likeable_id|exists:publications,id',
-            'projet_id' => 'required_without_all:likeable_type,likeable_id|exists:projet_portfolios,id',
+            'publication_id' => 'required_without_all:likeable_type,likeable_id,projet_id|exists:publications,id',
+            'projet_id' => 'required_without_all:likeable_type,likeable_id,publication_id|exists:projet_portfolios,id',
         ];
     }
 }

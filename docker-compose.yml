@@ -30,6 +30,7 @@ services:
       APP_ENV: local
       APP_DEBUG: false
       APP_URL: http://localhost:8000
+      APP_KEY: ${APP_KEY}
       DB_CONNECTION: mysql
       DB_HOST: db
       DB_PORT: 3306
@@ -42,16 +43,26 @@ services:
       FILESYSTEM_DISK: local
       SESSION_DRIVER: cookie
       SESSION_DOMAIN: localhost
-      PROPRIETAIRE_NOM: Baye Mor Gaye
-      PROPRIETAIRE_EMAIL: contact@baye-mor-gaye.dev
-      PROPRIETAIRE_PASSWORD: password
-      PROPRIETAIRE_TITRE: AI & Software Engineer
-      PROPRIETAIRE_BIO: "Enthousiaste en IA & ingénierie logicielle. Curieux. Builder. Dakar → monde."
-      PROPRIETAIRE_LOCALISATION: Dakar, Sénégal
-      PROPRIETAIRE_SITE_WEB: https://baye-mor-gaye.dev
-      PROPRIETAIRE_LINKEDIN: https://linkedin.com/in/gayensis09
-      PROPRIETAIRE_GITHUB: https://github.com/baye-mor-gaye
-      PROPRIETAIRE_PHOTO: photos/168032110.jpg
+      MAIL_MAILER: ${MAIL_MAILER:-smtp}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Baye Mor Gaye}
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llava}
+      PROPRIETAIRE_NOM: ${PROPRIETAIRE_NOM}
+      PROPRIETAIRE_EMAIL: ${PROPRIETAIRE_EMAIL}
+      PROPRIETAIRE_PASSWORD: ${PROPRIETAIRE_PASSWORD}
+      PROPRIETAIRE_TITRE: ${PROPRIETAIRE_TITRE}
+      PROPRIETAIRE_BIO: ${PROPRIETAIRE_BIO}
+      PROPRIETAIRE_LOCALISATION: ${PROPRIETAIRE_LOCALISATION}
+      PROPRIETAIRE_SITE_WEB: ${PROPRIETAIRE_SITE_WEB}
+      PROPRIETAIRE_LINKEDIN: ${PROPRIETAIRE_LINKEDIN}
+      PROPRIETAIRE_GITHUB: ${PROPRIETAIRE_GITHUB}
+      PROPRIETAIRE_PHOTO: ${PROPRIETAIRE_PHOTO}
     depends_on:
       db:
         condition: service_healthy

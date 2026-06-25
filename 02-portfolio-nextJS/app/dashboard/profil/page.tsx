@@ -21,6 +21,7 @@ export default function ProfileDashboardPage() {
   const updateProfile = useUpdateProfile();
   const toast = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
+  const isOwner = !!utilisateur?.proprietaire;
   const [photoUrl, setPhotoUrl] = useState(getMediaUrl(utilisateur?.photo) ?? '');
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
@@ -80,7 +81,7 @@ export default function ProfileDashboardPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <SectionHeader title="Profil" subtitle="Gérez vos informations personnelles et professionnelles" />
+      <SectionHeader title="Profil" subtitle="Gérez vos informations personnelles" />
 
       <CardContainer className="p-6">
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
@@ -116,46 +117,50 @@ export default function ProfileDashboardPage() {
             {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email.message}</p>}
           </div>
 
-          <div>
-            <Label htmlFor="profile-titre">Titre professionnel</Label>
-            <input id="profile-titre" {...register("titre_professionnel")}
-              placeholder="Ex: Ingénieur logiciel" autoComplete="off"
-              className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-          </div>
+          {isOwner && (
+            <>
+              <div>
+                <Label htmlFor="profile-titre">Titre professionnel</Label>
+                <input id="profile-titre" {...register("titre_professionnel")}
+                  placeholder="Ex: Ingénieur logiciel" autoComplete="off"
+                  className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              </div>
 
-          <div>
-            <Label htmlFor="profile-bio">Bio</Label>
-            <textarea id="profile-bio" {...register("bio")} rows={4} autoComplete="off"
-              className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-          </div>
+              <div>
+                <Label htmlFor="profile-bio">Bio</Label>
+                <textarea id="profile-bio" {...register("bio")} rows={4} autoComplete="off"
+                  className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              </div>
 
-          <div>
-            <Label htmlFor="profile-localisation">Localisation</Label>
-            <input id="profile-localisation" {...register("localisation")}
-              placeholder="Ex: Dakar, Senegal" autoComplete="country-name"
-              className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-          </div>
+              <div>
+                <Label htmlFor="profile-localisation">Localisation</Label>
+                <input id="profile-localisation" {...register("localisation")}
+                  placeholder="Ex: Dakar, Senegal" autoComplete="country-name"
+                  className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+              </div>
 
-          <div>
-            <Label htmlFor="profile-site">Site web</Label>
-            <input id="profile-site" {...register("site_web")} type="url" placeholder="https://" autoComplete="url"
-              className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-            {errors.site_web && <p className="text-red-400 text-xs mt-1">{errors.site_web.message}</p>}
-          </div>
+              <div>
+                <Label htmlFor="profile-site">Site web</Label>
+                <input id="profile-site" {...register("site_web")} type="url" placeholder="https://" autoComplete="url"
+                  className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+                {errors.site_web && <p className="text-red-400 text-xs mt-1">{errors.site_web.message}</p>}
+              </div>
 
-          <div>
-            <Label htmlFor="profile-linkedin">LinkedIn</Label>
-            <input id="profile-linkedin" {...register("url_linkedin")} type="url" placeholder="https://" autoComplete="url"
-              className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-            {errors.url_linkedin && <p className="text-red-400 text-xs mt-1">{errors.url_linkedin.message}</p>}
-          </div>
+              <div>
+                <Label htmlFor="profile-linkedin">LinkedIn</Label>
+                <input id="profile-linkedin" {...register("url_linkedin")} type="url" placeholder="https://" autoComplete="url"
+                  className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+                {errors.url_linkedin && <p className="text-red-400 text-xs mt-1">{errors.url_linkedin.message}</p>}
+              </div>
 
-          <div>
-            <Label htmlFor="profile-github">GitHub</Label>
-            <input id="profile-github" {...register("url_github")} type="url" placeholder="https://" autoComplete="url"
-              className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
-            {errors.url_github && <p className="text-red-400 text-xs mt-1">{errors.url_github.message}</p>}
-          </div>
+              <div>
+                <Label htmlFor="profile-github">GitHub</Label>
+                <input id="profile-github" {...register("url_github")} type="url" placeholder="https://" autoComplete="url"
+                  className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+                {errors.url_github && <p className="text-red-400 text-xs mt-1">{errors.url_github.message}</p>}
+              </div>
+            </>
+          )}
 
           <ActionBar align="start" gap={3}>
             <ActionButton type="submit" disabled={saving || isSubmitting} variant="primary">

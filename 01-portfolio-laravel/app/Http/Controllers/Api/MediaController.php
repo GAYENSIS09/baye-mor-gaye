@@ -7,13 +7,21 @@ use App\Http\Resources\MediaResource;
 use App\Models\Media;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\Rule;
 
 class MediaController extends Controller
 {
     public function store(Request $request)
     {
         $data = $request->validate([
-            'mediable_type' => 'required|string',
+            'mediable_type' => ['required', 'string', Rule::in([
+                'App\Models\Publication',
+                'App\Models\ProjetPortfolio',
+                'App\Models\Ressource',
+                'App\Models\Experience',
+                'App\Models\Formation',
+                'App\Models\Certification',
+            ])],
             'mediable_id' => 'required|integer',
             'type' => 'required|string|in:image,video,document,lien,youtube',
             'chemin_fichier' => 'nullable|string|max:255',
@@ -52,6 +60,8 @@ class MediaController extends Controller
         $this->authorizeOwnershipOrFail($request, $media->mediable);
 
         $data = $request->validate([
+            'mediable_type' => 'prohibited',
+            'mediable_id' => 'prohibited',
             'type' => 'nullable|string|in:image,video,document,lien,youtube',
             'chemin_fichier' => 'nullable|string|max:255',
             'url_externe' => 'nullable|string|max:255',

@@ -57,7 +57,7 @@ export default function TipTapEditor({ content, onChange, placeholder = 'Écrive
       setUploading(true);
       try {
         const result = await uploadImage(file, 'publications');
-        editor.chain().focus().setImage({ src: result.url }).run();
+        editor.chain().focus().setImage({ src: result.path }).run();
       } catch (err) {
         console.error('Upload failed:', err);
       } finally {
@@ -115,6 +115,12 @@ export default function TipTapEditor({ content, onChange, placeholder = 'Écrive
       },
     },
   });
+
+  useEffect(() => {
+    if (editor && content && editor.getHTML() !== content) {
+      editor.commands.setContent(content, { emitUpdate: false });
+    }
+  }, [editor, content]);
 
   if (!editor) return null;
 

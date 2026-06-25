@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class VuePage extends Model
 {
@@ -19,6 +20,11 @@ class VuePage extends Model
         'page',
         'page_id',
     ];
+
+    public function proprietaire(): BelongsTo
+    {
+        return $this->belongsTo(Proprietaire::class);
+    }
 
     public function publication()
     {

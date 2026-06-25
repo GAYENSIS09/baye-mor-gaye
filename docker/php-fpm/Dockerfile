@@ -6,6 +6,7 @@ FROM php:8.3-fpm-alpine AS base
 # Install system dependencies
 RUN apk add --no-cache \
     linux-headers \
+    poppler-utils \
     $PHPIZE_DEPS \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \

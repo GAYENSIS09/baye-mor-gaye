@@ -78,7 +78,7 @@ export function useDeleteEvenement() {
 export function useEdtImport() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (formData: FormData) => api.post('/edt/import', formData),
+    mutationFn: (formData: FormData) => api.post('/edt/import', formData, { timeoutMs: 120_000 }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.edt(), exact: true });
       queryClient.invalidateQueries({ queryKey: qk.conversions(), exact: true });

@@ -29,8 +29,8 @@ end
 opt upload image/PDF
   Auth -> Front: Upload fichier EDT
   Front -> API: POST .../convertir-edt
-  API -> API: Analyser via PaliGemma
-  note right: Reconnaissance visuelle
+  API -> API: Analyser via Ollama
+  note right: Reconnaissance visuelle\n(Ollama / llava)
   alt confiance > 0.7
     API -> BD: Insérer événements
     BD --> API: Import réussi

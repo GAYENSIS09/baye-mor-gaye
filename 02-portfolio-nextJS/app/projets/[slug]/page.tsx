@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import ProjetClient from './ProjetClient';
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/projets/${params.slug}`);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/projets/${slug}`);
     const raw = await res.json();
     const projet = raw?.data ?? raw;
     return {

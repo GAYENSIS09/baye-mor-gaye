@@ -34,8 +34,8 @@ package "Docker : portfolio" as Docker {
 }
 
 package "Services Externes" as Ext {
-  [SMTP / Mailhog] as Mail
-  [PaliGemma 2 (Vision 10B)] as PaliGemma
+  [SMTP / Gmail] as Mail
+  [Ollama / llava\n(Vision IA locale)] as Ollama
   [Laravel Echo\n(WebSocket)] as Echo
 }
 
@@ -51,7 +51,7 @@ Laravel --> MySQL : PDO (3306)
 Laravel --> Storage : stockage fichiers
 Laravel --> Jobs : file d'attente
 Laravel --> Mail : email
-Laravel --> PaliGemma : API vision IA
+Laravel --> Ollama : API vision IA (Ollama)
 Laravel --> Echo : WebSocket
 
 Workspace --> Laravel : artisan / composer
@@ -67,7 +67,7 @@ legend bottom
   | db | MySQL 8.0 (port 3307) |
   | frontend | Next.js 16 + Turbopack (port 3000) |
   | Temps réel | Laravel Echo Server |
-  | Vision IA | PaliGemma 2 10B |
+  | Vision IA | Ollama / llava |
 end legend
 
 @enduml

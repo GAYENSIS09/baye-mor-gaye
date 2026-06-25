@@ -11,6 +11,10 @@ class NotificationController extends Controller
 {
     public function index(Request $request)
     {
+        if (!$request->user()->proprietaire) {
+            return NotificationResource::collection(collect([]));
+        }
+
         $query = $request->user()->proprietaire->notifications();
 
         if (!$request->boolean('toutes')) {

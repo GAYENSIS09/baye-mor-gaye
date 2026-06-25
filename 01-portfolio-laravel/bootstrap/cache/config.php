@@ -1,7 +1,7 @@
 <?php return array (
   'app' => 
   array (
-    'name' => 'PortfolioAPI',
+    'name' => 'Laravel',
     'env' => 'local',
     'debug' => false,
     'url' => 'http://localhost:8000',
@@ -12,7 +12,7 @@
     'fallback_locale' => 'en',
     'faker_locale' => 'en_US',
     'cipher' => 'AES-256-CBC',
-    'key' => NULL,
+    'key' => 'base64:UjFDtGnEZXha9pF8qLOAXWqp7g423CVzGRQ72XBvoH8=',
     'previous_keys' => 
     array (
     ),
@@ -352,82 +352,6 @@
       ),
     ),
   ),
-  'mail' => 
-  array (
-    'default' => 'smtp',
-    'mailers' => 
-    array (
-      'smtp' => 
-      array (
-        'transport' => 'smtp',
-        'scheme' => NULL,
-        'url' => NULL,
-        'host' => 'mailhog',
-        'port' => '1025',
-        'username' => NULL,
-        'password' => NULL,
-        'timeout' => NULL,
-        'local_domain' => 'localhost',
-      ),
-      'ses' => 
-      array (
-        'transport' => 'ses',
-      ),
-      'postmark' => 
-      array (
-        'transport' => 'postmark',
-      ),
-      'resend' => 
-      array (
-        'transport' => 'resend',
-      ),
-      'sendmail' => 
-      array (
-        'transport' => 'sendmail',
-        'path' => '/usr/sbin/sendmail -bs -i',
-      ),
-      'log' => 
-      array (
-        'transport' => 'log',
-        'channel' => NULL,
-      ),
-      'array' => 
-      array (
-        'transport' => 'array',
-      ),
-      'failover' => 
-      array (
-        'transport' => 'failover',
-        'mailers' => 
-        array (
-          0 => 'smtp',
-          1 => 'log',
-        ),
-      ),
-      'roundrobin' => 
-      array (
-        'transport' => 'roundrobin',
-        'mailers' => 
-        array (
-          0 => 'ses',
-          1 => 'postmark',
-        ),
-      ),
-    ),
-    'from' => 
-    array (
-      'address' => 'noreply@baye-mor-gaye.dev',
-      'name' => 'Example',
-    ),
-    'markdown' => 
-    array (
-      'theme' => 'default',
-      'paths' => 
-      array (
-        0 => '/var/www/resources/views/vendor/mail',
-      ),
-    ),
-  ),
   'session' => 
   array (
     'driver' => 'cookie',
@@ -443,7 +367,7 @@
       0 => 2,
       1 => 100,
     ),
-    'cookie' => 'portfolioapi_session',
+    'cookie' => 'laravel_session',
     'path' => '/',
     'domain' => 'localhost',
     'secure' => NULL,
@@ -538,7 +462,6 @@
     ),
     'allowed_origins' => 
     array (
-      0 => 'http://localhost:3000',
     ),
     'allowed_origins_patterns' => 
     array (
@@ -649,7 +572,7 @@
       'options' => 
       array (
         'cluster' => 'redis',
-        'prefix' => 'portfolioapi_database_',
+        'prefix' => 'laravel_database_',
         'persistent' => false,
       ),
       'default' => 
@@ -669,6 +592,82 @@
         'password' => NULL,
         'port' => '6379',
         'database' => '1',
+      ),
+    ),
+  ),
+  'mail' => 
+  array (
+    'default' => 'smtp',
+    'mailers' => 
+    array (
+      'smtp' => 
+      array (
+        'transport' => 'smtp',
+        'url' => NULL,
+        'host' => 'smtp.gmail.com',
+        'port' => '587',
+        'encryption' => 'tls',
+        'username' => 'gayensis09@gmail.com',
+        'password' => 'lmub ljfc slvu taty',
+        'timeout' => NULL,
+        'local_domain' => NULL,
+      ),
+      'ses' => 
+      array (
+        'transport' => 'ses',
+      ),
+      'postmark' => 
+      array (
+        'transport' => 'postmark',
+      ),
+      'resend' => 
+      array (
+        'transport' => 'resend',
+      ),
+      'sendmail' => 
+      array (
+        'transport' => 'sendmail',
+        'path' => '/usr/sbin/sendmail -bs -i',
+      ),
+      'log' => 
+      array (
+        'transport' => 'log',
+        'channel' => NULL,
+      ),
+      'array' => 
+      array (
+        'transport' => 'array',
+      ),
+      'failover' => 
+      array (
+        'transport' => 'failover',
+        'mailers' => 
+        array (
+          0 => 'smtp',
+          1 => 'log',
+        ),
+      ),
+      'roundrobin' => 
+      array (
+        'transport' => 'roundrobin',
+        'mailers' => 
+        array (
+          0 => 'ses',
+          1 => 'postmark',
+        ),
+      ),
+    ),
+    'from' => 
+    array (
+      'address' => 'gayensis09@gmail.com',
+      'name' => 'Baye Mor Gaye',
+    ),
+    'markdown' => 
+    array (
+      'theme' => 'default',
+      'paths' => 
+      array (
+        0 => '/var/www/resources/views/vendor/mail',
       ),
     ),
   ),
@@ -788,14 +787,10 @@
         'channel' => NULL,
       ),
     ),
-    'paligemma' => 
+    'ollama' => 
     array (
-      'enabled' => false,
-    ),
-    'vertex' => 
-    array (
-      'api_key' => NULL,
-      'endpoint' => 'https://us-central1-aiplatform.googleapis.com/v1',
+      'url' => 'http://host.docker.internal:11434',
+      'model' => 'llava',
     ),
   ),
 );

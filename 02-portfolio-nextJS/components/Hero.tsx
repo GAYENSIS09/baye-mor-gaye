@@ -92,7 +92,7 @@ function HeroCTA() {
 }
 
 export default function Hero() {
-  const { profile, loading } = useProfile();
+  const { profile, loading, error } = useProfile();
 
   const nomParts = profile?.nom?.split(" ") ?? [];
   const prenom = nomParts.slice(0, -1).join(" ");
@@ -107,35 +107,52 @@ export default function Hero() {
       <div aria-hidden className="absolute top-1/4 right-[-10%] w-[500px] h-[500px] rounded-full bg-acid/5 blur-[120px] pointer-events-none" />
       <div aria-hidden className="absolute bottom-0 left-[-5%] w-[300px] h-[300px] rounded-full bg-acid/3 blur-[80px] pointer-events-none" />
 
-      <div className="absolute top-24 right-6 md:right-12 flex flex-col items-end gap-2 animate-fade-in">
-        <span className="tag">{titre}</span>
-        <ProprietaireLocalisation localisation={localisation} />
-        <span className="font-mono text-xs text-muted">
-          {profile?.updated_at ? new Date(profile.updated_at).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }) : ""}
-        </span>
-      </div>
-
       <div className="max-w-6xl mx-auto w-full">
         {loading ? (
-          <div className="h-48 flex items-center">
-            <span className="font-mono text-sm text-muted animate-pulse">Chargement...</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-8 mb-8">
-            <ProprietaireAvatar photo={getMediaUrl(photo)} nom={profile?.nom || ""} />
-            <div>
-              <ProprietaireTitre prenom={prenom} nom={nom} />
+          <div className="animate-pulse space-y-8">
+            <div className="flex items-center gap-8 mb-8">
+              <div className="w-28 h-28 md:w-36 md:h-36 rounded-full bg-[#222]" />
+              <div className="space-y-4">
+                <div className="h-16 w-64 bg-[#222] rounded" />
+                <div className="h-12 w-48 bg-[#222] rounded" />
+              </div>
+            </div>
+            <div className="h-6 w-96 bg-[#222] rounded" />
+            <div className="flex gap-4">
+              <div className="h-12 w-40 bg-[#222] rounded-full" />
+              <div className="h-12 w-32 bg-[#222] rounded-full" />
             </div>
           </div>
-        )}
-
-        <div className="mt-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6 animate-fade-up" style={{ animationDelay: "0.4s", opacity: 0 }}>
-          <ProprietaireBio bio={bio || ''} />
-          <div className="flex gap-4 flex-wrap">
-            <HeroCTA />
-            <ProprietaireLinks linkedin={profile?.url_linkedin} github={profile?.url_github} siteweb={profile?.site_web} />
+        ) : error || !profile ? (
+          <div className="h-48 flex items-center justify-center">
+            <p className="text-muted font-mono text-sm">Impossible de charger le profil.</p>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="absolute top-24 right-6 md:right-12 flex flex-col items-end gap-2 animate-fade-in">
+              <span className="tag">{titre}</span>
+              <ProprietaireLocalisation localisation={localisation} />
+              <span className="font-mono text-xs text-muted">
+                {profile?.updated_at ? new Date(profile.updated_at).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }) : ""}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-8 mb-8">
+              <ProprietaireAvatar photo={getMediaUrl(photo)} nom={profile?.nom || ""} />
+              <div>
+                <ProprietaireTitre prenom={prenom} nom={nom} />
+              </div>
+            </div>
+
+            <div className="mt-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6 animate-fade-up" style={{ animationDelay: "0.4s", opacity: 0 }}>
+              <ProprietaireBio bio={bio || ''} />
+              <div className="flex gap-4 flex-wrap">
+                <HeroCTA />
+                <ProprietaireLinks linkedin={profile?.url_linkedin} github={profile?.url_github} siteweb={profile?.site_web} />
+              </div>
+            </div>
+          </>
+        )}
 
         <div className="mt-12 flex items-center gap-4">
           <div className="h-px bg-[#333] flex-1" />

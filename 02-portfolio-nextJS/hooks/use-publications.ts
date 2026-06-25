@@ -3,10 +3,11 @@ import { api } from '@/lib/api';
 import { qk } from '@/lib/query-keys';
 import type { PaginatedResponse, Publication } from '@/types/api';
 
-export function usePublications(params?: Record<string, string>) {
+export function usePublications(params?: Record<string, string>, enabled = true) {
   return useQuery({
     queryKey: qk.publications(params),
     queryFn: () => api.get<PaginatedResponse<Publication>>('/publications', { params }),
+    enabled,
   });
 }
 
@@ -40,7 +41,8 @@ export function useUpdatePublication(id: number) {
     mutationFn: (data: Record<string, unknown>) => api.put(`/publications/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false });
-      queryClient.invalidateQueries({ queryKey: ['publication'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['publication-slug'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['publication-id'], exact: false });
     },
   });
 }
@@ -58,7 +60,11 @@ export function useCreatePublicationMedia() {
   return useMutation({
     mutationFn: (data: { mediable_type: string; mediable_id: number; type: string; chemin_fichier: string; titre?: string; est_principal?: boolean }) =>
       api.post('/media', data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false });
+      queryClient.invalidateQueries({ queryKey: ['publication-slug'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['publication-id'], exact: false });
+    },
   });
 }
 
@@ -66,6 +72,10 @@ export function useDeletePublicationMedia() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.delete(`/media/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false });
+      queryClient.invalidateQueries({ queryKey: ['publication-slug'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['publication-id'], exact: false });
+    },
   });
 }

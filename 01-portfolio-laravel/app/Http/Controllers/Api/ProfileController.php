@@ -21,6 +21,14 @@ class ProfileController extends Controller
             return response()->json(['message' => 'Profil proprietaire introuvable.'], 404);
         }
 
+        $proprietaire->load([
+            'niveauxCompetence.competence',
+            'domaines',
+            'experiences',
+            'formations',
+            'certifications',
+        ]);
+
         return ProprietaireResource::make($proprietaire);
     }
 
@@ -28,7 +36,7 @@ class ProfileController extends Controller
     {
         $proprietaire = \App\Models\Proprietaire::with([
             'utilisateur',
-            'competences.niveaux',
+            'niveauxCompetence.competence',
             'domaines',
             'experiences.medias',
             'formations.medias',
@@ -40,30 +48,7 @@ class ProfileController extends Controller
         }
 
         return Cache::remember('profile.public', 3600, function () use ($proprietaire) {
-            $photo = $proprietaire->utilisateur->photo;
-            $photoUrl = $photo
-                ? (str_starts_with($photo, 'http://') || str_starts_with($photo, 'https://')
-                    ? $photo
-                    : url("storage/$photo"))
-                : null;
-
-            return response()->json([
-                'nom' => $proprietaire->utilisateur->nom,
-                'email' => $proprietaire->utilisateur->email,
-                'photo' => $photoUrl,
-                'titre_professionnel' => $proprietaire->titre_professionnel,
-                'bio' => $proprietaire->bio,
-                'localisation' => $proprietaire->localisation,
-                'site_web' => $proprietaire->site_web,
-                'url_linkedin' => $proprietaire->url_linkedin,
-                'url_github' => $proprietaire->url_github,
-                'updated_at' => $proprietaire->updated_at?->toIso8601String(),
-                'competences' => $proprietaire->competences,
-                'domaines' => $proprietaire->domaines,
-                'experiences' => $proprietaire->experiences,
-                'formations' => $proprietaire->formations,
-                'certifications' => $proprietaire->certifications,
-            ]);
+            return ProprietaireResource::make($proprietaire);
         });
     }
 

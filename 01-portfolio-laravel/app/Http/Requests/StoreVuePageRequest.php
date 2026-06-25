@@ -14,8 +14,8 @@ class StoreVuePageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'page' => 'required|string|in:publication,projet',
-            'page_id' => 'required|integer|min:1',
+            'page'    => 'required|string|in:publication,projet',
+            'page_id' => ['required', 'integer', 'min:1'],
         ];
     }
 }

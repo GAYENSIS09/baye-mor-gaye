@@ -9,15 +9,32 @@ use App\Http\Resources\ProjetPortfolioResource;
 use App\Models\ProjetPortfolio;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ProjetPortfolioController extends Controller
 {
     public function index(Request $request)
     {
-        // Cache only the public list without filters
-        if ($request->boolean('publie') && !$request->has('technologie')) {
-            return Cache::remember('projets.publies', 3600, function () {
+        $this->tryAuthUser($request);
+        $hasAuth = (bool) $request->user();
+
+        if ($request->has('statut') && !$hasAuth) {
+            abort(403, 'Action non autorisée.');
+        }
+
+        if ($request->boolean('all') && !$hasAuth) {
+            $request->query->set('all', 'false');
+        }
+
+        $cacheKey = 'projets.publies.page.' . $request->get('page', 1);
+        $canCache = $request->boolean('publie')
+            && !$request->has('technologie')
+            && !$request->has('search')
+            && !$request->has('statut');
+
+        if ($canCache && !$hasAuth) {
+            return Cache::remember($cacheKey, 3600, function () {
                 return ProjetPortfolioResource::collection(ProjetPortfolio::with(['commentaires.auteur', 'likes.auteur', 'medias'])
                     ->where('est_publie', true)
                     ->orderBy('created_at', 'desc')
@@ -44,7 +61,8 @@ class ProjetPortfolioController extends Controller
         }
 
         if ($request->has('search')) {
-            $query->where('titre', 'like', '%' . $request->search . '%');
+            $safe = str_replace(['%', '_'], ['\\%', '\\_'], $request->search);
+            $query->where('titre', 'like', '%' . $safe . '%');
         }
 
         return ProjetPortfolioResource::collection($query->orderBy('created_at', 'desc')->paginate(12));
@@ -52,30 +70,55 @@ class ProjetPortfolioController extends Controller
 
     public function show(Request $request, string $slug)
     {
+        $this->tryAuthUser($request);
         $query = ProjetPortfolio::with(['commentaires.auteur', 'likes.auteur', 'medias']);
 
-        if (!$request->boolean('all')) {
+        $all = $request->boolean('all');
+        if ($all && !$request->user()) {
+            $all = false;
+            $query->where('est_publie', true);
+        } elseif (!$all) {
             $query->where('est_publie', true);
         }
 
         if (is_numeric($slug)) {
-            return ProjetPortfolioResource::make($query->findOrFail((int) $slug));
+            $projetPortfolio = $query->findOrFail((int) $slug);
+        } else {
+            $projetPortfolio = $query->where('slug', $slug)->firstOrFail();
         }
-        return ProjetPortfolioResource::make($query->where('slug', $slug)->firstOrFail());
+
+        if ($all) {
+            $this->authorizeOwnershipOrFail($request, $projetPortfolio);
+        }
+
+        if (!$all) {
+            $projetPortfolio->load([
+                'commentaires' => function ($q) {
+                    $q->where('est_approuve', true);
+                },
+                'commentaires.auteur',
+            ]);
+        }
+
+        return ProjetPortfolioResource::make($projetPortfolio);
     }
 
     public function store(StoreProjetPortfolioRequest $request)
     {
         $data = $request->validated();
-        $data['slug'] = Str::slug($data['titre']) . '-' . Str::random(6);
-        $data['proprietaire_id'] = $request->user()->proprietaire->id;
 
-        if ($data['est_publie'] ?? false) {
-            $data['publie_le'] = now();
-        }
+        return DB::transaction(function () use ($request, $data) {
+            $data['slug'] = Str::slug($data['titre']) . '-' . Str::random(6);
+            $data['proprietaire_id'] = $request->user()->proprietaire->id;
 
-        Cache::forget('projets.publies');
-        return ProjetPortfolioResource::make(ProjetPortfolio::create($data)->load(['commentaires.auteur', 'likes.auteur', 'medias']));
+            if ($data['est_publie'] ?? false) {
+                $data['publie_le'] = now();
+            }
+
+            $projet = ProjetPortfolio::create($data);
+            Cache::forget('projets.publies.page.1');
+            return ProjetPortfolioResource::make($projet->load(['commentaires.auteur', 'likes.auteur', 'medias']));
+        });
     }
 
     public function update(UpdateProjetPortfolioRequest $request, ProjetPortfolio $projetPortfolio)
@@ -84,20 +127,22 @@ class ProjetPortfolioController extends Controller
 
         $data = $request->validated();
 
-        if (isset($data['est_publie']) && $data['est_publie'] && !$projetPortfolio->publie_le) {
-            $data['publie_le'] = now();
-        }
+        return DB::transaction(function () use ($request, $projetPortfolio, $data) {
+            if (isset($data['est_publie']) && $data['est_publie'] && !$projetPortfolio->publie_le) {
+                $data['publie_le'] = now();
+            }
 
-        $projetPortfolio->update($data);
-        Cache::forget('projets.publies');
-        return ProjetPortfolioResource::make($projetPortfolio->load(['commentaires.auteur', 'likes.auteur', 'medias']));
+            $projetPortfolio->update($data);
+            Cache::forget('projets.publies.page.1');
+            return ProjetPortfolioResource::make($projetPortfolio->load(['commentaires.auteur', 'likes.auteur', 'medias']));
+        });
     }
 
     public function destroy(Request $request, ProjetPortfolio $projetPortfolio)
     {
         $this->authorizeOwnershipOrFail($request, $projetPortfolio);
         $projetPortfolio->delete();
-        Cache::forget('projets.publies');
+        Cache::forget('projets.publies.page.1');
         return response()->noContent();
     }
 }

@@ -16,7 +16,10 @@ class EnvoyerRappels extends Command
     public function handle(): int
     {
         $rappels = Rappel::where('est_notifie', false)
-            ->where('notifie_le', '<=', now())
+            ->where(function ($q) {
+                $q->where('notifie_le', '<=', now())
+                  ->orWhereNull('notifie_le');
+            })
             ->get();
 
         if ($rappels->isEmpty()) {

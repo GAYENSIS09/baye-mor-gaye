@@ -16,7 +16,7 @@ export { useCertifications } from './use-certifications';
 export { useCompetences } from './useProfile';
 export { useDomaines } from './use-domaines';
 export { useContacts } from './use-contacts';
-export { useCommentairesEnAttente } from './use-commentaires';
+export { useCommentairesEnAttente, useMesCommentaires } from './use-commentaires';
 export { useNotifications } from './use-notifications';
 export { useRessources } from './use-ressources';
 export { useRappels } from './use-rappels';

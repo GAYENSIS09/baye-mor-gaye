@@ -25,8 +25,8 @@ export default function RegisterPage() {
     }
     setLoading(true);
     try {
-      await register(nom, email, password, passwordConfirmation);
-      router.push('/dashboard');
+      const user = await register(nom, email, password, passwordConfirmation);
+      router.push(user.proprietaire ? '/dashboard' : '/');
     } catch {
       setError('Erreur lors de l\'inscription. Verifiez vos donnees.');
     } finally {

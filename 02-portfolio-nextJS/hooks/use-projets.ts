@@ -3,10 +3,11 @@ import { api } from '@/lib/api';
 import { qk } from '@/lib/query-keys';
 import type { PaginatedResponse, Projet } from '@/types/api';
 
-export function useProjects(params?: Record<string, string>) {
+export function useProjects(params?: Record<string, string>, enabled = true) {
   return useQuery({
     queryKey: qk.projets(params),
     queryFn: () => api.get<PaginatedResponse<Projet>>('/projets', { params }),
+    enabled,
   });
 }
 
@@ -40,8 +41,8 @@ export function useUpdateProjet(id: number) {
     mutationFn: (data: Record<string, unknown>) => api.put(`/projets/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.projets(), exact: false });
-      queryClient.invalidateQueries({ queryKey: ['project'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['projet'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['projet-slug'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['projet-id'], exact: false });
     },
   });
 }
@@ -50,7 +51,11 @@ export function useDeleteProjet() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.delete(`/projets/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.projets(), exact: false }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.projets(), exact: false });
+      queryClient.invalidateQueries({ queryKey: ['projet-slug'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['projet-id'], exact: false });
+    },
   });
 }
 
@@ -59,7 +64,11 @@ export function useCreateProjetMedia() {
   return useMutation({
     mutationFn: (data: { mediable_type: string; mediable_id: number; type: string; chemin_fichier: string; titre?: string; est_principal?: boolean }) =>
       api.post('/media', data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.projets(), exact: false }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.projets(), exact: false });
+      queryClient.invalidateQueries({ queryKey: ['projet-slug'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['projet-id'], exact: false });
+    },
   });
 }
 
@@ -67,6 +76,10 @@ export function useDeleteProjetMedia() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.delete(`/media/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.projets(), exact: false }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.projets(), exact: false });
+      queryClient.invalidateQueries({ queryKey: ['projet-slug'], exact: false });
+      queryClient.invalidateQueries({ queryKey: ['projet-id'], exact: false });
+    },
   });
 }

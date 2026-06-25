@@ -1,3 +1,7 @@
+const apiOrigin = process.env.NEXT_PUBLIC_API_URL
+  ? new URL(process.env.NEXT_PUBLIC_API_URL).origin
+  : 'http://localhost:8000';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
@@ -31,11 +35,12 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https: http://localhost:8000",
+              `img-src 'self' data: blob: https: ${apiOrigin}`,
               "font-src 'self' https://fonts.gstatic.com",
-              "connect-src 'self' http://localhost:8000 http://127.0.0.1:8000",
-              "media-src 'self' https: http://localhost:8000",
-              "frame-src 'self' https: http://localhost:8000",
+              `connect-src 'self' ${apiOrigin}`,
+              `media-src 'self' https: ${apiOrigin}`,
+              `object-src ${apiOrigin}`,
+              `frame-src 'self' https: ${apiOrigin}`,
               "frame-ancestors 'none'",
               "form-action 'self'",
               "base-uri 'self'",

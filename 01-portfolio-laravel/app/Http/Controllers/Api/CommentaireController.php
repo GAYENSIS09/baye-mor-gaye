@@ -17,20 +17,9 @@ use Illuminate\Support\Facades\Mail;
 
 class CommentaireController extends Controller
 {
-    public function index(string $commentableType, int $commentableId)
-    {
-        $model = $this->resolveModel($commentableType, $commentableId);
-
-        return CommentaireResource::collection($model->commentaires()->with(['auteur', 'commentable'])->where('est_approuve', true)->paginate(20));
-    }
-
     public function store(StoreCommentaireRequest $request)
     {
         $data = $request->validated();
-
-        if (!in_array($data['commentable_type'], ['publication', 'publications', 'projet_portfolio', 'projets'])) {
-            abort(422, 'Type de commentaire invalide');
-        }
 
         $model = $this->resolveModel($data['commentable_type'], $data['commentable_id']);
 
@@ -86,25 +75,11 @@ class CommentaireController extends Controller
         return response()->json(['message' => 'Commentaire rejeté']);
     }
 
-    public function publicationCommentaires(string $slug)
-    {
-        $publication = Publication::where('slug', $slug)->firstOrFail();
-
-        return CommentaireResource::collection($publication->commentaires()->with(['auteur', 'commentable'])->where('est_approuve', true)->paginate(20));
-    }
-
-    public function projetCommentaires(string $slug)
-    {
-        $projet = ProjetPortfolio::where('slug', $slug)->firstOrFail();
-
-        return CommentaireResource::collection($projet->commentaires()->with(['auteur', 'commentable'])->where('est_approuve', true)->paginate(20));
-    }
-
     public function enAttente(Request $request)
     {
         $proprietaireId = $this->getProprietaireId($request);
         if (!$proprietaireId) {
-            abort(403);
+            return CommentaireResource::collection(Commentaire::where('id', 0)->paginate(20));
         }
         return CommentaireResource::collection(Commentaire::with(['auteur', 'commentable'])
             ->where('est_approuve', false)
@@ -116,16 +91,32 @@ class CommentaireController extends Controller
             ->paginate(20));
     }
 
+    public function mesCommentaires(Request $request)
+    {
+        return CommentaireResource::collection(
+            Commentaire::with(['auteur', 'commentable'])
+                ->where('auteur_id', $request->user()->id)
+                ->orderBy('created_at', 'desc')
+                ->paginate(20)
+        );
+    }
+
     public function destroy(Request $request, Commentaire $commentaire)
     {
-        $this->authorizeOwnershipOrFail($request, $commentaire->commentable);
+        $user = $request->user();
+        if ($user->id !== $commentaire->auteur_id) {
+            $this->authorizeOwnershipOrFail($request, $commentaire->commentable);
+        }
         $commentaire->delete();
         return response()->noContent();
     }
 
     public function update(UpdateCommentaireRequest $request, Commentaire $commentaire)
     {
-        $this->authorizeOwnershipOrFail($request, $commentaire->commentable);
+        $user = $request->user();
+        if ($user->id !== $commentaire->auteur_id) {
+            $this->authorizeOwnershipOrFail($request, $commentaire->commentable);
+        }
 
         $commentaire->update($request->validated());
 
@@ -135,8 +126,9 @@ class CommentaireController extends Controller
     private function resolveModel(string $type, int $id)
     {
         return match ($type) {
-            'publication', 'publications' => \App\Models\Publication::findOrFail($id),
-            'projet_portfolio', 'projets' => \App\Models\ProjetPortfolio::findOrFail($id),
+            'publication', 'publications', Publication::class => Publication::findOrFail($id),
+            'projet', 'projet_portfolio', 'projets', ProjetPortfolio::class => ProjetPortfolio::findOrFail($id),
+            default => abort(400, 'Type de commentaire invalide.'),
         };
     }
 }

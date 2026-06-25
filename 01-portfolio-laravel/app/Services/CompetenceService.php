@@ -6,6 +6,7 @@ use App\Models\Competence;
 use App\Models\NiveauCompetence;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class CompetenceService extends BaseCrudService
 {
@@ -34,44 +35,56 @@ class CompetenceService extends BaseCrudService
 
     public function store(array $data): Model
     {
-        $competence = Competence::create([
-            'nom' => $data['nom'],
-            'categorie' => $data['categorie'] ?? null,
-            'icone' => $data['icone'] ?? null,
-        ]);
+        return DB::transaction(function () use ($data) {
+            $competence = Competence::create([
+                'nom' => $data['nom'],
+                'categorie' => $data['categorie'] ?? null,
+                'icone' => $data['icone'] ?? null,
+            ]);
 
-        NiveauCompetence::create([
-            'proprietaire_id' => $data['proprietaire_id'],
-            'competence_id' => $competence->id,
-            'niveau' => $data['niveau'] ?? 'debutant',
-        ]);
+            NiveauCompetence::create([
+                'proprietaire_id' => $data['proprietaire_id'],
+                'competence_id' => $competence->id,
+                'niveau' => $data['niveau'] ?? 'debutant',
+            ]);
 
-        $this->clearCache();
+            $this->clearCache($data['proprietaire_id'] ?? null);
 
-        return $competence->load('niveaux');
+            return $competence->load('niveaux');
+        });
     }
 
     public function update(Model $competence, array $data): Model
     {
-        $competence->update($data);
+        return DB::transaction(function () use ($competence, $data) {
+            $competence->update($data);
 
-        if (isset($data['niveau'])) {
-            NiveauCompetence::updateOrCreate(
-                ['proprietaire_id' => $data['proprietaire_id'], 'competence_id' => $competence->id],
-                ['niveau' => $data['niveau']]
-            );
-        }
+            if (isset($data['niveau'])) {
+                NiveauCompetence::updateOrCreate(
+                    ['proprietaire_id' => $data['proprietaire_id'], 'competence_id' => $competence->id],
+                    ['niveau' => $data['niveau']]
+                );
+            }
 
-        $this->clearCache();
+            $this->clearCache($data['proprietaire_id'] ?? null);
 
-        return $competence->load('niveaux');
+            return $competence->load('niveaux');
+        });
     }
 
     public function delete(Model $competence): void
     {
-        $competence->niveaux()->delete();
-        $competence->delete();
-        $this->clearCache();
+        $proprietaireIds = $competence->niveaux()->pluck('proprietaire_id')->unique()->toArray();
+
+        DB::transaction(function () use ($competence) {
+            $competence->niveaux()->delete();
+            $competence->delete();
+            $this->clearCache();
+        });
+
+        foreach ($proprietaireIds as $proprietaireId) {
+            Cache::forget("competences.user.{$proprietaireId}");
+        }
     }
 
     public function show(int $id): ?Model
@@ -79,8 +92,11 @@ class CompetenceService extends BaseCrudService
         return Competence::with('niveaux')->findOrFail($id);
     }
 
-    protected function clearCache(): void
+    protected function clearCache(?int $proprietaireId = null): void
     {
         Cache::forget('competences.public');
+        if ($proprietaireId !== null) {
+            Cache::forget("competences.user.{$proprietaireId}");
+        }
     }
 }

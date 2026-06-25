@@ -1,5 +1,5 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-const STORAGE_URL = API_BASE.replace('/api', '/storage');
+export const STORAGE_URL = API_BASE.replace('/api', '/storage');
 
 export function getMediaUrl(path: string | null | undefined, bust?: string | number | null): string | null {
   if (!path) return null;
@@ -11,15 +11,29 @@ export function getMediaUrl(path: string | null | undefined, bust?: string | num
     }
     return path;
   }
-  let url = `${STORAGE_URL}/${path.replace(/^\//, '')}`;
+  let url = `${STORAGE_URL}/${path.replace(/^\/*/, '').replace(/^storage\//, '')}`;
   if (bust) url += `?t=${bust}`;
   return url;
 }
 
+export function decodeHtmlEntities(str: string): string {
+  return str.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#039;/g, "'");
+}
+
 export function processContentImages(html: string): string {
   return html.replace(/<img\s+[^>]*src="([^"]+)"[^>]*>/gi, (match, src) => {
-    const cleanSrc = src.replace(API_BASE.replace('/api', ''), '').replace(/^\//, '');
-    const resolved = getMediaUrl(cleanSrc);
+    if (src.startsWith('http://') || src.startsWith('https://')) {
+      const baseUrl = API_BASE.replace('/api', '');
+      if (src.startsWith(baseUrl)) {
+        const relative = src.replace(baseUrl, '');
+        const resolved = getMediaUrl(relative.replace(/^\//, ''));
+        if (resolved) {
+          return match.replace(`src="${src}"`, `src="${resolved}"`);
+        }
+      }
+      return match;
+    }
+    const resolved = getMediaUrl(src.replace(/^\//, ''));
     if (resolved && resolved !== src) {
       return match.replace(`src="${src}"`, `src="${resolved}"`);
     }

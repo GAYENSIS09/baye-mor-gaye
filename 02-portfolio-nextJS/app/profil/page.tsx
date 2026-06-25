@@ -90,9 +90,9 @@ function MediaLightbox({ media, onClose }: { media: Media; onClose: () => void }
       <button onClick={onClose} className="absolute top-4 right-4 text-white/70 hover:text-white z-10 transition-colors" aria-label="Fermer">
         <Icons.close className="w-8 h-8" />
       </button>
-      <div className="relative max-w-5xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
         {src && (
-          <MediaViewer src={src} alt={media.titre || ''} className="max-h-[85vh] mx-auto rounded-lg" />
+          <MediaViewer src={src} alt={media.titre || ''} className="w-full h-[88vh] mx-auto rounded-lg" />
         )}
         {media.titre && <p className="text-center text-sm text-white/60 mt-3 font-mono">{media.titre}</p>}
       </div>

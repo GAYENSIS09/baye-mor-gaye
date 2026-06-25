@@ -65,7 +65,7 @@ export default function ImporterEdtPage() {
 
       <form onSubmit={handleImport} className="bg-[#111] p-6 rounded border border-[#222] space-y-4">
         <p className="text-sm text-muted">
-          Importez une image d'emploi du temps. L'IA (PaliGemma) extraira automatiquement les événements.
+          Importez une image d'emploi du temps. L'IA (Ollama / llava) extraira automatiquement les événements.
         </p>
 
         <div>
@@ -98,7 +98,7 @@ export default function ImporterEdtPage() {
         <div className="bg-[#111] p-6 rounded border border-[#222] mt-6 space-y-4">
           <h2 className="text-lg font-semibold text-off-white">Résultat de l'analyse</h2>
           <p className="text-xs text-muted font-mono">
-            Modèle : {String(result.modele_utilise || 'PaliGemma')} — Confiance : {result.confiance ? `${(Number(result.confiance) * 100).toFixed(0)}%` : 'N/A'}
+            Modèle : {String(result.modele_utilise || 'Ollama')} — Confiance : {result.confiance ? `${(Number(result.confiance) * 100).toFixed(0)}%` : 'N/A'}
           </p>
 
           {Array.isArray(result.resultat_json) && result.resultat_json.length > 0 ? (

@@ -10,7 +10,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useDomaines, usePublicationById } from '@/hooks/queries';
 import { Domaine, Media } from '@/types/api';
 import { useUpdatePublication, useCreatePublicationMedia, useDeletePublicationMedia } from '@/hooks/mutations';
-import { getMediaUrl } from '@/lib/media';
+import { getMediaUrl, decodeHtmlEntities } from '@/lib/media';
 import TipTapEditor from '@/components/TipTapEditor';
 import { useToast } from '@/contexts/ToastContext';
 import MediaViewer from '@/components/MediaViewer';
@@ -32,6 +32,7 @@ export default function EditPublicationPage() {
   const [selectedDomaines, setSelectedDomaines] = useState<number[]>([]);
   const [imageCouverture, setImageCouverture] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const createMedia = useCreatePublicationMedia();
@@ -47,19 +48,23 @@ export default function EditPublicationPage() {
     reset,
   } = useForm<PublicationFormData>({
     resolver: zodResolver(PublicationFormSchema),
+    defaultValues: { contenu: '' },
   });
 
   useEffect(() => {
     if (publication && !initialized) {
-      setContenu(publication.contenu);
-      setValue('contenu', publication.contenu, { shouldValidate: false });
+      const decodedContenu = decodeHtmlEntities(publication.contenu);
+      setContenu(decodedContenu);
       setSelectedDomaines(publication.domaines?.map((d: Domaine) => d.id) ?? []);
       setImageCouverture(publication.image_couverture ?? '');
+      setImagePreviewUrl('');
+      setImageFile(null);
       reset({
         titre: publication.titre,
         type: publication.type as 'article' | 'tutoriel' | 'note',
         extrait: publication.extrait ?? '',
         est_publie: publication.est_publie,
+        contenu: decodedContenu,
       });
       setInitialized(true);
     }
@@ -105,19 +110,26 @@ export default function EditPublicationPage() {
     }
   }
 
+  function getMediaType(file: File): string {
+    if (file.type.startsWith('image/')) return 'image';
+    if (file.type.startsWith('video/')) return 'video';
+    if (file.type === 'application/pdf') return 'document';
+    return 'document';
+  }
+
   async function handleMediaUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !publication) return;
     try {
-      const isImage = file.type.startsWith('image/');
-      const uploaded = isImage ? await uploadImage(file, 'publications') : await uploadFile(file, 'publications');
-      const type = isImage ? 'image' : file.type === 'application/pdf' ? 'document' : 'document';
+      const uploaded = file.type.startsWith('image/')
+        ? await uploadImage(file, 'publications')
+        : await uploadFile(file, 'publications');
       await createMedia.mutateAsync({
         mediable_type: 'App\\Models\\Publication',
         mediable_id: publication.id,
-        type,
+        type: getMediaType(file),
         chemin_fichier: uploaded.path,
-        titre: 'name' in uploaded ? uploaded.name : file.name,
+        titre: file.name,
       });
       toast.success('Fichier ajouté');
     } catch {
@@ -208,8 +220,20 @@ export default function EditPublicationPage() {
         </div>
         <div>
           <label className="block text-sm font-medium text-off-white">Image de couverture</label>
-          {imageCouverture && <MediaViewer src={imageCouverture} alt="Preview" width={400} height={128} className="h-32 object-cover rounded mb-2" />}
-          <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+          {(imagePreviewUrl || imageCouverture) && (
+            <MediaViewer src={imagePreviewUrl || imageCouverture} alt="Preview" width={400} height={128} className="h-32 object-cover rounded mb-2" />
+          )}
+          <input type="file" accept="image/*" onChange={(e) => {
+            const file = e.target.files?.[0] || null;
+            setImageFile(file);
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = () => setImagePreviewUrl(reader.result as string);
+              reader.readAsDataURL(file);
+            } else {
+              setImagePreviewUrl('');
+            }
+          }}
             className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white" />
           {uploading && <p className="text-xs text-muted mt-1">Upload en cours...</p>}
         </div>
@@ -236,7 +260,7 @@ export default function EditPublicationPage() {
               {publication.medias.map((m: Media) => {
                 const url = getMediaUrl(m.chemin_fichier);
                 return (
-                  <div key={m.id} className="flex items-center gap-3 bg-[#0A0A0A] rounded p-2">
+                  <div key={m.id} className="group flex items-center gap-3 bg-[#0A0A0A] rounded p-2">
                     <div className="w-10 h-10 rounded overflow-hidden bg-[#222] shrink-0 flex items-center justify-center cursor-pointer" onClick={() => url ? setViewMedia({ url, titre: m.titre ?? undefined }) : null}>
                       {m.type === 'image' && url ? (
                         <Image src={url} alt="" width={40} height={40} className="object-cover w-full h-full" unoptimized />
@@ -251,6 +275,7 @@ export default function EditPublicationPage() {
                     <div className="flex-1 min-w-0 cursor-pointer" onClick={() => url ? setViewMedia({ url, titre: m.titre ?? undefined }) : null}>
                       <p className="text-xs text-off-white truncate">{m.titre || 'Sans titre'}</p>
                       <p className="text-[10px] text-muted font-mono">{m.type}</p>
+                      {m.chemin_fichier && <p className="text-[10px] text-acid/60 font-mono truncate hidden group-hover:block" title={m.chemin_fichier}>{m.chemin_fichier}</p>}
                     </div>
                     <button type="button" onClick={() => setConfirmDeleteMedia(m.id)} className="text-red-400 hover:text-red-300 transition-colors">
                       <Icons.trash className="w-3.5 h-3.5" />
@@ -283,15 +308,15 @@ export default function EditPublicationPage() {
           <button onClick={() => setViewMedia(null)} className="absolute top-4 right-4 text-white/70 hover:text-white z-10 transition-colors" aria-label="Fermer">
             <Icons.close className="w-8 h-8" />
           </button>
-          <div className="relative max-w-5xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+          <div className="relative w-full max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
             {viewMedia.url.startsWith('http') && (viewMedia.url.match(/\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)$/i) || viewMedia.url.startsWith('data:image/')) ? (
-              <div className="relative w-full h-[70vh]">
+              <div className="relative w-full h-[88vh]">
                 <Image src={viewMedia.url} alt={viewMedia.titre || ''} fill className="object-contain" unoptimized />
               </div>
             ) : viewMedia.url.match(/\.(mp4|webm|ogg|mov)$/i) ? (
-              <video src={viewMedia.url} controls className="max-h-[85vh] mx-auto rounded-lg" />
+              <video src={viewMedia.url} controls className="w-full h-[88vh] mx-auto rounded-lg" />
             ) : (
-              <iframe src={viewMedia.url} className="w-full h-[80vh] rounded-lg" title={viewMedia.titre || 'Média'} />
+              <iframe src={viewMedia.url} className="w-full h-[88vh] rounded-lg" title={viewMedia.titre || 'Média'} />
             )}
             {viewMedia.titre && <p className="text-center text-sm text-white/60 mt-3 font-mono">{viewMedia.titre}</p>}
           </div>

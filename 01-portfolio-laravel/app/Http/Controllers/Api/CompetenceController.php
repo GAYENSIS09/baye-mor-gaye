@@ -58,7 +58,7 @@ class CompetenceController extends Controller
 
         Cache::forget("competences.user.{$proprietaireId}");
         Cache::forget('competences.public');
-        return $competence->load('niveaux');
+        return CompetenceResource::make($competence->load('niveaux'));
     }
 
     public function update(UpdateCompetenceRequest $request, Competence $competence)

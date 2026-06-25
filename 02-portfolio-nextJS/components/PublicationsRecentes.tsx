@@ -68,7 +68,7 @@ function PublicationCardSmall({ pub }: { pub: Publication }) {
 }
 
 export default function PublicationsRecentesSection() {
-  const { data, isLoading } = usePublications({ publie: 'true', limit: '3' });
+  const { data, isLoading, isError, refetch } = usePublications({ publie: 'true', limit: '3' });
   const publications = data?.data ?? [];
 
   return (
@@ -101,6 +101,13 @@ export default function PublicationsRecentesSection() {
                 </CardContent>
               </CardContainer>
             ))}
+          </div>
+        ) : isError ? (
+          <div className="text-center py-16">
+            <span className="font-mono text-sm text-muted">Impossible de charger les publications.</span>
+            <button onClick={() => refetch()} className="block mx-auto mt-4 text-sm text-acid hover:underline font-mono">
+              Réessayer
+            </button>
           </div>
         ) : publications.length === 0 ? (
           <div className="text-center py-16">

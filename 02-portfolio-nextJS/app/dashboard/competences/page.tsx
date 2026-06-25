@@ -8,7 +8,7 @@ import { CompetenceFormSchema, type CompetenceFormData } from '@/schemas/forms';
 import { useCompetences } from '@/hooks/queries';
 import { useCreateCompetence, useDeleteCompetence, useUpdateCompetence } from '@/hooks/mutations';
 import { useToast } from '@/contexts/ToastContext';
-import ConfirmDialog from '@/components/ConfirmDialog';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import CompetenceBar from '@/components/CompetenceBar';
 import type { Competence } from '@/types/api';
 import { LoadingScreen } from '@/components/LoadingScreen';

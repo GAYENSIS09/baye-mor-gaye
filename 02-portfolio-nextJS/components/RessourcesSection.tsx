@@ -6,15 +6,8 @@ import { Icons } from '@/components/ui/Icons';
 import MediaViewer from '@/components/MediaViewer';
 import { CardContainer, CardImage, CardContent, CardTitle, CardDescription, CardMeta } from "@/components/CardContainer";
 import { SectionHeader } from "@/components/SectionHeader";
+import { getMediaUrl } from '@/lib/media';
 import type { Ressource } from '@/types/api';
-
-const STORAGE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '/storage') || 'http://localhost:8000/storage';
-
-function getMediaUrl(path: string | null | undefined): string | null {
-  if (!path) return null;
-  if (path.startsWith('http://') || path.startsWith('https://')) return path;
-  return `${STORAGE_URL}/${path.replace(/^\//, '')}`;
-}
 
 function getCover(resource: Ressource): string | null {
   if (resource.medias && resource.medias.length > 0) {
@@ -52,9 +45,9 @@ function PreviewModal({ resource, onClose }: { resource: Ressource; onClose: () 
       <button ref={closeRef} onClick={onClose} className="absolute top-4 right-4 text-white/70 hover:text-white z-10 transition-colors" aria-label="Fermer">
         <Icons.close className="w-8 h-8" />
       </button>
-      <div className="relative max-w-5xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
         {previewUrl ? (
-          <MediaViewer src={previewUrl} alt={resource.titre} className="max-h-[85vh] mx-auto rounded-lg" />
+          <MediaViewer src={previewUrl} alt={resource.titre} className="w-full h-[88vh] mx-auto rounded-lg" />
         ) : (
           <div className="bg-[#111] border border-[#222] rounded-lg p-8 text-center">
             <Icons.file className="w-16 h-16 mx-auto text-muted/50 mb-4" aria-hidden />

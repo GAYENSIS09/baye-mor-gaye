@@ -17,8 +17,29 @@ class ProprietaireResource extends JsonResource
             'site_web' => $this->site_web,
             'url_linkedin' => $this->url_linkedin,
             'url_github' => $this->url_github,
-            'photo' => config('proprietaire.photo'),
-            'competences' => NiveauCompetenceResource::collection($this->whenLoaded('niveauxCompetence')),
+            'photo' => $this->utilisateur?->photo ?? config('proprietaire.photo'),
+            'competences' => $this->whenLoaded('niveauxCompetence', function () {
+                return $this->niveauxCompetence
+                    ->groupBy('competence_id')
+                    ->map(function ($niveaux) {
+                        $competence = $niveaux->first()->competence;
+                        if (!$competence) return null;
+                        return [
+                            'id' => $competence->id,
+                            'nom' => $competence->nom,
+                            'categorie' => $competence->categorie,
+                            'icone' => $competence->icone,
+                            'niveaux' => $niveaux->map(fn ($n) => [
+                                'id' => $n->id,
+                                'niveau' => $n->niveau,
+                                'est_surligne' => $n->est_surligne,
+                            ])->values()->all(),
+                        ];
+                    })
+                    ->filter()
+                    ->values()
+                    ->all();
+            }),
             'domaines' => DomaineResource::collection($this->whenLoaded('domaines')),
             'experiences' => ExperienceResource::collection($this->whenLoaded('experiences')),
             'formations' => FormationResource::collection($this->whenLoaded('formations')),

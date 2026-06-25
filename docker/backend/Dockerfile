@@ -12,6 +12,7 @@ RUN apk add --no-cache \
         pcntl
 
 COPY docker/backend/conf.d/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY docker/backend/conf.d/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
 COPY docker/backend/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY docker/backend/nginx/default.conf /etc/nginx/http.d/default.conf

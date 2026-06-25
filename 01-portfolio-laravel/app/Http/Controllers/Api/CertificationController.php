@@ -10,6 +10,7 @@ use App\Models\Certification;
 use App\Models\Proprietaire;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class CertificationController extends Controller
 {
@@ -33,58 +34,63 @@ class CertificationController extends Controller
 
     public function store(StoreCertificationRequest $request)
     {
-        $data = $request->validated();
-        unset($data['media']);
-        $data['proprietaire_id'] = $request->user()->proprietaire->id;
+        return DB::transaction(function () use ($request) {
+            $data = $request->validated();
+            unset($data['media']);
+            $data['proprietaire_id'] = $request->user()->proprietaire->id;
 
-        $certification = Certification::create($data);
+            $certification = Certification::create($data);
 
-        if ($request->hasFile('media')) {
-            $path = $request->file('media')->store('uploads/certifications', 'public');
-            $certification->medias()->create([
-                'type' => 'image',
-                'chemin_fichier' => $path,
-                'titre' => $data['titre'] ?? null,
-                'ordre' => 0,
-            ]);
-        }
+            if ($request->hasFile('media')) {
+                $path = $request->file('media')->store('uploads/certifications', 'public');
+                $certification->medias()->create([
+                    'type' => 'image',
+                    'chemin_fichier' => $path,
+                    'titre' => $data['titre'] ?? null,
+                    'ordre' => 0,
+                ]);
+            }
 
-        Cache::forget('profile.public');
-        Cache::forget('certifications.public');
-        return CertificationResource::make($certification->load('medias'));
+            Cache::forget('profile.public');
+            Cache::forget('certifications.public');
+            return CertificationResource::make($certification->load('medias'));
+        });
     }
 
     public function update(UpdateCertificationRequest $request, Certification $certification)
     {
         $this->authorizeOwnershipOrFail($request, $certification);
 
-        $data = $request->validated();
+        return DB::transaction(function () use ($request, $certification) {
+            $data = $request->validated();
 
-        $certification->update($data);
+            $certification->update($data);
 
-        if ($request->boolean('supprimer_media')) {
-            $certification->medias()->delete();
-        }
+            if ($request->boolean('supprimer_media')) {
+                $certification->medias()->delete();
+            }
 
-        if ($request->hasFile('media')) {
-            $certification->medias()->delete();
-            $path = $request->file('media')->store('uploads/certifications', 'public');
-            $certification->medias()->create([
-                'type' => 'image',
-                'chemin_fichier' => $path,
-                'titre' => $certification->titre,
-                'ordre' => 0,
-            ]);
-        }
+            if ($request->hasFile('media')) {
+                $certification->medias()->delete();
+                $path = $request->file('media')->store('uploads/certifications', 'public');
+                $certification->medias()->create([
+                    'type' => 'image',
+                    'chemin_fichier' => $path,
+                    'titre' => $certification->titre,
+                    'ordre' => 0,
+                ]);
+            }
 
-        Cache::forget('profile.public');
-        Cache::forget('certifications.public');
-        return CertificationResource::make($certification->load('medias'));
+            Cache::forget('profile.public');
+            Cache::forget('certifications.public');
+            return CertificationResource::make($certification->load('medias'));
+        });
     }
 
     public function destroy(Request $request, Certification $certification)
     {
         $this->authorizeOwnershipOrFail($request, $certification);
+        $certification->medias()->delete();
         $certification->delete();
         Cache::forget('profile.public');
         Cache::forget('certifications.public');

@@ -6,6 +6,7 @@ import { DebugProvider } from "@/lib/debug";
 import { Bebas_Neue, DM_Sans, JetBrains_Mono } from 'next/font/google';
 import { PersonJsonLd, WebSiteJsonLd } from '@/components/JsonLd';
 import Navbar from '@/components/Navbar';
+import { STORAGE_URL } from '@/lib/media';
 
 const fontDisplay = Bebas_Neue({
   subsets: ['latin'],
@@ -26,7 +27,6 @@ const fontMono = JetBrains_Mono({
 });
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-const STORAGE_URL = API_BASE.replace('/api', '/storage');
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL || 'https://bayemor.ga';
 
 interface ProfileData {

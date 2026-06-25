@@ -20,8 +20,8 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
-      router.push(searchParams.get('redirect') || '/dashboard');
+      const user = await login(email, password);
+      router.push(searchParams.get('redirect') || (user.proprietaire ? '/dashboard' : '/'));
     } catch {
       setError('Email ou mot de passe incorrect.');
     } finally {

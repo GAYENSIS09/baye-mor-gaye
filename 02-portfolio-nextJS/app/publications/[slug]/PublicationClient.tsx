@@ -11,7 +11,7 @@ import MediaGallery from '@/components/MediaGallery';
 import MediaViewer from '@/components/MediaViewer';
 import { SectionHeader } from '@/components/SectionHeader';
 import { api } from '@/lib/api';
-import { processContentImages } from '@/lib/media';
+import { processContentImages, decodeHtmlEntities } from '@/lib/media';
 import { Domaine, Like, Media } from '@/types/api';
 import { Icons } from '@/components/ui/Icons';
 
@@ -87,7 +87,7 @@ export default function PublicationClient() {
 
           <div className="prose prose-invert max-w-none text-off-white mb-12">
             {publication.contenu_html ? (
-              <div dangerouslySetInnerHTML={{ __html: processContentImages(publication.contenu_html) }} />
+              <div dangerouslySetInnerHTML={{ __html: processContentImages(decodeHtmlEntities(publication.contenu_html)) }} />
             ) : (
               <div className="whitespace-pre-wrap">{publication.contenu}</div>
             )}

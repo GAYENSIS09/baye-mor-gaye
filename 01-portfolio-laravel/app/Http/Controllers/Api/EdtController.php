@@ -12,6 +12,7 @@ use App\Models\Conversion;
 use App\Models\EmploiDuTemps;
 use App\Services\Contracts\VisionServiceInterface;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class EdtController extends Controller
 {
@@ -53,9 +54,9 @@ class EdtController extends Controller
     {
         $data = $request->validated();
 
-        $chemin = $request->file('fichier')->store('edt-imports', 'local');
+        $chemin = $request->file('fichier')->store('uploads/edt-imports', 'public');
 
-        $resultat = app(VisionServiceInterface::class)->analyserEdt(storage_path('app/' . $chemin));
+        $resultat = app(VisionServiceInterface::class)->analyserEdt(Storage::disk('public')->path($chemin));
 
         $conversion = Conversion::create([
             'emploi_du_temps_id' => $data['edt_id'],

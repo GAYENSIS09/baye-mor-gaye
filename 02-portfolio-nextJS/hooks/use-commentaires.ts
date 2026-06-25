@@ -3,10 +3,18 @@ import { api } from '@/lib/api';
 import { qk } from '@/lib/query-keys';
 import type { PaginatedResponse, Commentaire } from '@/types/api';
 
-export function useCommentairesEnAttente(params?: Record<string, string>) {
+export function useCommentairesEnAttente(params?: Record<string, string>, enabled = true) {
   return useQuery({
-    queryKey: qk.commentaires('en-attente'),
+    queryKey: qk.commentairesEnAttente(),
     queryFn: () => api.get<PaginatedResponse<Commentaire>>('/commentaires/en-attente', { params }),
+    enabled,
+  });
+}
+
+export function useMesCommentaires() {
+  return useQuery({
+    queryKey: qk.mesCommentaires(),
+    queryFn: () => api.get<PaginatedResponse<Commentaire>>('/commentaires/mes-commentaires'),
   });
 }
 
@@ -18,6 +26,7 @@ export function useCreateCommentaire() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false });
       queryClient.invalidateQueries({ queryKey: qk.commentaires(), exact: false });
+      queryClient.invalidateQueries({ queryKey: qk.mesCommentaires() });
     },
   });
 }
@@ -26,7 +35,10 @@ export function useApprouverCommentaire() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.put(`/commentaires/${id}/approuver`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.commentaires(), exact: false }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.commentairesEnAttente() });
+      queryClient.invalidateQueries({ queryKey: qk.commentaires(), exact: false });
+    },
   });
 }
 
@@ -34,7 +46,10 @@ export function useRejeterCommentaire() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.put(`/commentaires/${id}/rejeter`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.commentaires(), exact: false }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.commentairesEnAttente() });
+      queryClient.invalidateQueries({ queryKey: qk.commentaires(), exact: false });
+    },
   });
 }
 
@@ -46,6 +61,7 @@ export function useUpdateCommentaire() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false });
       queryClient.invalidateQueries({ queryKey: qk.commentaires(), exact: false });
+      queryClient.invalidateQueries({ queryKey: qk.mesCommentaires() });
     },
   });
 }
@@ -54,6 +70,9 @@ export function useDeleteCommentaire() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.delete(`/commentaires/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.commentaires(), exact: false }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.commentaires(), exact: false });
+      queryClient.invalidateQueries({ queryKey: qk.mesCommentaires() });
+    },
   });
 }

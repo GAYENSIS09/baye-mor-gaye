@@ -33,7 +33,7 @@ use App\Policies\PublicationPolicy;
 use App\Policies\RappelPolicy;
 use App\Policies\RessourcePolicy;
 use App\Services\Contracts\VisionServiceInterface;
-use App\Services\PaliGemmaStub;
+use App\Services\OllamaVisionService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -46,10 +46,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(VisionServiceInterface::class, function () {
-            if (config('services.paligemma.enabled', false)) {
-                return $this->app->make(\App\Services\PaliGemmaVertex::class);
-            }
-            return new PaliGemmaStub;
+            return $this->app->make(\App\Services\OllamaVisionService::class);
         });
     }
 

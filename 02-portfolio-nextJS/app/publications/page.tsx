@@ -6,7 +6,7 @@ import DomaineBadge from '@/components/DomaineBadge';
 import Link from 'next/link';
 import { Skeleton } from '@/components/Skeleton';
 import { SectionHeader } from '@/components/SectionHeader';
-import { Pagination } from '@/components/ActionBar';
+import { Pagination, ActionButton } from '@/components/ActionBar';
 import { MediaPreview } from '@/components/MediaPreview';
 import type { Publication } from '@/types/api';
 import { Icons } from '@/components/ui/Icons';
@@ -59,7 +59,7 @@ export default function PublicationsPage() {
   const params: Record<string, string> = { publie: 'true', page: String(currentPage) };
   if (typeFilter) params.type = typeFilter;
   if (domaineFilter) params.domaine = domaineFilter;
-  const { data, isLoading } = usePublications(params);
+  const { data, isLoading, isError, refetch } = usePublications(params);
   const { data: domainesData } = useDomaines();
   const domaines = domainesData ?? [];
   const publications = data?.data ?? [];
@@ -106,7 +106,12 @@ export default function PublicationsPage() {
       </SectionHeader>
 
       <main className="max-w-4xl mx-auto p-4 py-8">
-        {isLoading ? (
+        {isError ? (
+          <div className="text-center py-16">
+            <p className="text-muted font-mono text-sm mb-4" role="alert">Erreur chargement publications</p>
+            <ActionButton variant="primary" onClick={() => refetch()}>Réessayer</ActionButton>
+          </div>
+        ) : isLoading ? (
           <div className="grid gap-4">
             {Array.from({ length: 5 }).map((_, i) => (
               <div key={i} className="bg-[#111] p-4 rounded border border-[#222]">

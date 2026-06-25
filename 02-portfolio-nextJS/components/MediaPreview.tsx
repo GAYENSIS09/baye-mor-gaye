@@ -50,14 +50,26 @@ export function MediaPreview({
 }: MediaPreviewProps) {
   const resolvedSrc = src ? getMediaUrl(src) : null;
 
-  const isDoc = !isVideo && resolvedSrc ? !!resolvedSrc.match(/\.(pdf)$/i) : false;
+  const isPdf = !isVideo && resolvedSrc ? !!resolvedSrc.match(/\.(pdf)$/i) : false;
 
-  if (!resolvedSrc || isDoc) {
+  if (!resolvedSrc) {
     return (
       <div className={`relative bg-[#1a1a1a] ${sizeClasses[size]} ${className} flex items-center justify-center`}>
         {fallback || (
           <Icons.document className="w-10 h-10 text-off-white/60" aria-hidden />
         )}
+      </div>
+    );
+  }
+
+  if (isPdf) {
+    return (
+      <div className={`relative ${sizeClasses[size]} ${className}`}>
+        <object data={resolvedSrc} type="application/pdf" className="w-full h-full">
+          <div className="flex items-center justify-center bg-[#1a1a1a] w-full h-full">
+            <Icons.document className="w-10 h-10 text-off-white/60" aria-hidden />
+          </div>
+        </object>
       </div>
     );
   }

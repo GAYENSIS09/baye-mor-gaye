@@ -72,7 +72,7 @@ function LightboxContent({ item, onClose }: { item: GalleryItem; onClose: () => 
       <button ref={closeRef} onClick={onClose} className="absolute top-4 right-4 text-white/70 hover:text-white z-10 transition-colors" aria-label="Fermer">
         <Icons.close className="w-8 h-8" />
       </button>
-      <div className="relative max-w-5xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
         {isVid && ytId ? (
           <div className="aspect-video rounded-lg overflow-hidden">
             <iframe
@@ -83,15 +83,15 @@ function LightboxContent({ item, onClose }: { item: GalleryItem; onClose: () => 
             />
           </div>
         ) : isVid ? (
-          <video src={getMediaUrl(item.url) ?? item.url} controls autoPlay className="max-h-[85vh] mx-auto rounded-lg" />
+          <video src={getMediaUrl(item.url) ?? item.url} controls autoPlay className="w-full h-[88vh] mx-auto rounded-lg" />
         ) : isPdf ? (
-          <object data={getMediaUrl(item.url) ?? item.url} type="application/pdf" className="w-full h-[85vh] rounded-lg">
-            <iframe src={getMediaUrl(item.url) ?? item.url} className="w-full h-[85vh] rounded-lg" title={item.titre || 'PDF'}>
+          <object data={getMediaUrl(item.url) ?? item.url} type="application/pdf" className="w-full h-[88vh] rounded-lg">
+            <iframe src={getMediaUrl(item.url) ?? item.url} className="w-full h-[88vh] rounded-lg" title={item.titre || 'PDF'}>
               <p className="text-white/60 text-sm">Votre navigateur ne supporte pas l&apos;affichage des PDF.</p>
             </iframe>
           </object>
         ) : (
-          <img src={getMediaUrl(item.url) ?? item.url} alt={item.titre || ''} className="object-contain max-h-[85vh] mx-auto rounded-lg" />
+          <img src={getMediaUrl(item.url) ?? item.url} alt={item.titre || ''} className="object-contain w-full h-[88vh] mx-auto rounded-lg" />
         )}
         {item.titre && (
           <p className="text-center text-sm text-white/60 mt-3 font-mono">{item.titre}</p>
@@ -112,13 +112,20 @@ export default function MediaGallery({ items }: MediaGalleryProps) {
     setLightbox(true);
   }, []);
 
-  const galleryItems: GalleryItem[] = items.map((m) => ({
-    id: m.id,
-    url: getMediaUrl(isYouTube(m.url, m.type) && m.url ? (m.url.startsWith('http') ? m.url : 'https://www.youtube.com/watch?v=' + m.url) : m.url) ?? m.url,
-    type: m.type,
-    titre: m.titre,
-    vignette: m.vignette ? getMediaUrl(m.vignette) ?? m.vignette : null,
-  }));
+  const galleryItems: GalleryItem[] = items.map((m) => {
+    let url = m.url;
+    if (isYouTube(url, m.type)) {
+      const ytId = getYouTubeId(url);
+      if (ytId) url = `https://www.youtube.com/watch?v=${ytId}`;
+    }
+    return {
+      id: m.id,
+      url: getMediaUrl(url) ?? url,
+      type: m.type,
+      titre: m.titre,
+      vignette: m.vignette ? getMediaUrl(m.vignette) ?? m.vignette : null,
+    };
+  });
 
   return (
     <>

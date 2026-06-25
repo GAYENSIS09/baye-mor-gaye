@@ -25,11 +25,24 @@ class ConversionController extends Controller
 
     public function store(StoreConversionRequest $request)
     {
-        return ConversionResource::make(Conversion::create($request->validated()));
+        $data = $request->validated();
+
+        if (isset($data['evenement_id'])) {
+            $evenement = \App\Models\Evenement::findOrFail($data['evenement_id']);
+            if (!$evenement->emploiDuTemps) {
+                abort(403, 'Action non autorisée.');
+            }
+            $this->authorizeOwnershipOrFail($request, $evenement->emploiDuTemps);
+        }
+
+        return ConversionResource::make(Conversion::create($data));
     }
 
     public function update(UpdateConversionRequest $request, Conversion $conversion)
     {
+        if (!$conversion->evenement || !$conversion->evenement->emploiDuTemps) {
+            abort(403, 'Action non autorisée.');
+        }
         $this->authorizeOwnershipOrFail($request, $conversion->evenement->emploiDuTemps);
 
         $conversion->update($request->validated());
@@ -64,6 +77,9 @@ class ConversionController extends Controller
 
     public function destroy(Request $request, Conversion $conversion)
     {
+        if (!$conversion->evenement || !$conversion->evenement->emploiDuTemps) {
+            abort(403, 'Action non autorisée.');
+        }
         $this->authorizeOwnershipOrFail($request, $conversion->evenement->emploiDuTemps);
         $conversion->delete();
         return response()->noContent();

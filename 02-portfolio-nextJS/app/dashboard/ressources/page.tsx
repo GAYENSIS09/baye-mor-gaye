@@ -20,8 +20,7 @@ import { CardContainer, CardContent, CardTitle } from '@/components/CardContaine
 import { SectionHeader } from '@/components/SectionHeader';
 import { ResponsiveGrid } from '@/components/ResponsiveGrid';
 import { ActionButton, IconButton } from '@/components/ActionBar';
-
-const STORAGE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '/storage') || 'http://localhost:8000/storage';
+import { getMediaUrl } from '@/lib/media';
 
 const MEDIA_TYPE_LABELS: Record<string, string> = {
   image: 'Image',
@@ -38,12 +37,6 @@ const MEDIA_TYPE_ICONS: Record<string, React.ReactNode> = {
   lien: <Icons.external className="w-4 h-4" aria-hidden />,
   youtube: <Icons.play className="w-4 h-4" aria-hidden />,
 };
-
-function getMediaUrlFromPath(path: string | null | undefined): string | null {
-  if (!path) return null;
-  if (path.startsWith('http')) return path;
-  return `${STORAGE_URL}/${path.replace(/^\//, '')}`;
-}
 
 function typeIcon(type: string): React.ReactNode {
   return MEDIA_TYPE_ICONS[type] || <Icons.file className="w-4 h-4" aria-hidden />;
@@ -333,7 +326,7 @@ export default function RessourcesDashboardPage() {
           <ResponsiveGrid columns={1} gap={3}>
             {ressources.map((r) => {
               const imageMedia = r.medias?.find(m => m.type === 'image');
-              const cover = imageMedia ? getMediaUrlFromPath(imageMedia.chemin_fichier) : null;
+              const cover = imageMedia ? getMediaUrl(imageMedia.chemin_fichier) : null;
               return (
                 <div key={r.id}>
                   <CardContainer hover className="p-4">
@@ -362,7 +355,7 @@ export default function RessourcesDashboardPage() {
                         {(r.medias && r.medias.length > 0) && (
                           <div className="flex flex-wrap gap-1.5 mt-2">
                             {r.medias.map(m => {
-                              const url = getMediaUrlFromPath(m.chemin_fichier);
+                              const url = getMediaUrl(m.chemin_fichier);
                               return (
                                 <button key={m.id} type="button" onClick={() => url ? setViewMedia({ url, titre: m.titre ?? undefined }) : undefined}
                                   className="inline-flex items-center gap-1 text-[10px] font-mono text-muted bg-[#1a1a1a] px-1.5 py-0.5 rounded hover:bg-[#2a2a2a] transition-colors cursor-pointer">
@@ -415,7 +408,7 @@ export default function RessourcesDashboardPage() {
                       ) : (
                         <div className="space-y-2">
                           {r.medias.map(m => {
-                            const url = getMediaUrlFromPath(m.chemin_fichier);
+                            const url = getMediaUrl(m.chemin_fichier);
                             return (
                               <div key={m.id} className="flex items-center gap-3 bg-[#0A0A0A] rounded p-2">
                                 <div className="w-10 h-10 rounded overflow-hidden bg-[#222] shrink-0 flex items-center justify-center cursor-pointer" onClick={() => url ? setViewMedia({ url, titre: m.titre ?? undefined }) : null}>
@@ -474,15 +467,15 @@ export default function RessourcesDashboardPage() {
           <button onClick={() => setViewMedia(null)} className="absolute top-4 right-4 text-white/70 hover:text-white z-10 transition-colors" aria-label="Fermer">
             <Icons.close className="w-8 h-8" />
           </button>
-          <div className="relative max-w-5xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+          <div className="relative w-full max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
             {viewMedia.url.startsWith('http') && (viewMedia.url.match(/\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)$/i) || viewMedia.url.startsWith('data:image/')) ? (
-              <div className="relative w-full h-[70vh]">
+              <div className="relative w-full h-[88vh]">
                 <Image src={viewMedia.url} alt={viewMedia.titre || ''} fill className="object-contain" unoptimized />
               </div>
             ) : viewMedia.url.match(/\.(mp4|webm|ogg|mov)$/i) ? (
-              <video src={viewMedia.url} controls className="max-h-[85vh] mx-auto rounded-lg" />
+              <video src={viewMedia.url} controls className="w-full h-[88vh] mx-auto rounded-lg" />
             ) : (
-              <iframe src={viewMedia.url} className="w-full h-[80vh] rounded-lg" title={viewMedia.titre || 'Média'} />
+              <iframe src={viewMedia.url} className="w-full h-[88vh] rounded-lg" title={viewMedia.titre || 'Média'} />
             )}
             {viewMedia.titre && <p className="text-center text-sm text-white/60 mt-3 font-mono">{viewMedia.titre}</p>}
           </div>

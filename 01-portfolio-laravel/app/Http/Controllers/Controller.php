@@ -3,9 +3,20 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Laravel\Sanctum\PersonalAccessToken;
 
 abstract class Controller
 {
+    protected function tryAuthUser(Request $request): void
+    {
+        if (!$request->user() && $request->bearerToken()) {
+            $accessToken = PersonalAccessToken::findToken($request->bearerToken());
+            if ($accessToken) {
+                $request->setUserResolver(fn() => $accessToken->tokenable);
+            }
+        }
+    }
+
     protected function getProprietaireId(Request $request): ?int
     {
         return $request->user()?->proprietaire?->id;
@@ -15,7 +26,7 @@ abstract class Controller
     {
         $proprietaireId = $this->getProprietaireId($request);
         if (!$proprietaireId) return false;
-        return ($model->$ownerKey ?? null) === $proprietaireId;
+        return ($model->{$ownerKey} ?? null) === $proprietaireId;
     }
 
     protected function authorizeOwnershipOrFail(Request $request, object $model, string $ownerKey = 'proprietaire_id'): void

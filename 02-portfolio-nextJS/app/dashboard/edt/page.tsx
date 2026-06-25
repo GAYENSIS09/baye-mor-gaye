@@ -233,7 +233,7 @@ export default function EdtDashboardPage() {
                   {edt.evenements.length > 0 ? (
                     <div className="space-y-1">
                         {edt.evenements.map((e: Evenement) => (
-                        <div key={e.id} className="flex items-center justify-between text-sm px-3 py-2 bg-[#0A0A0A] rounded">
+                        <div key={e.id} className="group flex items-center justify-between text-sm px-3 py-2 bg-[#0A0A0A] rounded">
                           <div className="flex items-center gap-2 flex-1 min-w-0">
                             {e.couleur && <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: e.couleur }} />}
                             {(e as any).type && <span className="text-[10px] uppercase px-1 py-0.5 rounded bg-[#222] text-muted font-mono shrink-0">{(e as any).type}</span>}
@@ -250,6 +250,10 @@ export default function EdtDashboardPage() {
                               e.statut === 'annule' ? 'bg-red-900/20 text-red-400' :
                               'bg-yellow-900/20 text-yellow-400'
                             }`}>{e.statut}</span>
+                            <Link href={`/dashboard/edt/evenements/${e.id}/edit`}
+                              className="text-xs text-acid hover:text-acid/80 font-mono">
+                              ✎
+                            </Link>
                             <button onClick={() => setConfirmDeleteEvent(e.id)}
                               className="text-xs text-red-400 hover:text-red-300 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
                               ×

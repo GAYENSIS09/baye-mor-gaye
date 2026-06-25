@@ -3,7 +3,6 @@
 Portfolio personnel de **Baye Mor Gaye**, etudiant en informatique a l'Universite Cheikh Anta Diop de Dakar. Plateforme mono-proprietaire avec publications de blog, projets portfolio, emploi du temps integre, ressources documentaires, commentaires et likes.
 
 Modelise par 22 cas d'utilisation et 30 entites, couverts par 35 diagrammes UML.
-
 ---
 
 ## Sommaire
@@ -40,7 +39,7 @@ La premiere construction peut prendre 5 a 10 minutes (download des images, npm i
 | API (Laravel) | http://localhost:8000/api |
 | Base de donnees | localhost:3307 |
 
-Le demarrage initial execute automatiquement les migrations, le seed et le cache Laravel via le point d'entree PHP-FPM. Aucune commande manuelle requise.
+Le demarrage initial execute automatiquement les migrations, le cache Laravel, puis lance le worker de queue et le planificateur en arriere-plan via le point d'entree PHP-FPM. Aucune commande manuelle requise.
 
 **Reinitialisation complete :**
 
@@ -78,10 +77,9 @@ Cinq conteneurs orchestres sur le reseau `portfolio`.
 ```
 
 - **nginx** : reverse proxy, sert les assets statiques, proxy les requetes API vers PHP-FPM
-- **php-fpm** : heberge Laravel 11 avec Sanctum, Eloquent, OPCache + JIT, Horizon queues
+- **php-fpm** : heberge Laravel 11 avec Sanctum, Eloquent, OPCache + JIT, Horizon queues, appels Ollama (vision IA)
 - **frontend** : Next.js 16 avec App Router, Turbopack, TanStack Query
 - **db** : MySQL 8.0, persistance via volume `db_data`
-- **workspace** : conteneur de developpement (Composer, Artisan, npm)
 
 Le frontend appelle l'API via nginx (`http://localhost:8000/api`). L'authentification est geree par Laravel Sanctum (jetons API avec cookies).
 
@@ -97,7 +95,7 @@ baye-mor-gaye/
 │   │   ├── Models/           # Eloquent Models (30 entites)
 │   │   └── Services/         # HtmlPurifierService, media, etc.
 │   ├── database/
-│   │   ├── migrations/       # 42 migrations
+│   │   ├── migrations/       # 43 migrations
 │   │   └── seeders/          # 14 seeders
 │   └── routes/
 │       └── api.php           # Routes API (94 endpoints)
@@ -115,9 +113,9 @@ baye-mor-gaye/
 ├── docker/
 │   ├── nginx/                # Configuration nginx (cache, proxy)
 │   ├── php-fpm/              # Dockerfile, entrypoint, php.ini
-│   ├── frontend/             # Dockerfile Next.js
-│   └── workspace/            # Dockerfile CLI
+│   └── frontend/             # Dockerfile Next.js
 │
+├── .env                      # Variables d'environnement (mail, ollama, db)
 ├── uml-code/                 # Sources PlantUML (.wsd)
 ├── uml-svg/                  # Diagrammes generes (SVG)
 ├── docker-compose.yml        # Orchestration des services
@@ -166,7 +164,7 @@ baye-mor-gaye/
 | MySQL 8.0 | Base de donnees relationnelle |
 | Redis 7 | Cache, files d'attente, sessions |
 | Laravel Echo Server | WebSocket temps reel |
-| PaliGemma 2 (10B) | Vision IA (OCR emplois du temps) |
+| Ollama / llava | Vision IA locale (OCR emplois du temps, sans API key) |
 | PlantUML | Generation des diagrammes UML (35 schemas) |
 
 ---
@@ -201,21 +199,26 @@ A chaque demarrage du conteneur php-fpm :
 2. `mkdir -p bootstrap/cache`
 3. `php artisan optimize` (ou fallback : config:cache, route:cache, event:cache)
 4. `php artisan storage:link`
-5. `php artisan migrate:fresh --seed --force` (reinitialise et peuple la base)
-6. Demarrage de PHP-FPM
-
-En production, remplacer `migrate:fresh --seed` par `migrate --force`.
+5. `php artisan migrate --force` (preserve les donnees entre redemarrages)
+6. Demarrage de `queue:work` et `schedule:work` en arriere-plan
+7. Demarrage de PHP-FPM
 
 ### Variables d'environnement
 
-Les principales variables sont definies dans `docker-compose.yml` sous le service `php-fpm` :
+Toutes les variables sont definies dans un unique fichier `.env` a la racine du projet. Le `docker-compose.yml` y reference via la directive `env_file: .env` et les syntaxes `${VAR:-default}`.
 
 | Variable | Valeur par defaut | Description |
 |----------|-------------------|-------------|
+| `APP_KEY` | (generee) | Cle de chiffrement Laravel |
 | `PROPRIETAIRE_NOM` | Baye Mor Gaye | Nom du proprietaire |
 | `PROPRIETAIRE_EMAIL` | contact@... | Email du proprietaire |
 | `PROPRIETAIRE_PASSWORD` | password | Mot de passe du compte admin |
 | `DB_DATABASE` | portfolio | Nom de la base |
+| `MAIL_HOST` | smtp.gmail.com | Serveur SMTP |
+| `MAIL_USERNAME` | (email Gmail) | Identifiant SMTP |
+| `MAIL_PASSWORD` | (mot de passe d'application) | Mot de passe SMTP |
+| `OLLAMA_URL` | http://host.docker.internal:11434 | URL du serveur Ollama |
+| `OLLAMA_MODEL` | llava | Modele de vision IA |
 | `SANCTUM_STATEFUL_DOMAINS` | localhost:3000 | Domaine SPA pour Sanctum |
 
 ---
@@ -288,7 +291,7 @@ Proprietaire ---|> Utilisateur Authentifie ---|> Visiteur
 
 ### Diagrammes de sequence
 
-14 diagrammes couvrant les processus metier : publication (editeur TipTap), emploi du temps (creation manuelle + import PaliGemma), interactions (consultation -> authentification -> commentaire/like), notifications (rappel -> file d'attente -> WebSocket), projet portfolio, moderation des commentaires, contact, competences, domaines, ressources, filtrage, experiences, formations, certifications.
+14 diagrammes couvrant les processus metier : publication (editeur TipTap), emploi du temps (creation manuelle + import Ollama / llava), interactions (consultation -> authentification -> commentaire/like), notifications (rappel -> file d'attente -> WebSocket), projet portfolio, moderation des commentaires, contact, competences, domaines, ressources, filtrage, experiences, formations, certifications.
 
 <div align="center"><img src="uml-svg/sequences/03-sequence-publication.svg" alt="Sequence - Publication" width="700"/></div>
 <div align="center"><img src="uml-svg/sequences/05-sequence-interaction.svg" alt="Sequence - Interactions" width="700"/></div>
@@ -303,7 +306,7 @@ Proprietaire ---|> Utilisateur Authentifie ---|> Visiteur
 
 ### Diagrammes d'architecture
 
-**Composants** : architecture conteneurisee avec les 5 services Docker, les services externes (SMTP, PaliGemma, Echo Server), et les protocoles de communication.
+**Composants** : architecture conteneurisee avec 4 services Docker (frontend, nginx, php-fpm, db), les services externes (SMTP Gmail, Ollama, Echo Server), et les protocoles de communication.
 
 **Deploiement** : infrastructure sur hote unique, volumes montes en bind mount pour le developpement, exposition des ports 8000 (API) et 3000 (frontend).
 

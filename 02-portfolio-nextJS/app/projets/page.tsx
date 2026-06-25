@@ -74,7 +74,7 @@ export default function ProjetsPage() {
   const [techFilter, setTechFilter] = useState('');
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const { data, isLoading, isFetching } = useProjects({ publie: 'true', page: String(currentPage) });
+  const { data, isLoading, isFetching, isError, refetch } = useProjects({ publie: 'true', page: String(currentPage) });
   const projets = data?.data ?? [];
   const lastPage = data?.last_page ?? 1;
   const total = data?.total ?? 0;
@@ -113,7 +113,12 @@ export default function ProjetsPage() {
       </SectionHeader>
 
       <main className="max-w-6xl mx-auto p-4 py-8">
-        {isLoading ? (
+        {isError ? (
+          <div className="text-center py-16">
+            <p className="text-muted font-mono text-sm mb-4" role="alert">Erreur chargement projets</p>
+            <ActionButton variant="primary" onClick={() => refetch()}>Réessayer</ActionButton>
+          </div>
+        ) : isLoading ? (
           <ResponsiveGrid columns={3} gap={6}>
             {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
           </ResponsiveGrid>

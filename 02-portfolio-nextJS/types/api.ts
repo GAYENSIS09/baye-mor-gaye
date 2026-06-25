@@ -141,7 +141,7 @@ export interface Commentaire {
   contenu: string;
   est_approuve: boolean;
   created_at: string;
-  auteur: { id: number; nom: string };
+  auteur: { id: number; nom: string; photo?: string | null };
   commentable: { id: number; titre?: string; slug?: string } | null;
   commentable_type: string;
   commentable_id: number;
@@ -195,11 +195,13 @@ export interface Rappel {
 export interface Evenement {
   id: number;
   titre: string;
+  description: string | null;
   date_debut: string;
   date_fin: string | null;
   statut: string;
   couleur: string | null;
   lieu: string | null;
+  est_journee_complete: boolean | null;
   emploi_du_temps_id: number;
 }
 

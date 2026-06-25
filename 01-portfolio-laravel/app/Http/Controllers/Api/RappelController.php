@@ -22,12 +22,18 @@ class RappelController extends Controller
         return RappelResource::collection($query->orderBy('created_at', 'desc')->paginate(20));
     }
 
+    public function show(Request $request, Rappel $rappel)
+    {
+        $this->authorizeOwnershipOrFail($request, $rappel);
+        return RappelResource::make($rappel->load('evenement'));
+    }
+
     public function store(StoreRappelRequest $request)
     {
         $data = $request->validated();
         $data['proprietaire_id'] = $request->user()->proprietaire->id;
 
-        return RappelResource::make(Rappel::create($data));
+        return RappelResource::make(Rappel::create($data)->load('evenement'));
     }
 
     public function update(UpdateRappelRequest $request, Rappel $rappel)

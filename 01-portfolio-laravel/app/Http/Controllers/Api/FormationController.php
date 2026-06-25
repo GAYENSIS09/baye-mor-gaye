@@ -10,6 +10,7 @@ use App\Models\Formation;
 use App\Models\Proprietaire;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class FormationController extends Controller
 {
@@ -33,58 +34,63 @@ class FormationController extends Controller
 
     public function store(StoreFormationRequest $request)
     {
-        $data = $request->validated();
-        $data['proprietaire_id'] = $request->user()->proprietaire->id;
-        unset($data['media']);
+        return DB::transaction(function () use ($request) {
+            $data = $request->validated();
+            $data['proprietaire_id'] = $request->user()->proprietaire->id;
+            unset($data['media']);
 
-        $formation = Formation::create($data);
+            $formation = Formation::create($data);
 
-        if ($request->hasFile('media')) {
-            $path = $request->file('media')->store('uploads/formations', 'public');
-            $formation->medias()->create([
-                'type' => 'image',
-                'chemin_fichier' => $path,
-                'titre' => $data['diplome'] ?? null,
-                'ordre' => 0,
-            ]);
-        }
+            if ($request->hasFile('media')) {
+                $path = $request->file('media')->store('uploads/formations', 'public');
+                $formation->medias()->create([
+                    'type' => 'image',
+                    'chemin_fichier' => $path,
+                    'titre' => $data['diplome'] ?? null,
+                    'ordre' => 0,
+                ]);
+            }
 
-        Cache::forget('profile.public');
-        Cache::forget('formations.public');
-        return FormationResource::make($formation->load('medias'));
+            Cache::forget('profile.public');
+            Cache::forget('formations.public');
+            return FormationResource::make($formation->load('medias'));
+        });
     }
 
     public function update(UpdateFormationRequest $request, Formation $formation)
     {
         $this->authorizeOwnershipOrFail($request, $formation);
 
-        $data = $request->validated();
-        unset($data['media']);
-        $formation->update($data);
+        return DB::transaction(function () use ($request, $formation) {
+            $data = $request->validated();
+            unset($data['media']);
+            $formation->update($data);
 
-        if ($request->boolean('supprimer_media')) {
-            $formation->medias()->delete();
-        }
+            if ($request->boolean('supprimer_media')) {
+                $formation->medias()->delete();
+            }
 
-        if ($request->hasFile('media')) {
-            $formation->medias()->delete();
-            $path = $request->file('media')->store('uploads/formations', 'public');
-            $formation->medias()->create([
-                'type' => 'image',
-                'chemin_fichier' => $path,
-                'titre' => $formation->diplome,
-                'ordre' => 0,
-            ]);
-        }
+            if ($request->hasFile('media')) {
+                $formation->medias()->delete();
+                $path = $request->file('media')->store('uploads/formations', 'public');
+                $formation->medias()->create([
+                    'type' => 'image',
+                    'chemin_fichier' => $path,
+                    'titre' => $formation->diplome,
+                    'ordre' => 0,
+                ]);
+            }
 
-        Cache::forget('profile.public');
-        Cache::forget('formations.public');
-        return FormationResource::make($formation->load('medias'));
+            Cache::forget('profile.public');
+            Cache::forget('formations.public');
+            return FormationResource::make($formation->load('medias'));
+        });
     }
 
     public function destroy(Request $request, Formation $formation)
     {
         $this->authorizeOwnershipOrFail($request, $formation);
+        $formation->medias()->delete();
         $formation->delete();
         Cache::forget('profile.public');
         Cache::forget('formations.public');

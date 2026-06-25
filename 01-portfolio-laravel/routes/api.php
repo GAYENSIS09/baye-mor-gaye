@@ -32,9 +32,6 @@ Route::post('/vues', [VuePageController::class, 'enregistrer'])->middleware('thr
 
 Route::get('/publications', [PublicationController::class, 'index']);
 Route::get('/publications/{slug}', [PublicationController::class, 'show']);
-Route::get('/commentaires/{commentableType}/{commentableId}', [CommentaireController::class, 'index']);
-Route::get('/publications/{slug}/commentaires', [CommentaireController::class, 'publicationCommentaires']);
-Route::get('/projets/{slug}/commentaires', [CommentaireController::class, 'projetCommentaires']);
 
 Route::get('/profile/public', [ProfileController::class, 'publicProfile']);
 
@@ -78,6 +75,7 @@ Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
         ->except(['index', 'show'])
         ->parameters(['publications' => 'publication']);
 
+    Route::get('/commentaires/mes-commentaires', [CommentaireController::class, 'mesCommentaires']);
     Route::get('/commentaires/en-attente', [CommentaireController::class, 'enAttente']);
     Route::post('/commentaires', [CommentaireController::class, 'store']);
     Route::put('/commentaires/{commentaire}/approuver', [CommentaireController::class, 'approuver']);

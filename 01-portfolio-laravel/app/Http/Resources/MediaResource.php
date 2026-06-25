@@ -13,6 +13,7 @@ class MediaResource extends JsonResource
             'id' => $this->id,
             'type' => $this->type,
             'chemin_fichier' => $this->chemin_fichier,
+            'url' => $this->chemin_fichier ? \Illuminate\Support\Facades\Storage::url($this->chemin_fichier) : null,
             'url_externe' => $this->url_externe,
             'vignette' => $this->vignette,
             'titre' => $this->titre,

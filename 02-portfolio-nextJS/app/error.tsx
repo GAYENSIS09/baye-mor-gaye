@@ -9,7 +9,7 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
         <p className="text-muted text-sm mb-8">Quelque chose s'est mal passé. Réessaie ou reviens plus tard.</p>
         <button
           onClick={reset}
-          className="bg-acid text-black px-6 py-3 font-mono text-sm uppercase tracking-widest hover:bg-acid/90 transition-colors"
+          className="bg-acid text-black px-6 py-3 font-mono text-sm uppercase tracking-widest hover:bg-acid/90 transition-colors rounded"
         >
           Réessayer
         </button>

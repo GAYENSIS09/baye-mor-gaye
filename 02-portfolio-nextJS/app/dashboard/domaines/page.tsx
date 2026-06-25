@@ -8,7 +8,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useDomaines } from '@/hooks/queries';
 import { useCreateDomaine, useUpdateDomaine, useDeleteDomaine } from '@/hooks/mutations';
 import type { Domaine } from '@/types/api';
-import ConfirmDialog from '@/components/ConfirmDialog';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { Skeleton } from '@/components/Skeleton';
 import { useToast } from '@/contexts/ToastContext';

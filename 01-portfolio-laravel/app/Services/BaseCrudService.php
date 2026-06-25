@@ -47,21 +47,21 @@ abstract class BaseCrudService implements CrudServiceInterface
     public function store(array $data): Model
     {
         $model = $this->modelClass::create($data);
-        $this->clearCache();
+        $this->clearCache($model->id);
         return $model;
     }
 
     public function update(Model $model, array $data): Model
     {
         $model->update($data);
-        $this->clearCache();
+        $this->clearCache($model->id);
         return $model->fresh();
     }
 
     public function delete(Model $model): void
     {
+        $this->clearCache($model->id);
         $model->delete();
-        $this->clearCache();
     }
 
     protected function applyFilters($query, array $params): void
@@ -129,8 +129,10 @@ abstract class BaseCrudService implements CrudServiceInterface
         }
     }
 
-    protected function clearCache(): void
+    protected function clearCache(?int $id = null): void
     {
-        // Override in subclasses for specific cache invalidation
+        if ($id !== null) {
+            Cache::forget("{$this->cachePrefix}.{$id}");
+        }
     }
 }

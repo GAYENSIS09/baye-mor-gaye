@@ -28,8 +28,7 @@ function StatCard({ label, value, href }: { label: string; value: number; href?:
 export default function DashboardPage() {
   const { utilisateur, loading } = useAuth();
   const router = useRouter();
-  const { data: stats, isLoading: statsLoading } = useStatistiques('7d');
-  const { data: commentairesData, isLoading: commentairesLoading } = useCommentairesEnAttente();
+  const isOwner = !!utilisateur?.proprietaire;
 
   useEffect(() => {
     if (!loading && !utilisateur) {
@@ -40,6 +39,34 @@ export default function DashboardPage() {
   if (loading) return <div className="p-8 text-center text-muted">Chargement...</div>;
   if (!utilisateur) return null;
 
+  if (!isOwner) {
+    return (
+      <div>
+        <SectionHeader
+          title="Tableau de bord"
+          actions={
+            <Link href="/dashboard/profil" className="text-xs text-muted hover:text-acid font-mono transition-colors">
+              Modifier le profil →
+            </Link>
+          }
+        />
+        <CardContainer className="p-6">
+          <CardContent className="p-0 flex items-center gap-4">
+            <div className="w-14 h-14 rounded-full bg-acid/10 flex items-center justify-center text-acid">
+              <Icons.user className="w-7 h-7" />
+            </div>
+            <div>
+              <p className="text-lg text-off-white font-semibold">{utilisateur.nom}</p>
+              <p className="text-sm text-muted">{utilisateur.email}</p>
+            </div>
+          </CardContent>
+        </CardContainer>
+      </div>
+    );
+  }
+
+  const { data: stats, isLoading: statsLoading } = useStatistiques('7d');
+  const { data: commentairesData, isLoading: commentairesLoading } = useCommentairesEnAttente();
   const totaux = stats?.totaux;
   const enAttente = commentairesData?.data ?? [];
 

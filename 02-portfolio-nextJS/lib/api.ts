@@ -7,6 +7,7 @@ const TIMEOUT_MS = 15_000;
 export interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
   traceId?: string;
+  timeoutMs?: number;
 }
 
 export class ApiError extends Error {
@@ -84,7 +85,7 @@ async function request<T = unknown>(
   });
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), options?.timeoutMs ?? TIMEOUT_MS);
 
   try {
     const response = await fetch(url, {

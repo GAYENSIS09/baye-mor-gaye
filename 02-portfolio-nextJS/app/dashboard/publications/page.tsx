@@ -37,7 +37,7 @@ export default function PublicationsDashboardPage() {
   if (domaineFilter) params.domaine = domaineFilter;
   if (statutFilter) params.statut = statutFilter;
 
-  const { data: publicationsResponse, isLoading, isError, refetch } = usePublications(params);
+  const { data: publicationsResponse, isLoading, isError, refetch } = usePublications(params, !!utilisateur);
   const { data: domainesData } = useDomaines();
   const domaines = domainesData ?? [];
 
@@ -46,7 +46,7 @@ export default function PublicationsDashboardPage() {
   const togglePublier = useMutation({
     mutationFn: ({ id, est_publie }: { id: number; est_publie: boolean }) =>
       api.put(`/publications/${id}`, { est_publie }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.publications() }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: qk.publications(), exact: false }),
   });
 
   const publications = publicationsResponse?.data ?? [];
@@ -58,9 +58,12 @@ export default function PublicationsDashboardPage() {
 
   async function handleDelete() {
     if (!deleteTarget) return;
-    await deletePublication.mutateAsync(deleteTarget);
-    setDeleteTarget(null);
-    refetch();
+    try {
+      await deletePublication.mutateAsync(deleteTarget);
+      setDeleteTarget(null);
+    } catch {
+      // error toast handled by mutation
+    }
   }
 
   return (
@@ -156,6 +159,7 @@ export default function PublicationsDashboardPage() {
                     label={p.est_publie ? 'Archiver' : 'Publier'}
                     variant="ghost"
                     size="sm"
+                    disabled={togglePublier.isPending}
                   />
                   <Link href={`/dashboard/publications/${p.id}/edit`}>
                     <IconButton

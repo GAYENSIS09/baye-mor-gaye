@@ -8,31 +8,22 @@ import NotificationBell from '@/components/NotificationBell';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import DashboardBreadcrumbs from '@/components/DashboardBreadcrumbs';
 import { Icons } from '@/components/ui/Icons';
-import { auditLog, useAuditMount, useAuditRender, useAuditHook, useAuditEarlyReturn } from '@/lib/react-audit';
+
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  useAuditMount('DashboardLayout');
   const { utilisateur, loading } = useAuth();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  useAuditHook('DashboardLayout', 'useAuth');
-  useAuditHook('DashboardLayout', 'useRouter');
-  useAuditHook('DashboardLayout', 'useState', { name: 'sidebarOpen' });
+  const isOwner = !!utilisateur?.proprietaire;
 
   useEffect(() => {
-    useAuditHook('DashboardLayout', 'useEffect', { phase: 'init', deps: ['utilisateur', 'loading', 'router'] });
-    if (!loading && !utilisateur) {
-      auditLog.query('DashboardLayout', '/login (redirect)', undefined, undefined, undefined, undefined);
+    if (loading) return;
+    if (!utilisateur) {
       router.push('/login');
     }
-    return () => {
-      useAuditHook('DashboardLayout', 'useEffect', { phase: 'cleanup' });
-    };
   }, [utilisateur, loading, router]);
 
   if (loading) {
-    useAuditEarlyReturn('DashboardLayout', 'loading');
     return (
       <div className="min-h-screen bg-off-black flex items-center justify-center" role="status">
         <div className="flex flex-col items-center gap-3">
@@ -44,11 +35,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   if (!utilisateur) {
-    useAuditEarlyReturn('DashboardLayout', 'no utilisateur');
     return null;
   }
-
-  useAuditRender('DashboardLayout', { utilisateur: utilisateur.id, loading, sidebarOpen }, {});
 
   return (
     <ToastProvider>
@@ -68,13 +56,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link href="/" className="font-mono text-sm tracking-widest text-acid uppercase">
               BMG<span className="text-muted">.</span>dev
             </Link>
-            <NotificationBell />
+            {isOwner && <NotificationBell />}
           </div>
 
           {/* Desktop top bar */}
-          <div className="hidden lg:flex items-center justify-end gap-4 px-8 py-3 border-b border-[#222]">
-            <NotificationBell />
-          </div>
+          {isOwner && (
+            <div className="hidden lg:flex items-center justify-end gap-4 px-8 py-3 border-b border-[#222]">
+              <NotificationBell />
+            </div>
+          )}
 
           {/* Page content */}
           <div className="flex-1 p-4 md:p-8 overflow-y-auto">

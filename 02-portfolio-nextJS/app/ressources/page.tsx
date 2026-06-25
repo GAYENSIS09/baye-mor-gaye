@@ -7,6 +7,7 @@ import { ResponsiveGrid } from '@/components/ResponsiveGrid';
 import { ActionButton, LoadMoreButton, Pagination } from '@/components/ActionBar';
 import { CardContainer, CardImage, CardContent, CardTitle, CardDescription } from '@/components/CardContainer';
 import { MediaPreview, MediaGalleryPreview } from '@/components/MediaPreview';
+import MediaViewer from '@/components/MediaViewer';
 import SkeletonCard from '@/components/SkeletonCard';
 import { Icons } from '@/components/ui/Icons';
 import type { Ressource, Media } from '@/types/api';
@@ -62,9 +63,9 @@ function ResourcePreviewModal({ resource, onClose }: { resource: Ressource; onCl
       <button ref={closeRef} onClick={onClose} className="absolute top-4 right-4 text-white/70 hover:text-white z-10 transition-colors" aria-label="Fermer">
         <Icons.close className="w-8 h-8" />
       </button>
-      <div className="relative max-w-5xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
         {previewUrl ? (
-          <MediaPreview src={previewUrl} alt={resource.titre} aspectRatio="auto" className="max-h-[85vh]" />
+          <MediaViewer src={previewUrl} alt={resource.titre} className="w-full h-[88vh] mx-auto rounded-lg" />
         ) : (
           <div className="bg-[#111] border border-[#222] rounded-lg p-8 text-center">
             <Icons.file className="w-16 h-16 mx-auto text-muted/50 mb-4" aria-hidden />

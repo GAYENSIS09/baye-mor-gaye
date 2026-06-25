@@ -23,6 +23,7 @@ export default function EditProjetPage() {
   const router = useRouter();
   const params = useParams();
   const id = Number(params.id);
+  const isValidId = !Number.isNaN(id) && id > 0;
   const { data: projet, isLoading: loadingProjet } = useProjetById(id);
   const updateProjet = useUpdateProjet(id);
   const toast = useToast();
@@ -30,6 +31,7 @@ export default function EditProjetPage() {
   const [technologies, setTechnologies] = useState<string[]>([]);
   const [imageCouverture, setImageCouverture] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const createMedia = useCreateProjetMedia();
@@ -62,6 +64,8 @@ export default function EditProjetPage() {
     if (projet && !initialized) {
       setTechnologies(projet.technologies ?? []);
       setImageCouverture(projet.image_couverture ?? '');
+      setImagePreviewUrl('');
+      setImageFile(null);
       reset({
         titre: projet.titre,
         description: projet.description,
@@ -109,19 +113,26 @@ export default function EditProjetPage() {
     }
   }
 
+  function getMediaType(file: File): string {
+    if (file.type.startsWith('image/')) return 'image';
+    if (file.type.startsWith('video/')) return 'video';
+    if (file.type === 'application/pdf') return 'document';
+    return 'document';
+  }
+
   async function handleMediaUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !projet) return;
     try {
-      const isImage = file.type.startsWith('image/');
-      const uploaded = isImage ? await uploadImage(file, 'projets') : await uploadFile(file, 'projets');
-      const type = isImage ? 'image' : file.type === 'application/pdf' ? 'document' : 'document';
+      const uploaded = file.type.startsWith('image/')
+        ? await uploadImage(file, 'projets')
+        : await uploadFile(file, 'projets');
       await createMedia.mutateAsync({
         mediable_type: 'App\\Models\\ProjetPortfolio',
         mediable_id: projet.id,
-        type,
+        type: getMediaType(file),
         chemin_fichier: uploaded.path,
-        titre: 'name' in uploaded ? uploaded.name : file.name,
+        titre: file.name,
       });
       toast.success('Fichier ajouté');
     } catch {
@@ -160,6 +171,14 @@ export default function EditProjetPage() {
     } catch {
       toast.error('Erreur lors de la suppression');
     }
+  }
+
+  if (!isValidId) {
+    return (
+      <div className="max-w-3xl mx-auto text-center py-16">
+        <p className="text-muted font-mono text-sm">ID de projet invalide.</p>
+      </div>
+    );
   }
 
   if (authLoading || loadingProjet) return <LoadingScreen />;
@@ -209,12 +228,22 @@ export default function EditProjetPage() {
         </div>
         <div>
           <label className="block text-sm font-medium text-off-white">Image de couverture</label>
-          {imageCouverture && (
+          {(imagePreviewUrl || imageCouverture) && (
             <div className="relative w-full h-40 rounded overflow-hidden mb-2 border border-[#333]">
-              <MediaViewer src={imageCouverture} alt="Preview" fill className="object-cover" />
+              <MediaViewer src={imagePreviewUrl || imageCouverture} alt="Preview" fill className="object-cover" />
             </div>
           )}
-          <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+          <input type="file" accept="image/*" onChange={(e) => {
+            const file = e.target.files?.[0] || null;
+            setImageFile(file);
+            if (file) {
+              const reader = new FileReader();
+              reader.onload = () => setImagePreviewUrl(reader.result as string);
+              reader.readAsDataURL(file);
+            } else {
+              setImagePreviewUrl('');
+            }
+          }}
             className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white" />
           {uploading && <p className="text-xs text-muted mt-1">Upload en cours...</p>}
         </div>
@@ -241,7 +270,7 @@ export default function EditProjetPage() {
               {projet.medias.map((m: Media) => {
                 const url = getMediaUrl(m.chemin_fichier);
                 return (
-                  <div key={m.id} className="flex items-center gap-3 bg-[#0A0A0A] rounded p-2">
+                  <div key={m.id} className="group flex items-center gap-3 bg-[#0A0A0A] rounded p-2">
                     <div className="w-10 h-10 rounded overflow-hidden bg-[#222] shrink-0 flex items-center justify-center cursor-pointer" onClick={() => url ? setViewMedia({ url, titre: m.titre ?? undefined }) : null}>
                       {m.type === 'image' && url ? (
                         <Image src={url} alt="" width={40} height={40} className="object-cover w-full h-full" unoptimized />
@@ -256,6 +285,7 @@ export default function EditProjetPage() {
                     <div className="flex-1 min-w-0 cursor-pointer" onClick={() => url ? setViewMedia({ url, titre: m.titre ?? undefined }) : null}>
                       <p className="text-xs text-off-white truncate">{m.titre || 'Sans titre'}</p>
                       <p className="text-[10px] text-muted font-mono">{m.type}</p>
+                      {m.chemin_fichier && <p className="text-[10px] text-acid/60 font-mono truncate hidden group-hover:block" title={m.chemin_fichier}>{m.chemin_fichier}</p>}
                     </div>
                     <button type="button" onClick={() => setConfirmDeleteMedia(m.id)} className="text-red-400 hover:text-red-300 transition-colors">
                       <Icons.trash className="w-3.5 h-3.5" />
@@ -314,15 +344,15 @@ export default function EditProjetPage() {
           <button onClick={() => setViewMedia(null)} className="absolute top-4 right-4 text-white/70 hover:text-white z-10 transition-colors" aria-label="Fermer">
             <Icons.close className="w-8 h-8" />
           </button>
-          <div className="relative max-w-5xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+          <div className="relative w-full max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
             {viewMedia.url.startsWith('http') && (viewMedia.url.match(/\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)$/i) || viewMedia.url.startsWith('data:image/')) ? (
-              <div className="relative w-full h-[70vh]">
+              <div className="relative w-full h-[88vh]">
                 <Image src={viewMedia.url} alt={viewMedia.titre || ''} fill className="object-contain" unoptimized />
               </div>
             ) : viewMedia.url.match(/\.(mp4|webm|ogg|mov)$/i) ? (
-              <video src={viewMedia.url} controls className="max-h-[85vh] mx-auto rounded-lg" />
+              <video src={viewMedia.url} controls className="w-full h-[88vh] mx-auto rounded-lg" />
             ) : (
-              <iframe src={viewMedia.url} className="w-full h-[80vh] rounded-lg" title={viewMedia.titre || 'Média'} />
+              <iframe src={viewMedia.url} className="w-full h-[88vh] rounded-lg" title={viewMedia.titre || 'Média'} />
             )}
             {viewMedia.titre && <p className="text-center text-sm text-white/60 mt-3 font-mono">{viewMedia.titre}</p>}
           </div>

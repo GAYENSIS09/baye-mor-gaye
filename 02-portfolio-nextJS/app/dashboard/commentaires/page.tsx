@@ -2,9 +2,10 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
-import { useCommentairesEnAttente } from '@/hooks/queries';
+import { useCommentairesEnAttente, useMesCommentaires } from '@/hooks/queries';
 import { useApprouverCommentaire, useDeleteCommentaire, useCreateCommentaire } from '@/hooks/mutations';
 import type { Commentaire } from '@/types/api';
+import { getMediaUrl } from '@/lib/media';
 import ConfirmDialog from '@/components/ConfirmDialog';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { useToast } from '@/contexts/ToastContext';
@@ -12,11 +13,15 @@ import { SectionHeader } from '@/components/SectionHeader';
 import { CardContainer } from '@/components/CardContainer';
 import { ActionButton, StatusBadge } from '@/components/ActionBar';
 import { Icons } from '@/components/ui/Icons';
+import MediaViewer from '@/components/MediaViewer';
 
 export default function CommentairesDashboardPage() {
   const { utilisateur, loading: authLoading } = useAuth();
-  const { data: commentsRes, isLoading } = useCommentairesEnAttente();
-  const comments = commentsRes?.data ?? [];
+  const isOwner = !!utilisateur?.proprietaire;
+
+  const { data: pendingRes, isLoading: pendingLoading } = useCommentairesEnAttente(undefined, isOwner);
+  const { data: myCommentsRes, isLoading: myCommentsLoading } = useMesCommentaires();
+
   const approveCommentaire = useApprouverCommentaire();
   const deleteCommentaire = useDeleteCommentaire();
   const createCommentaire = useCreateCommentaire();
@@ -26,6 +31,9 @@ export default function CommentairesDashboardPage() {
   const toast = useToast();
 
   const [pendingIds, setPendingIds] = useState<Set<number>>(new Set());
+
+  const comments = isOwner ? (pendingRes?.data ?? []) : (myCommentsRes?.data ?? []);
+  const isLoading = isOwner ? pendingLoading : myCommentsLoading;
 
   async function approve(id: number) {
     setPendingIds(prev => new Set(prev).add(id));
@@ -71,9 +79,11 @@ export default function CommentairesDashboardPage() {
   if (authLoading) return <LoadingScreen />;
   if (!utilisateur) return null;
 
+  const title = isOwner ? 'Commentaires en attente' : 'Mes commentaires';
+
   return (
     <div className="max-w-4xl mx-auto">
-      <SectionHeader title="Commentaires en attente" total={comments.length} />
+      <SectionHeader title={title} total={comments.length} />
 
       {isLoading ? (
         <p className="text-muted">Chargement...</p>
@@ -83,8 +93,17 @@ export default function CommentairesDashboardPage() {
             <CardContainer key={c.id} className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <p className="font-semibold text-sm text-off-white">{c.auteur.nom}</p>
-                  <StatusBadge variant="warning" size="sm">En attente</StatusBadge>
+                  {c.auteur?.photo ? (
+                    <div className="relative w-6 h-6 rounded-full overflow-hidden">
+                      <MediaViewer src={getMediaUrl(c.auteur.photo) || ''} alt="" fill className="object-cover" />
+                    </div>
+                  ) : (
+                    <div className="w-6 h-6 rounded-full bg-[#222] flex items-center justify-center text-xs text-muted font-mono">
+                      {c.auteur?.nom?.charAt(0) || '?'}
+                    </div>
+                  )}
+                  <p className="font-semibold text-sm text-off-white">{c.auteur?.nom || 'Anonyme'}</p>
+                  {!c.est_approuve && <StatusBadge variant="warning" size="sm">En attente</StatusBadge>}
                 </div>
                 <span className="text-xs text-muted">{new Date(c.created_at).toLocaleString('fr-FR')}</span>
               </div>
@@ -93,9 +112,11 @@ export default function CommentairesDashboardPage() {
                 Sur {c.commentable_type === 'App\\Models\\Publication' ? 'publication' : 'projet'} : {c.commentable?.titre || `#${c.commentable?.id}`}
               </p>
               <div className="flex gap-2">
-                <ActionButton variant="primary" size="sm" onClick={() => approve(c.id)} disabled={pendingIds.has(c.id)}>
-                  {pendingIds.has(c.id) ? '...' : 'Approuver'}
-                </ActionButton>
+                {isOwner && (
+                  <ActionButton variant="primary" size="sm" onClick={() => approve(c.id)} disabled={pendingIds.has(c.id)}>
+                    {pendingIds.has(c.id) ? '...' : 'Approuver'}
+                  </ActionButton>
+                )}
                 <ActionButton variant="ghost" size="sm" onClick={() => setConfirmDelete(c.id)} disabled={pendingIds.has(c.id)}>
                   <Icons.trash className="w-4 h-4 inline mr-1" /> Supprimer
                 </ActionButton>
@@ -125,10 +146,10 @@ export default function CommentairesDashboardPage() {
           ))}
           {comments.length === 0 && (
             <div className="text-center py-12">
-              <svg className="w-10 h-10 mx-auto text-muted/30 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-              </svg>
-              <p className="text-muted font-mono text-sm">Aucun commentaire en attente.</p>
+              <Icons.chat className="w-10 h-10 mx-auto text-muted/30 mb-3" />
+              <p className="text-muted font-mono text-sm">
+                {isOwner ? 'Aucun commentaire en attente.' : 'Vous n\'avez pas encore de commentaire.'}
+              </p>
             </div>
           )}
         </div>

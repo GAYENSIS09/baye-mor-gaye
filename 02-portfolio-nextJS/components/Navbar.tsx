@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNotifications } from "@/hooks/queries";
-import { auditLog, useAuditMount, useAuditRender, useAuditHook, useAuditEarlyReturn } from '@/lib/react-audit';
+
 
 const links = [
   { label: "Profil",       href: "/#about" },
@@ -15,27 +15,18 @@ const links = [
 ];
 
 export default function Navbar() {
-  useAuditMount('Navbar');
   const pathname = usePathname();
   const { utilisateur, loading, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const mobileRef = useRef<HTMLDivElement>(null);
   
-  useAuditHook('Navbar', 'usePathname');
-  useAuditHook('Navbar', 'useAuth');
-  useAuditHook('Navbar', 'useState', { name: 'open' });
-  useAuditHook('Navbar', 'useRef', { name: 'mobileRef' });
-  
   // Always call useNotifications to keep hook count stable across auth transitions
   // Only enable the actual query when authenticated to avoid 401 polling noise
   const { data: notifData, isError } = useNotifications({ est_lue: 'false' }, !!utilisateur);
-  useAuditHook('Navbar', 'useNotifications', { enabled: true });
   const unreadCount = isError || !utilisateur ? 0 : (notifData?.total ?? 0);
 
   useEffect(() => {
-    useAuditHook('Navbar', 'useEffect', { phase: 'init', deps: ['open'] });
     if (!open) {
-      useAuditEarlyReturn('Navbar useEffect', 'not open');
       return;
     }
     const handleNavKey = (e: KeyboardEvent) => {
@@ -52,14 +43,12 @@ export default function Navbar() {
     document.addEventListener('keydown', handleNavKey);
     document.body.style.overflow = 'hidden';
     return () => {
-      useAuditHook('Navbar', 'useEffect', { phase: 'cleanup' });
       document.removeEventListener('keydown', handleNavKey);
       document.body.style.overflow = '';
     };
   }, [open]);
 
   if (pathname.startsWith('/dashboard')) {
-    useAuditEarlyReturn('Navbar', 'dashboard path');
     return null;
   }
 
@@ -67,8 +56,6 @@ export default function Navbar() {
     if (href === "/#about") return pathname === "/";
     return pathname.startsWith(href);
   };
-
-  useAuditRender('Navbar', { pathname, utilisateur: utilisateur?.id ?? null, loading, open, unreadCount }, {});
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#222] bg-[#0A0A0A]/95 backdrop-blur-sm">

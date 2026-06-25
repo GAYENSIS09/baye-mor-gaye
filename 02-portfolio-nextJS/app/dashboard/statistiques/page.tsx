@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/Skeleton';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
 import { useState } from 'react';
 import { LoadingScreen } from '@/components/LoadingScreen';
+import { SectionHeader } from '@/components/SectionHeader';
 import { Icons } from '@/components/ui/Icons';
 
 const PERIODES = [
@@ -36,21 +37,23 @@ export default function StatistiquesDashboardPage() {
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-off-white">Statistiques</h1>
-        <div className="flex gap-1 bg-[#111] border border-[#222] rounded-lg p-1">
-          {PERIODES.map((p) => (
-            <button key={p.value} onClick={() => setPeriode(p.value)}
-              className={`px-3 py-1.5 text-xs font-mono rounded-md transition-colors ${
-                periode === p.value
-                  ? 'bg-acid text-black font-semibold'
-                  : 'text-muted hover:text-off-white'
-              }`}>
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      <SectionHeader
+        title="Statistiques"
+        actions={
+          <div className="flex gap-1 bg-[#111] border border-[#222] rounded-lg p-1">
+            {PERIODES.map((p) => (
+              <button key={p.value} onClick={() => setPeriode(p.value)}
+                className={`px-3 py-1.5 text-xs font-mono rounded-md transition-colors ${
+                  periode === p.value
+                    ? 'bg-acid text-black font-semibold'
+                    : 'text-muted hover:text-off-white'
+                }`}>
+                {p.label}
+              </button>
+            ))}
+          </div>
+        }
+      />
 
       {isLoading ? (
         <div className="space-y-6">
