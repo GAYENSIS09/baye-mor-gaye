@@ -110,17 +110,17 @@ export default function Hero() {
       <div className="max-w-6xl mx-auto w-full">
         {loading ? (
           <div className="animate-pulse space-y-8">
-            <div className="flex items-center gap-8 mb-8">
-              <div className="w-28 h-28 md:w-36 md:h-36 rounded-full bg-[#222]" />
-              <div className="space-y-4">
-                <div className="h-16 w-64 bg-[#222] rounded" />
-                <div className="h-12 w-48 bg-[#222] rounded" />
+            <div className="flex flex-wrap items-center gap-4 md:gap-8 mb-8">
+              <div className="w-20 h-20 md:w-36 md:h-36 rounded-full bg-[#222] shrink-0" />
+              <div className="space-y-3 min-w-0 flex-1">
+                <div className="h-12 md:h-16 w-full max-w-xs bg-[#222] rounded" />
+                <div className="h-8 md:h-12 w-3/4 max-w-[200px] bg-[#222] rounded" />
               </div>
             </div>
-            <div className="h-6 w-96 bg-[#222] rounded" />
-            <div className="flex gap-4">
-              <div className="h-12 w-40 bg-[#222] rounded-full" />
-              <div className="h-12 w-32 bg-[#222] rounded-full" />
+            <div className="h-6 w-full max-w-xs bg-[#222] rounded" />
+            <div className="flex flex-wrap gap-3">
+              <div className="h-10 w-32 bg-[#222] rounded-full" />
+              <div className="h-10 w-28 bg-[#222] rounded-full" />
             </div>
           </div>
         ) : error || !profile ? (
@@ -129,7 +129,7 @@ export default function Hero() {
           </div>
         ) : (
           <>
-            <div className="absolute top-24 right-4 md:right-12 max-w-[50vw] flex flex-col items-end gap-2 animate-fade-in">
+            <div className="absolute top-24 right-4 md:right-12 max-w-[80vw] md:max-w-[50vw] flex flex-col items-end gap-2 animate-fade-in">
               <span className="tag">{titre}</span>
               <ProprietaireLocalisation localisation={localisation} />
               <span className="font-mono text-xs text-muted">

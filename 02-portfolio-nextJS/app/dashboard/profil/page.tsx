@@ -188,7 +188,7 @@ export default function ProfileDashboardPage() {
                   <input id="profile-notif-delay" type="range" min={0} max={1440} step={5}
                     {...register("notification_delay_minutes", { valueAsNumber: true })}
                     className="flex-1 accent-acid" />
-                  <span className="text-sm text-muted w-12 text-right tabular-nums shrink-0">
+                  <span className="text-sm text-muted w-20 text-right tabular-nums shrink-0">
                     {watch("notification_delay_minutes") ?? 15} min
                   </span>
                 </div>

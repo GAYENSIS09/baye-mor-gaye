@@ -84,7 +84,21 @@ services:
     tty: true
     stdin_open: true
     environment:
-      - APP_ENV=local
+      APP_ENV: local
+      APP_KEY: ${APP_KEY}
+      DB_CONNECTION: ${DB_CONNECTION:-sqlite}
+      DB_DATABASE: ${DB_DATABASE:-database/portfolio.sqlite}
+      CACHE_STORE: ${CACHE_STORE:-database}
+      FILESYSTEM_DISK: ${FILESYSTEM_DISK:-local}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-sync}
+      MAIL_MAILER: ${MAIL_MAILER:-smtp}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Baye Mor Gaye}
     networks:
       - portfolio
 

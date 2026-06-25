@@ -203,7 +203,7 @@ export default function NewProjetPage() {
           <input id="date-realisation" type="date" {...register("date_realisation")} autoComplete="off"
             className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label htmlFor="url-demo" className="block text-sm font-medium text-off-white">URL demo</label>
             <input id="url-demo" {...register("url_demo")} placeholder="https://" autoComplete="url"

@@ -105,7 +105,7 @@ function EditEvenementForm() {
           <textarea id="description" name="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} autoComplete="off"
             className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label htmlFor="date-debut" className="block text-sm font-medium text-off-white">Date debut</label>
             <input id="date-debut" name="date_debut" type="datetime-local" value={dateDebut} onChange={(e) => setDateDebut(e.target.value)} required autoComplete="off"
