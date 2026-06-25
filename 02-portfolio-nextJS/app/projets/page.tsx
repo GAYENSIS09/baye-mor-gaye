@@ -14,7 +14,7 @@ import { ActionButton, Pagination, LoadMoreButton } from '@/components/ActionBar
 
 function TechFilterBar({ allTechs, selected, onSelect }: { allTechs: string[]; selected: string; onSelect: (t: string) => void }) {
   return (
-    <div className="flex gap-1.5 flex-wrap" role="tablist" aria-label="Filtres par technologie">
+    <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none md:flex-wrap" role="tablist" aria-label="Filtres par technologie">
       <button onClick={() => onSelect('')} role="tab" aria-selected={!selected}
         className={`whitespace-nowrap font-mono text-xs uppercase tracking-widest transition-all duration-200 ${!selected ? 'bg-acid text-black px-3 py-1.5 rounded' : 'bg-[#222] text-muted hover:text-off-white px-3 py-1.5 rounded'}`}>
         Tous

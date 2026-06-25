@@ -11,6 +11,8 @@ class ProprietaireResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'nom' => $this->utilisateur?->nom,
+            'email' => $this->utilisateur?->email,
             'bio' => $this->bio,
             'titre_professionnel' => $this->titre_professionnel,
             'localisation' => $this->localisation,

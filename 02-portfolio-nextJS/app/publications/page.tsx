@@ -91,7 +91,7 @@ export default function PublicationsPage() {
         activeFilter={typeFilter}
         onFilterChange={(v) => { setTypeFilter(v); setCurrentPage(1); }}
       >
-        <div className="flex gap-1.5 flex-wrap" role="tablist" aria-label="Filtres par domaine">
+        <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none md:flex-wrap" role="tablist" aria-label="Filtres par domaine">
           <button onClick={() => { setDomaineFilter(''); setCurrentPage(1); }} role="tab" aria-selected={!domaineFilter}
             className={`whitespace-nowrap font-mono text-xs uppercase tracking-widest transition-all duration-200 ${!domaineFilter ? 'bg-acid text-black px-3 py-1 rounded-full' : 'bg-[#222] text-muted hover:text-off-white px-3 py-1 rounded-full'}`}>
             Tous les domaines

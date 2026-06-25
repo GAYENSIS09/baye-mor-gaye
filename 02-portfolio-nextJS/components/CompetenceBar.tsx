@@ -46,7 +46,7 @@ export default function CompetenceBar({ name, niveau, surligne, icone }: Compete
   return (
     <div ref={ref} className={`group flex items-center gap-4 py-2 px-3 rounded hover:bg-[#1a1a1a] transition-colors ${surligne ? 'bg-acid/5' : ''}`}>
       <IconDisplay icone={icone} />
-      <span className="text-sm text-off-white min-w-[120px] font-mono">{safeName}</span>
+      <span className="text-sm text-off-white min-w-0 sm:min-w-[120px] font-mono truncate">{safeName}</span>
       <div className="flex-1 h-2 bg-[#222] rounded-full overflow-hidden">
         <div
           className="h-full bg-acid rounded-full transition-all duration-1000 ease-out"

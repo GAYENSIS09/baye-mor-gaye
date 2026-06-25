@@ -72,7 +72,7 @@ export default function PublicationsRecentesSection() {
   const publications = data?.data ?? [];
 
   return (
-    <section id="publications" className="py-32 px-6">
+    <section id="publications" className="py-16 md:py-32 px-6">
       <div className="max-w-6xl mx-auto">
         <SectionHeader
           number="05"

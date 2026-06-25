@@ -132,7 +132,7 @@ export default function ExperienceTimeline() {
   const filtered = filter === 'tout' ? items : items.filter((i) => i.type === filter);
 
   return (
-    <section id="experience" className="py-32 px-6">
+    <section id="experience" className="py-16 md:py-32 px-6">
       <div className="max-w-6xl mx-auto">
         <SectionHeader
           number="02"

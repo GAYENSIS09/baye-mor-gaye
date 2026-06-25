@@ -26,7 +26,7 @@ export default function Contact() {
   }
 
   return (
-    <section id="contact" className="py-32 px-6">
+    <section id="contact" className="py-16 md:py-32 px-6">
       <div className="max-w-6xl mx-auto">
         <SectionHeader number="05" title="Contact" />
 

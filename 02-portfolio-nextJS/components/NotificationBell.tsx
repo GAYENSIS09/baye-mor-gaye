@@ -36,7 +36,7 @@ export default function NotificationBell() {
         )}
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-72 bg-[#111] border border-[#222] rounded-lg shadow-2xl z-50">
+        <div className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-2rem)] bg-[#111] border border-[#222] rounded-lg shadow-2xl z-50">
           <div className="p-3 border-b border-[#222]">
             <p className="text-xs font-mono text-muted uppercase tracking-widest">Notifications</p>
           </div>

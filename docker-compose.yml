@@ -113,12 +113,16 @@ services:
     build:
       context: ./02-portfolio-nextJS
       dockerfile: ../docker/frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api}
+        NEXT_PUBLIC_OWNER_NOM: ${NEXT_PUBLIC_OWNER_NOM:-Baye Mor Gaye}
+        NEXT_PUBLIC_OWNER_TITRE: ${NEXT_PUBLIC_OWNER_TITRE:-AI &amp; Software Engineer}
     container_name: portfolio-frontend
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8000/api
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api}
     depends_on:
       - php-fpm
     networks:

@@ -246,7 +246,7 @@ export default function SkillsPage() {
                                   icone={skill.icone}
                                 />
                               </div>
-                              <div className="flex items-center gap-1 pr-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex items-center gap-1 pr-3 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                                 <IconButton onClick={() => startEdit(skill)} icon={<Icons.edit className="w-4 h-4" />} label="Niveau" variant="ghost" size="sm" />
                                 <IconButton onClick={() => setConfirmDelete(skill.id)} icon={<Icons.trash className="w-4 h-4" />} label="Supprimer" variant="danger" size="sm" />
                               </div>

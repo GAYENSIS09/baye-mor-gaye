@@ -104,8 +104,8 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-screen flex flex-col justify-end pb-20 px-6 overflow-hidden">
-      <div aria-hidden className="absolute top-1/4 right-[-10%] w-[500px] h-[500px] rounded-full bg-acid/5 blur-[120px] pointer-events-none" />
-      <div aria-hidden className="absolute bottom-0 left-[-5%] w-[300px] h-[300px] rounded-full bg-acid/3 blur-[80px] pointer-events-none" />
+      <div aria-hidden className="absolute top-1/4 right-[-10%] w-[300px] md:w-[500px] h-[300px] md:h-[500px] rounded-full bg-acid/5 blur-[80px] md:blur-[120px] pointer-events-none" />
+      <div aria-hidden className="absolute bottom-0 left-[-5%] w-[200px] md:w-[300px] h-[200px] md:h-[300px] rounded-full bg-acid/3 blur-[60px] md:blur-[80px] pointer-events-none" />
 
       <div className="max-w-6xl mx-auto w-full">
         {loading ? (
@@ -137,9 +137,9 @@ export default function Hero() {
               </span>
             </div>
 
-            <div className="flex items-center gap-8 mb-8">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-8 mb-8">
               <ProprietaireAvatar photo={getMediaUrl(photo)} nom={profile?.nom || ""} />
-              <div>
+              <div className="text-center md:text-left">
                 <ProprietaireTitre prenom={prenom} nom={nom} />
               </div>
             </div>

@@ -69,6 +69,16 @@ react-audit.tsx
 docker-compose.override.yml
 docker-compose.local.yml
 
+# Deployment keys & secrets
+*.pem
+duckdns-auth.sh
+project.tar.gz
+*.tar.gz
+
+# Temp scripts
+fix_*.py
+update-*.py
+
 # Misc
 .claude/
 *.wsd

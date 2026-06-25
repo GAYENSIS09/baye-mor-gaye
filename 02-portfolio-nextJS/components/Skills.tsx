@@ -31,7 +31,7 @@ export default function CompetencesSection() {
   }, [competences, filter, categories]);
 
   return (
-    <section id="skills" className="py-32 px-6 bg-off-black">
+    <section id="skills" className="py-16 md:py-32 px-6 bg-off-black">
       <div className="max-w-6xl mx-auto">
         <SectionHeader
           number="03"

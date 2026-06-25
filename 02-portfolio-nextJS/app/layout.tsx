@@ -48,23 +48,31 @@ async function fetchProfile(): Promise<ProfileData | null> {
   }
 }
 
+const DEFAULT_NOM = process.env.NEXT_PUBLIC_OWNER_NOM || 'Baye Mor Gaye';
+const DEFAULT_TITRE = process.env.NEXT_PUBLIC_OWNER_TITRE || 'AI & Software Engineer';
+
 export async function generateMetadata(): Promise<Metadata> {
   const profile = await fetchProfile();
-  if (!profile) return { title: '', description: '' };
 
-  const title = `${profile.nom} — ${profile.titre_professionnel}`;
-  const description = profile.bio ?? '';
-  const photoUrl = profile.photo ? `${STORAGE_URL}/${profile.photo}` : null;
-  const url = profile.site_web ?? undefined;
+  const nom = profile?.nom ?? DEFAULT_NOM;
+  const titre = profile?.titre_professionnel ?? DEFAULT_TITRE;
+  const description = profile?.bio ?? `Portfolio de ${nom}`;
+  const photoUrl = profile?.photo ? `${STORAGE_URL}/${profile.photo}` : null;
+  const url = profile?.site_web ?? undefined;
+  const title = `${nom} — ${titre}`;
 
   return {
     title,
     description,
+    icons: photoUrl ? { icon: photoUrl, apple: photoUrl } : undefined,
     openGraph: {
       title,
       description,
       url,
-      ...(photoUrl && { images: [{ url: photoUrl, width: 400, height: 400, alt: profile.nom }] }),
+      siteName: nom,
+      locale: 'fr_FR',
+      type: 'website',
+      ...(photoUrl && { images: [{ url: photoUrl, width: 400, height: 400, alt: nom }] }),
     },
     twitter: {
       card: "summary",
@@ -87,9 +95,12 @@ export default async function RootLayout({
     <html lang="fr" className={`${fontDisplay.variable} ${fontBody.variable} ${fontMono.variable}`} style={{ colorScheme: 'dark' }}>
       <head>
         <meta name="theme-color" content="#0A0A0A" />
-
         {profile && (
           <>
+            {photoUrl && <>
+              <link rel="icon" href={photoUrl} type="image/jpeg" />
+              <link rel="apple-touch-icon" href={photoUrl} />
+            </>}
             <PersonJsonLd
               name={profile.nom}
               jobTitle={profile.titre_professionnel}

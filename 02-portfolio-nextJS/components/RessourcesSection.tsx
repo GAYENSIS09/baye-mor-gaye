@@ -111,7 +111,7 @@ export default function RessourcesSection() {
   const ressources = data?.data ?? [];
 
   return (
-    <section id="ressources" className="py-32 px-6 bg-off-black">
+    <section id="ressources" className="py-16 md:py-32 px-6 bg-off-black">
       <div className="max-w-6xl mx-auto">
         <SectionHeader
           number="06"

@@ -255,7 +255,7 @@ export default function EdtDashboardPage() {
                               ✎
                             </Link>
                             <button onClick={() => setConfirmDeleteEvent(e.id)}
-                              className="text-xs text-red-400 hover:text-red-300 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                              className="text-xs text-red-400 hover:text-red-300 font-mono lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                               ×
                             </button>
                           </div>
