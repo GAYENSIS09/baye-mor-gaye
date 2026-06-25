@@ -11,7 +11,7 @@ return Illuminate\Foundation\Application::configure(basePath: dirname(__DIR__))
     ])
     ->withSchedule(function (Illuminate\Console\Scheduling\Schedule $schedule) {
         $schedule->command('rappels:envoyer')->everyMinute();
-        $schedule->command('evenements:notifier')->hourly();
+        $schedule->command('evenements:notifier')->everyMinute();
     })
     ->withMiddleware(function (Illuminate\Foundation\Configuration\Middleware $middleware) {
         $middleware->validateCsrfTokens(except: ['api/*']);

@@ -26,8 +26,7 @@ class NotifierEvenements extends Command
 
         $evenements = Evenement::with('emploiDuTemps')
             ->where('statut', 'confirme')
-            ->whereBetween('date_debut', [now(), now()->addDay()])
-            ->whereRaw('DATE_SUB(date_debut, INTERVAL ? MINUTE) <= NOW()', [$delay])
+            ->whereBetween('date_debut', [now(), now()->addMinutes($delay)])
             ->get();
 
         if ($evenements->isEmpty()) {
