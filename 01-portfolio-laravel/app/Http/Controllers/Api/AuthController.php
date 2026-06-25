@@ -10,7 +10,6 @@ use App\Models\Proprietaire;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
@@ -83,8 +82,8 @@ class AuthController extends Controller
     public function changePassword(Request $request)
     {
         $data = $request->validate([
-            'current_password' => 'required',
-            'new_password' => ['required', 'confirmed', Password::min(8)],
+            'current_password' => 'required|string',
+            'new_password' => ['required', 'string', 'confirmed', 'min:8'],
         ]);
 
         $utilisateur = $request->user();
@@ -95,7 +94,7 @@ class AuthController extends Controller
             ]);
         }
 
-        $utilisateur->update(['password' => Hash::make($data['new_password'])]);
+        $utilisateur->update(['password' => $data['new_password']]);
 
         return response()->json(['message' => 'Mot de passe modifié avec succès.']);
     }

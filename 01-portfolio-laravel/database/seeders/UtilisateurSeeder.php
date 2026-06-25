@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Utilisateur;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class UtilisateurSeeder extends Seeder
@@ -30,7 +29,7 @@ class UtilisateurSeeder extends Seeder
             ['email' => config('proprietaire.email', 'contact@baye-mor-gaye.dev')],
             [
                 'nom' => config('proprietaire.nom', 'Baye Mor Gaye'),
-                'password' => Hash::make(config('proprietaire.password', 'password')),
+                'password' => config('proprietaire.password', 'password'),
                 'photo' => $proprietairePhoto,
                 'email_verifie_le' => now(),
                 'derniere_connexion_le' => now(),
