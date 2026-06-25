@@ -10,7 +10,7 @@ export { useCreateRessource, useUpdateRessource, useDeleteRessource, useCreateRe
 export { useCreateRappel, useDeleteRappel, useUpdateRappel } from './use-rappels';
 export { useCreateEdt, useToggleEdt, useDeleteEdt, useCreateEvenement, useUpdateEvenement, useDeleteEvenement, useEdtImport } from './use-edt';
 export { useReadNotification, useReadAllNotifications, useDeleteNotification } from './use-notifications';
-export { useUpdateProfile } from './useProfile';
+export { useUpdateProfile, useChangePassword } from './useProfile';
 export { useCreateExperience, useUpdateExperience, useDeleteExperience } from './use-experiences';
 export { useCreateFormation, useUpdateFormation, useDeleteFormation } from './use-formations';
 export { useCreateCertification, useUpdateCertification, useDeleteCertification } from './use-certifications';

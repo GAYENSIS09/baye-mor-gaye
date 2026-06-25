@@ -39,3 +39,10 @@ export function useUpdateProfile() {
     },
   });
 }
+
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (data: { current_password: string; new_password: string; new_password_confirmation: string }) =>
+      api.put('/password', data),
+  });
+}

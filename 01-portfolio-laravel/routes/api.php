@@ -64,6 +64,7 @@ Route::get('/domaines/{domaine}', [DomaineController::class, 'show']);
 
 Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
+    Route::put('/password', [AuthController::class, 'changePassword']);
 
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);

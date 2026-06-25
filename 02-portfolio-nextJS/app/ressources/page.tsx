@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { useRessources } from '@/hooks/queries';
+import { useRessources, useDomaines } from '@/hooks/queries';
 import { getMediaUrl } from '@/lib/media';
 import { SectionHeader } from '@/components/SectionHeader';
 import { ResponsiveGrid } from '@/components/ResponsiveGrid';
@@ -16,6 +16,8 @@ const FILE_ICONS: Record<string, React.ReactNode> = {
   pdf: <Icons.file className="w-5 h-5" aria-hidden />,
   image: <Icons.file className="w-5 h-5" aria-hidden />,
   video: <Icons.file className="w-5 h-5" aria-hidden />,
+  lien: <Icons.external className="w-5 h-5" aria-hidden />,
+  youtube: <Icons.play className="w-5 h-5" aria-hidden />,
 };
 
 function getMediaTypeIcon(media: Media): React.ReactNode {
@@ -42,6 +44,11 @@ function ResourcePreviewModal({ resource, onClose }: { resource: Ressource; onCl
   const previewUrl = firstMedia ? getMediaUrl(firstMedia.chemin_fichier) : null;
 
   useEffect(() => {
+    if (firstMedia && (firstMedia.type === 'lien' || firstMedia.type === 'youtube') && previewUrl) {
+      window.open(previewUrl, '_blank', 'noopener,noreferrer');
+      onClose();
+      return;
+    }
     setTimeout(() => closeRef.current?.focus(), 50);
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -127,11 +134,22 @@ function ResourceCard({ resource, onPreview }: { resource: Ressource; onPreview?
 
 export default function RessourcesPage() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [domaineFilter, setDomaineFilter] = useState('');
   const [previewResource, setPreviewResource] = useState<Ressource | null>(null);
-  const { data: ressourcesRes, isLoading, isError, refetch } = useRessources({ page: String(currentPage) });
+  const params: Record<string, string> = { page: String(currentPage) };
+  if (search) params.search = search;
+  if (domaineFilter) params.domaine = domaineFilter;
+  const { data: ressourcesRes, isLoading, isError, refetch } = useRessources(params);
   const ressources = ressourcesRes?.data ?? [];
   const lastPage = ressourcesRes?.last_page ?? 1;
   const total = ressourcesRes?.total ?? 0;
+  const { data: domaines = [] } = useDomaines();
+
+  const filterOptions = [
+    { value: '', label: 'Tous' },
+    ...domaines.map((d) => ({ value: String(d.id), label: d.nom })),
+  ];
 
   return (
     <div className="min-h-screen bg-[#0A0A0A]">
@@ -140,6 +158,12 @@ export default function RessourcesPage() {
         title="Ressources"
         subtitle="Documents, fichiers et ressources téléchargeables."
         total={total}
+        searchValue={search}
+        onSearchChange={(v) => { setSearch(v); setCurrentPage(1); }}
+        filters={filterOptions}
+        activeFilter={domaineFilter}
+        onFilterChange={(v) => { setDomaineFilter(v); setCurrentPage(1); }}
+        filterVariant="chips"
       />
 
       <main className="max-w-6xl mx-auto p-4 py-8">

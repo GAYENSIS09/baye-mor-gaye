@@ -18,6 +18,11 @@ class Proprietaire extends Model
         'site_web',
         'url_linkedin',
         'url_github',
+        'notification_delay_minutes',
+    ];
+
+    protected $casts = [
+        'notification_delay_minutes' => 'integer',
     ];
 
     public function utilisateur()

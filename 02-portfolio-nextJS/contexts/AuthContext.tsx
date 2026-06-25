@@ -12,6 +12,7 @@ interface Proprietaire {
   site_web: string | null;
   url_linkedin: string | null;
   url_github: string | null;
+  notification_delay_minutes: number;
   created_at: string;
   updated_at: string;
 }

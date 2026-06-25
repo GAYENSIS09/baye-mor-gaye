@@ -45,7 +45,13 @@ function typeIcon(type: string): React.ReactNode {
 export default function RessourcesDashboardPage() {
   const { utilisateur, loading: authLoading } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [domaineFilter, setDomaineFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
   const params: Record<string, string> = { page: String(currentPage) };
+  if (search) params.search = search;
+  if (domaineFilter) params.domaine = domaineFilter;
+  if (typeFilter) params.type = typeFilter;
   const { data: ressourcesRes, isLoading, isError, refetch } = useRessources(params);
   const ressources = ressourcesRes?.data ?? [];
   const lastPage = ressourcesRes?.last_page ?? 1;
@@ -231,6 +237,22 @@ export default function RessourcesDashboardPage() {
           </ActionButton>
         }
       />
+
+      <div className="flex flex-wrap gap-2 mb-6">
+        <input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+          placeholder="Rechercher par titre..."
+          className="flex-1 min-w-[200px] border border-[#333] rounded px-3 py-2 bg-transparent text-off-white placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+        <select value={domaineFilter} onChange={(e) => { setDomaineFilter(e.target.value); setCurrentPage(1); }}
+          className="bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
+          <option value="">Tous domaines</option>
+          {domaines.map((d) => <option key={d.id} value={d.id}>{d.nom}</option>)}
+        </select>
+        <select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }}
+          className="bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
+          <option value="">Tous types</option>
+          {Object.entries(MEDIA_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+        </select>
+      </div>
 
       {(editingRessource || showCreateForm) && (
         <CardContainer className="p-4 mb-6">

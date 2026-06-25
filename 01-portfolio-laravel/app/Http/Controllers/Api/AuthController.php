@@ -10,6 +10,7 @@ use App\Models\Proprietaire;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rules\Password;
 
 class AuthController extends Controller
 {
@@ -77,5 +78,25 @@ class AuthController extends Controller
         }
 
         return response()->json(['message' => 'Déconnecté.']);
+    }
+
+    public function changePassword(Request $request)
+    {
+        $data = $request->validate([
+            'current_password' => 'required',
+            'new_password' => ['required', 'confirmed', Password::min(8)],
+        ]);
+
+        $utilisateur = $request->user();
+
+        if (!Hash::check($data['current_password'], $utilisateur->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['Le mot de passe actuel est incorrect.'],
+            ]);
+        }
+
+        $utilisateur->update(['password' => Hash::make($data['new_password'])]);
+
+        return response()->json(['message' => 'Mot de passe modifié avec succès.']);
     }
 }

@@ -19,6 +19,19 @@ class RessourceController extends Controller
             $query->where('domaine_id', $request->domaine);
         }
 
+        if ($request->has('publique')) {
+            $query->where('est_publique', filter_var($request->publique, FILTER_VALIDATE_BOOLEAN));
+        }
+
+        if ($request->has('type')) {
+            $query->whereHas('medias', fn($q) => $q->where('type', $request->type));
+        }
+
+        if ($request->has('search')) {
+            $safe = str_replace(['%', '_'], ['\\%', '\\_'], $request->search);
+            $query->where('titre', 'like', '%' . $safe . '%');
+        }
+
         return RessourceResource::collection($query->orderBy('created_at', 'desc')->paginate(20));
     }
 

@@ -23,6 +23,7 @@ class UpdateProfileRequest extends FormRequest
             'nom' => 'nullable|string|max:255',
             'email' => 'nullable|email|max:255',
             'photo' => 'nullable|string',
+            'notification_delay_minutes' => 'nullable|integer|min:0|max:1440',
         ];
     }
 }

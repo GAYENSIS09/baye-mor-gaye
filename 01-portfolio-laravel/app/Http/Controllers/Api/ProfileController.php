@@ -81,6 +81,7 @@ class ProfileController extends Controller
                 'site_web',
                 'url_linkedin',
                 'url_github',
+                'notification_delay_minutes',
             ]));
             $proprietaire->update($proprietaireData);
         }

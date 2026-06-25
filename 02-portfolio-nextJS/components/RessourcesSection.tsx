@@ -24,6 +24,11 @@ function PreviewModal({ resource, onClose }: { resource: Ressource; onClose: () 
   const previewUrl = firstMedia ? getMediaUrl(firstMedia.chemin_fichier) : null;
 
   useEffect(() => {
+    if (firstMedia && (firstMedia.type === 'lien' || firstMedia.type === 'youtube') && previewUrl) {
+      window.open(previewUrl, '_blank', 'noopener,noreferrer');
+      onClose();
+      return;
+    }
     setTimeout(() => closeRef.current?.focus(), 50);
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -96,7 +101,7 @@ function ResourceCard({ resource, onPreview }: { resource: Ressource; onPreview?
           {firstMedia && (
             <span className="inline-flex items-center gap-1.5 text-xs text-acid font-mono">
               <Icons.download className="w-3 h-3" aria-hidden />
-              {firstMedia.type === 'image' ? 'Image' : firstMedia.type === 'video' ? 'Vidéo' : 'Document'}
+              {firstMedia.type === 'image' ? 'Image' : firstMedia.type === 'video' ? 'Vidéo' : firstMedia.type === 'lien' ? 'Lien' : firstMedia.type === 'youtube' ? 'YouTube' : 'Document'}
             </span>
           )}
         </CardMeta>

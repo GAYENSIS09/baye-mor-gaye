@@ -144,6 +144,7 @@ export const ProfileFormSchema = z.object({
   site_web: z.string().url('URL invalide').optional().nullable().or(z.literal('')),
   url_linkedin: z.string().url('URL invalide').optional().nullable().or(z.literal('')),
   url_github: z.string().url('URL invalide').optional().nullable().or(z.literal('')),
+  notification_delay_minutes: z.number().min(0).max(1440).optional(),
 });
 
 export type ProfileFormData = z.infer<typeof ProfileFormSchema>;
