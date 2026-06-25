@@ -108,7 +108,7 @@ body {
     @apply absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105;
   }
   .card-content {
-    @apply p-5 flex-1 flex flex-col;
+    @apply p-4 md:p-5 flex-1 flex flex-col;
   }
   .card-title {
     @apply text-off-white text-lg font-body font-semibold truncate;
@@ -125,7 +125,7 @@ body {
 
   /* ── Section header utilities ── */
   .section-header {
-    @apply flex items-baseline justify-between gap-6 mb-12;
+    @apply flex items-baseline justify-between gap-6 mb-8 md:mb-12;
   }
   .section-number {
     @apply font-mono text-acid text-xs uppercase tracking-widest;
@@ -139,7 +139,7 @@ body {
 
   /* ── Responsive grid utilities ── */
   .grid-responsive {
-    @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6;
+    @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6;
   }
   .grid-responsive-2 {
     @apply grid grid-cols-1 md:grid-cols-2 gap-6;
@@ -182,7 +182,7 @@ body {
 
   /* ── Action bar utilities ── */
   .action-bar {
-    @apply flex items-center gap-2;
+    @apply flex items-center gap-2 flex-wrap;
   }
   .action-btn {
     @apply px-3 py-1.5 text-xs font-mono uppercase tracking-widest rounded transition-colors;

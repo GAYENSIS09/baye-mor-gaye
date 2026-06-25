@@ -238,17 +238,17 @@ export default function RessourcesDashboardPage() {
         }
       />
 
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-2 mb-6">
         <input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
           placeholder="Rechercher par titre..."
-          className="flex-1 min-w-[200px] border border-[#333] rounded px-3 py-2 bg-transparent text-off-white placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+          className="w-full sm:flex-1 min-w-[200px] border border-[#333] rounded px-3 py-2 bg-transparent text-off-white placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
         <select value={domaineFilter} onChange={(e) => { setDomaineFilter(e.target.value); setCurrentPage(1); }}
-          className="bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
+          className="w-full sm:w-auto bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
           <option value="">Tous domaines</option>
           {domaines.map((d) => <option key={d.id} value={d.id}>{d.nom}</option>)}
         </select>
         <select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }}
-          className="bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
+          className="w-full sm:w-auto bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
           <option value="">Tous types</option>
           {Object.entries(MEDIA_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
@@ -352,7 +352,7 @@ export default function RessourcesDashboardPage() {
               return (
                 <div key={r.id}>
                   <CardContainer hover className="p-4">
-                    <div className="flex items-start gap-4">
+                    <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                       {cover ? (
                         <div className="w-16 h-12 rounded overflow-hidden bg-[#222] shrink-0 relative cursor-pointer" onClick={() => setViewMedia({ url: cover, titre: r.titre })}>
                           <Image src={cover} alt="" fill className="object-cover" unoptimized />
@@ -412,7 +412,7 @@ export default function RessourcesDashboardPage() {
                     <CardContainer className="mt-2 p-4 border-acid/30">
                       <div className="flex items-center justify-between mb-3">
                         <h4 className="text-xs font-mono text-muted uppercase tracking-wider">Médias attachés</h4>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <label className="flex items-center gap-1.5 cursor-pointer text-xs text-acid hover:text-acid/80 transition-colors font-mono">
                             <Icons.plus className="w-3.5 h-3.5" aria-hidden />
                             Fichier

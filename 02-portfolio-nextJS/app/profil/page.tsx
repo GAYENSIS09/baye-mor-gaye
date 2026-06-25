@@ -298,7 +298,7 @@ export default function ProfilPage() {
         {/* Timeline: Experiences, Formations, Certifications */}
         <div className="space-y-8 animate-fade-up" style={{ animationDelay: '0.2s', opacity: 0 }}>
           {experiences.length > 0 && (
-            <div className="bg-[#111] rounded-lg border border-[#222] p-6">
+            <div className="bg-[#111] rounded-lg border border-[#222] p-4 sm:p-6">
               <div className="flex items-center gap-3 mb-6">
                 <Icons.briefcase className="w-5 h-5 text-acid" aria-hidden />
                 <h3 className="text-xl font-bold text-off-white">Expériences professionnelles</h3>
@@ -312,7 +312,7 @@ export default function ProfilPage() {
           )}
 
           {formations.length > 0 && (
-            <div className="bg-[#111] rounded-lg border border-[#222] p-6">
+            <div className="bg-[#111] rounded-lg border border-[#222] p-4 sm:p-6">
               <div className="flex items-center gap-3 mb-6">
                 <Icons.academic className="w-5 h-5 text-acid" aria-hidden />
                 <h3 className="text-xl font-bold text-off-white">Formations</h3>
@@ -326,7 +326,7 @@ export default function ProfilPage() {
           )}
 
           {certifications.length > 0 && (
-            <div className="bg-[#111] rounded-lg border border-[#222] p-6">
+            <div className="bg-[#111] rounded-lg border border-[#222] p-4 sm:p-6">
               <div className="flex items-center gap-3 mb-6">
                 <Icons.badge className="w-5 h-5 text-acid" aria-hidden />
                 <h3 className="text-xl font-bold text-off-white">Certifications</h3>

@@ -25,7 +25,7 @@ function PublicationRow({ pub }: { pub: Publication }) {
 
   return (
     <Link href={`/publications/${pub.slug}`}
-      className="group bg-[#111] p-5 rounded-lg border border-[#222] hover:border-acid/30 transition-all block">
+      className="group bg-[#111] p-4 sm:p-5 rounded-lg border border-[#222] hover:border-acid/30 transition-all block">
       <div className="flex items-start gap-4">
         {coverSrc && (
           <div className="hidden sm:block w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 relative">
@@ -39,7 +39,7 @@ function PublicationRow({ pub }: { pub: Publication }) {
           </div>
           <h2 className="text-lg font-semibold text-off-white group-hover:text-acid transition-colors">{pub.titre}</h2>
           {pub.extrait && <p className="text-muted text-sm mt-1 line-clamp-2">{pub.extrait}</p>}
-          <div className="flex items-center gap-4 mt-3 text-xs text-muted">
+          <div className="flex items-center gap-4 mt-3 text-xs text-muted flex-wrap">
             <span>{pub.publie_le ? new Date(pub.publie_le).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric' }) : ''}</span>
             {pub.nombre_vues != null && <span><Icons.search className="w-3.5 h-3.5 inline" aria-hidden /> {pub.nombre_vues}</span>}
             <span><Icons.star className="w-3.5 h-3.5 inline" aria-hidden /> {pub.likes?.length ?? 0}</span>

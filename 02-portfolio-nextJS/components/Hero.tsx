@@ -103,7 +103,7 @@ export default function Hero() {
   const photo = profile?.photo;
 
   return (
-    <section className="relative min-h-screen flex flex-col justify-end pb-20 px-6 overflow-hidden">
+    <section className="relative min-h-screen flex flex-col justify-end pb-16 md:pb-20 px-4 md:px-6 overflow-hidden">
       <div aria-hidden className="absolute top-1/4 right-[-10%] w-[300px] md:w-[500px] h-[300px] md:h-[500px] rounded-full bg-acid/5 blur-[80px] md:blur-[120px] pointer-events-none" />
       <div aria-hidden className="absolute bottom-0 left-[-5%] w-[200px] md:w-[300px] h-[200px] md:h-[300px] rounded-full bg-acid/3 blur-[60px] md:blur-[80px] pointer-events-none" />
 
@@ -129,7 +129,7 @@ export default function Hero() {
           </div>
         ) : (
           <>
-            <div className="absolute top-24 right-6 md:right-12 flex flex-col items-end gap-2 animate-fade-in">
+            <div className="absolute top-24 right-4 md:right-12 max-w-[50vw] flex flex-col items-end gap-2 animate-fade-in">
               <span className="tag">{titre}</span>
               <ProprietaireLocalisation localisation={localisation} />
               <span className="font-mono text-xs text-muted">

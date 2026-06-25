@@ -28,7 +28,7 @@ export default function ContactPage() {
   if (sent) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-        <div className="bg-[#111] p-8 rounded border border-[#222] text-center">
+        <div className="bg-[#111] p-4 sm:p-8 rounded border border-[#222] text-center">
           <h1 className="text-2xl font-bold mb-2 text-off-white">Message envoyé</h1>
           <p className="text-muted">Merci ! Je vous répondrai dans les plus brefs délais.</p>
         </div>
@@ -47,7 +47,7 @@ export default function ContactPage() {
       />
 
       <main className="max-w-lg mx-auto p-4 py-8">
-        <form onSubmit={handleSubmit} className="bg-[#111] p-6 rounded border border-[#222] space-y-4">
+        <form onSubmit={handleSubmit} className="bg-[#111] p-4 sm:p-6 rounded border border-[#222] space-y-4">
           {error && <p className="text-red-400 text-sm" role="alert">{error}</p>}
           <div>
             <label htmlFor="contact-nom" className="label-base">Nom</label>

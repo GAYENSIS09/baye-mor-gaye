@@ -72,7 +72,7 @@ export default function NotificationsDashboardPage() {
       <SectionHeader
         title="Notifications"
         actions={
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <ActionButton variant="ghost" onClick={() => setShowAll(!showAll)}>
               {showAll ? 'Non lues' : 'Toutes'}
             </ActionButton>
@@ -92,7 +92,7 @@ export default function NotificationsDashboardPage() {
               key={n.id}
               className={`p-4 ${!n.est_lue ? 'ring-1 ring-acid/30' : ''}`}
             >
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between gap-2 flex-wrap">
                 <CardContent className="p-0 flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <StatusBadge variant={

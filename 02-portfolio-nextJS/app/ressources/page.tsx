@@ -74,7 +74,7 @@ function ResourcePreviewModal({ resource, onClose }: { resource: Ressource; onCl
         {previewUrl ? (
           <MediaViewer src={previewUrl} alt={resource.titre} className="w-full h-[88vh] mx-auto rounded-lg" />
         ) : (
-          <div className="bg-[#111] border border-[#222] rounded-lg p-8 text-center">
+          <div className="bg-[#111] border border-[#222] rounded-lg p-4 sm:p-8 text-center">
             <Icons.file className="w-16 h-16 mx-auto text-muted/50 mb-4" aria-hidden />
             <h3 className="text-off-white text-lg font-semibold mb-2">{resource.titre}</h3>
             {resource.domaine && (

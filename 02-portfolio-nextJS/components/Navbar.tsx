@@ -59,7 +59,7 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-[#222] bg-[#0A0A0A]/95 backdrop-blur-sm">
-      <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
         <Link href="/" className="font-mono text-sm tracking-widest text-acid uppercase">
           BMG<span className="text-muted">.</span>dev
         </Link>
@@ -112,7 +112,7 @@ export default function Navbar() {
         </button>
       </div>
 
-      <div ref={mobileRef} className={`md:hidden border-t border-[#222] px-6 py-4 space-y-3 ${open ? 'block' : 'hidden'}`} aria-hidden={!open}>
+      <div ref={mobileRef} className={`md:hidden border-t border-[#222] px-4 md:px-6 py-4 space-y-3 ${open ? 'block' : 'hidden'}`} aria-hidden={!open}>
         {links.map((l) => (
           <Link key={l.href} href={l.href} onClick={() => setOpen(false)}
             className={`block font-mono text-sm tracking-wider ${isActive(l.href) ? 'text-acid' : 'text-muted hover:text-off-white'}`}>

@@ -91,7 +91,7 @@ export default function CommentairesDashboardPage() {
         <div className="space-y-4">
           {comments.map((c) => (
             <CardContainer key={c.id} className="p-4">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                   {c.auteur?.photo ? (
                     <div className="relative w-6 h-6 rounded-full overflow-hidden">
@@ -111,7 +111,7 @@ export default function CommentairesDashboardPage() {
               <p className="text-xs text-muted mb-3">
                 Sur {c.commentable_type === 'App\\Models\\Publication' ? 'publication' : 'projet'} : {c.commentable?.titre || `#${c.commentable?.id}`}
               </p>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 {isOwner && (
                   <ActionButton variant="primary" size="sm" onClick={() => approve(c.id)} disabled={pendingIds.has(c.id)}>
                     {pendingIds.has(c.id) ? '...' : 'Approuver'}
@@ -132,7 +132,7 @@ export default function CommentairesDashboardPage() {
                     placeholder="Votre réponse..." rows={2}
                     className="w-full border border-[#333] rounded px-3 py-2 mb-2 bg-transparent text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50"
                   />
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <ActionButton variant="primary" size="sm" onClick={() => handleReply(c)}>
                       Envoyer
                     </ActionButton>

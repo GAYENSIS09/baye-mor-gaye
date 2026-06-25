@@ -184,7 +184,7 @@ export default function ProfileDashboardPage() {
 
               <div>
                 <Label htmlFor="profile-notif-delay">Délai de notification (minutes avant un événement)</Label>
-                <div className="flex gap-3 items-center">
+                <div className="flex gap-3 items-center flex-wrap">
                   <input id="profile-notif-delay" type="range" min={0} max={1440} step={5}
                     {...register("notification_delay_minutes", { valueAsNumber: true })}
                     className="flex-1 accent-acid" />

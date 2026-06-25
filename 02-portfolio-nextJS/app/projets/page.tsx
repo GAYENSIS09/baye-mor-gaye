@@ -47,7 +47,7 @@ function ProjetCard({ projet }: { projet: Projet }) {
           {projet.technologies && projet.technologies.length > 0 && (
             <CardTags tags={projet.technologies} maxVisible={5} />
           )}
-          <CardMeta>
+          <CardMeta className="flex-wrap">
             {projet.nombre_vues !== undefined && (
               <span className="font-mono flex items-center gap-1">
                 <Icons.search className="w-3.5 h-3.5 inline" aria-hidden /> {projet.nombre_vues}

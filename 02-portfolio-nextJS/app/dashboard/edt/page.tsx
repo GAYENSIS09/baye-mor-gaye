@@ -103,13 +103,13 @@ export default function EdtDashboardPage() {
     <div className="max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-off-white">Emploi du temps</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2 max-sm:flex-col max-sm:w-full">
           <button onClick={() => setShowForm(!showForm)}
-            className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 font-mono text-xs uppercase tracking-widest">
+            className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 font-mono text-xs uppercase tracking-widest max-sm:w-full">
             {showForm ? 'Annuler' : 'Nouvel EDT'}
           </button>
           <button onClick={() => setShowImport(!showImport)}
-            className="text-sm bg-[#222] text-off-white px-4 py-2 rounded hover:bg-[#333] font-mono text-xs uppercase tracking-widest">
+            className="text-sm bg-[#222] text-off-white px-4 py-2 rounded hover:bg-[#333] font-mono text-xs uppercase tracking-widest max-sm:w-full">
             {showImport ? 'Annuler' : 'Importer'}
           </button>
         </div>
@@ -154,10 +154,16 @@ export default function EdtDashboardPage() {
       {/* Week navigation */}
       <div className="flex items-center justify-between mb-4">
         <button onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() - 7); setWeekStart(d); }}
-          className="text-sm text-muted hover:text-off-white font-mono transition-colors">← Semaine précédente</button>
+          className="text-sm text-muted hover:text-off-white font-mono transition-colors" aria-label="Semaine précédente">
+          <span className="hidden md:inline">← Semaine précédente</span>
+          <span className="md:hidden" aria-hidden="true">←</span>
+        </button>
         <span className="text-sm text-off-white font-mono">{formatWeekLabel(weekStart)}</span>
         <button onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() + 7); setWeekStart(d); }}
-          className="text-sm text-muted hover:text-off-white font-mono transition-colors">Semaine suivante →</button>
+          className="text-sm text-muted hover:text-off-white font-mono transition-colors" aria-label="Semaine suivante">
+          <span className="hidden md:inline">Semaine suivante →</span>
+          <span className="md:hidden" aria-hidden="true">→</span>
+        </button>
       </div>
 
       {/* Calendar grid */}
@@ -170,7 +176,7 @@ export default function EdtDashboardPage() {
         <p className="text-muted">Chargement...</p>
       ) : (
         <>
-          <div className="grid grid-cols-7 gap-px bg-[#222] rounded-lg overflow-hidden mb-8">
+          <div className="hidden md:grid grid-cols-7 gap-px bg-[#222] rounded-lg overflow-hidden mb-8">
             {weekDays.map((day, i) => {
               const dateStr = day.toDateString();
               const events = weekEvents.get(dateStr) || [];
@@ -191,6 +197,35 @@ export default function EdtDashboardPage() {
                     ))}
                     {events.length > 3 && <p className="text-[10px] text-muted text-center">+{events.length - 3}</p>}
                   </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Mobile agenda view */}
+          <div className="md:hidden space-y-3 mb-8">
+            {weekDays.map((day, i) => {
+              const dateStr = day.toDateString();
+              const events = weekEvents.get(dateStr) || [];
+              const isToday = day.toDateString() === new Date().toDateString();
+              return (
+                <div key={i} className={`bg-[#111] rounded border border-[#222] p-3 ${isToday ? 'ring-1 ring-acid/50' : ''}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <p className="text-xs text-muted font-mono">{DAYS[i]}</p>
+                    <p className={`text-sm font-mono ${isToday ? 'text-acid font-bold' : 'text-off-white'}`}>{day.getDate()}</p>
+                  </div>
+                  {events.length > 0 ? (
+                    <div className="space-y-1">
+                      {events.map((e, j) => (
+                        <div key={j} className="text-xs px-2 py-1 rounded whitespace-normal" style={{ backgroundColor: e.couleur ? `${e.couleur}20` : '#222', color: e.couleur || '#888' }}>
+                          <span className="font-semibold">{new Date(e.date_debut).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span> {e.titre}
+                          {e.lieu && <span className="opacity-50 ml-1">· {e.lieu}</span>}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted">Aucun événement</p>
+                  )}
                 </div>
               );
             })}
@@ -233,8 +268,8 @@ export default function EdtDashboardPage() {
                   {edt.evenements.length > 0 ? (
                     <div className="space-y-1">
                         {edt.evenements.map((e: Evenement) => (
-                        <div key={e.id} className="group flex items-center justify-between text-sm px-3 py-2 bg-[#0A0A0A] rounded">
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div key={e.id} className="group flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0 text-sm px-3 py-2 bg-[#0A0A0A] rounded">
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 flex-1 min-w-0">
                             {e.couleur && <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: e.couleur }} />}
                             {(e as any).type && <span className="text-[10px] uppercase px-1 py-0.5 rounded bg-[#222] text-muted font-mono shrink-0">{(e as any).type}</span>}
                             <span className="text-off-white truncate">{e.titre}</span>
@@ -243,7 +278,7 @@ export default function EdtDashboardPage() {
                             </span>
                             {e.lieu && <span className="text-muted shrink-0">· {e.lieu}</span>}
                           </div>
-                          <div className="flex items-center gap-2 ml-2">
+                          <div className="flex items-center gap-2 sm:ml-2">
                             <span className={`text-xs px-2 py-0.5 rounded ${
                               e.statut === 'confirme' ? 'bg-green-900/20 text-green-400' :
                               e.statut === 'termine' ? 'bg-acid/10 text-acid' :

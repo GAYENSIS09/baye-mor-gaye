@@ -82,7 +82,7 @@ export default function ContactsDashboardPage() {
             {contacts.map((c) => (
               <button key={c.id} onClick={() => setSelected(c)}
                 className={`w-full text-left bg-[#111] p-4 rounded border border-[#222] hover:border-acid/30 transition ${!c.est_lu ? 'border-l-4 border-acid' : ''} ${selected?.id === c.id ? 'ring-2 ring-acid' : ''}`}>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
                   <p className="font-semibold truncate text-off-white">{c.nom}</p>
                   {!c.est_lu && <span className="w-2 h-2 bg-acid rounded-full shrink-0" />}
                 </div>
@@ -104,7 +104,7 @@ export default function ContactsDashboardPage() {
           <div>
             {selected ? (
               <CardContainer className="p-6">
-                <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start justify-between mb-4 gap-2 flex-wrap">
                   <div>
                     <CardTitle className="text-xl">{selected.nom}</CardTitle>
                     <a href={`mailto:${selected.email}`} className="text-acid hover:underline text-sm">
