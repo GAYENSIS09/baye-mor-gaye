@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Mail\EvenementDu;
 use App\Models\Evenement;
 use App\Models\Proprietaire;
 use Illuminate\Console\Command;
@@ -22,7 +21,7 @@ class NotifierEvenements extends Command
         }
 
         $delay = $proprietaire->notification_delay_minutes ?? 15;
-        $email = $proprietaire->utilisateur?->email ?? config('proprietaire.email');
+        $email = $proprietaire->utilisateur?->email ?? 'bayemor.gaye@ucad.edu.sn';
 
         $evenements = Evenement::with('emploiDuTemps')
             ->where('statut', 'confirme')
@@ -35,9 +34,26 @@ class NotifierEvenements extends Command
         }
 
         foreach ($evenements as $evenement) {
-            Mail::to($email)->send(new EvenementDu($evenement));
+            $titre = $evenement->titre;
+            $desc = $evenement->description ?? '';
+            $debut = $evenement->date_debut?->format('d/m/Y H:i') ?? '—';
+            $fin = $evenement->date_fin?->format('d/m/Y H:i') ?? '—';
+            $lieu = $evenement->lieu ?? '—';
+            $edt = $evenement->emploiDuTemps?->titre ?? '—';
+
+            $body = "Événement : {$titre}\n\n{$desc}\n\nDébut : {$debut}\nFin : {$fin}\nLieu : {$lieu}\nEmploi du temps : {$edt}";
+
+            Mail::raw($body, function ($message) use ($email, $titre) {
+                $message->to($email)
+                        ->subject("Événement : {$titre}")
+                        ->from(
+                            config('mail.from.address', 'gayensis09@gmail.com'),
+                            config('mail.from.name', 'Baye Mor Gaye')
+                        );
+            });
+
             $evenement->update(['statut' => 'termine']);
-            $this->info("Notification envoyée et événement marqué terminé : {$evenement->titre}");
+            $this->info("Notification envoyée et événement marqué terminé : {$titre}");
         }
 
         return Command::SUCCESS;

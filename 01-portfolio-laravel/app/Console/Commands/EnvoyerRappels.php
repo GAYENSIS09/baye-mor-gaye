@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Mail\RappelDu;
 use App\Models\Proprietaire;
 use App\Models\Rappel;
 use Illuminate\Console\Command;
@@ -28,17 +27,30 @@ class EnvoyerRappels extends Command
         }
 
         $proprietaire = Proprietaire::with('utilisateur')->first();
-        $email = $proprietaire?->utilisateur?->email ?? config('proprietaire.email');
+        $email = $proprietaire?->utilisateur?->email ?? 'bayemor.gaye@ucad.edu.sn';
 
         foreach ($rappels as $rappel) {
-            Mail::to($email)->queue(new RappelDu($rappel));
+            $titre = $rappel->titre;
+            $desc = $rappel->message ?? $rappel->description ?? '';
+            $date = $rappel->notifie_le?->format('d/m/Y H:i') ?? '—';
+
+            $body = "Rappel : {$titre}\n\n{$desc}\n\nDate : {$date}";
+
+            Mail::raw($body, function ($message) use ($email, $titre) {
+                $message->to($email)
+                        ->subject("Rappel : {$titre}")
+                        ->from(
+                            config('mail.from.address', 'gayensis09@gmail.com'),
+                            config('mail.from.name', 'Baye Mor Gaye')
+                        );
+            });
 
             $rappel->update([
-                'est_notifie'  => true,
-                'notifie_le'   => now(),
+                'est_notifie' => true,
+                'notifie_le'  => now(),
             ]);
 
-            $this->info("Rappel envoyé : {$rappel->titre}");
+            $this->info("Rappel envoyé : {$titre}");
         }
 
         return Command::SUCCESS;

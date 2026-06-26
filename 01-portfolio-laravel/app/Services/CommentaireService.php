@@ -60,7 +60,7 @@ class CommentaireService extends BaseCrudService
         $commentaire->update(['est_approuve' => true]);
 
         try {
-            Mail::to($commentaire->auteur->email)->queue(new CommentaireApprouve($commentaire));
+            Mail::to($commentaire->auteur->email)->send(new CommentaireApprouve($commentaire));
         } catch (\Exception $e) {
             // Silently fail
         }
@@ -71,7 +71,7 @@ class CommentaireService extends BaseCrudService
     public function rejeter(Commentaire $commentaire): void
     {
         try {
-            Mail::to($commentaire->auteur->email)->queue(new CommentaireRejete($commentaire));
+            Mail::to($commentaire->auteur->email)->send(new CommentaireRejete($commentaire));
         } catch (\Exception $e) {
             // Silently fail
         }

@@ -48,7 +48,7 @@ class CommentaireController extends Controller
                 'donnees'         => ['commentaire_id' => $commentaire->id],
             ]);
 
-            Mail::to($commentaire->auteur->email)->queue(new CommentaireApprouve($commentaire));
+            Mail::to($commentaire->auteur->email)->send(new CommentaireApprouve($commentaire));
         }
 
         return response()->json(CommentaireResource::make($commentaire->load(['auteur', 'commentable'])));
@@ -69,7 +69,7 @@ class CommentaireController extends Controller
                 'donnees'         => ['commentaire_id' => $commentaire->id],
             ]);
 
-            Mail::to($auteur->email)->queue(new CommentaireRejete($commentaire));
+            Mail::to($auteur->email)->send(new CommentaireRejete($commentaire));
         }
 
         return response()->json(['message' => 'Commentaire rejeté']);

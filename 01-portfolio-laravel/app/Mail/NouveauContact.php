@@ -3,17 +3,11 @@
 namespace App\Mail;
 
 use App\Models\Contact;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Queue\SerializesModels;
 
-class NouveauContact extends Mailable implements ShouldQueue
+class NouveauContact extends Mailable
 {
-    use Queueable, SerializesModels;
-
     public function __construct(
         public Contact $contact
     ) {}
@@ -25,11 +19,11 @@ class NouveauContact extends Mailable implements ShouldQueue
         );
     }
 
-    public function content(): Content
+    public function build(): self
     {
-        return new Content(
-            markdown: 'emails.contact.nouveau',
-        );
+        $c = $this->contact;
+        $body = "Nouveau message de {$c->nom} ({$c->email})\n\n{$c->message}\n\nReçu le {$c->created_at->format('d/m/Y à H:i')}";
+        return $this->text('emails.plain', ['body' => $body]);
     }
 
     public function attachments(): array

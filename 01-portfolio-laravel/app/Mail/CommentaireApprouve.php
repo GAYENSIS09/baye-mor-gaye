@@ -3,17 +3,11 @@
 namespace App\Mail;
 
 use App\Models\Commentaire;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Queue\SerializesModels;
 
-class CommentaireApprouve extends Mailable implements ShouldQueue
+class CommentaireApprouve extends Mailable
 {
-    use Queueable, SerializesModels;
-
     public function __construct(
         public Commentaire $commentaire
     ) {}
@@ -25,11 +19,15 @@ class CommentaireApprouve extends Mailable implements ShouldQueue
         );
     }
 
-    public function content(): Content
+    public function build(): self
     {
-        return new Content(
-            markdown: 'emails.commentaire.approuve',
-        );
+        $author = $this->commentaire->auteur?->nom ?? 'Visiteur';
+        $body = "Bonjour {$author},\n\n"
+              . "Votre commentaire a été approuvé et est désormais visible publiquement.\n\n"
+              . "Votre commentaire :\n"
+              . "> {$this->commentaire->contenu}\n\n"
+              . "Merci pour votre contribution !";
+        return $this->text('emails.plain', ['body' => $body]);
     }
 
     public function attachments(): array

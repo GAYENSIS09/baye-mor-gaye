@@ -16,7 +16,7 @@ class ContactService
         try {
             $proprietaire = Proprietaire::with('utilisateur')->first();
             if ($proprietaire?->utilisateur?->email) {
-                Mail::to($proprietaire->utilisateur->email)->queue(new NouveauContact($contact));
+                Mail::to($proprietaire->utilisateur->email)->send(new NouveauContact($contact));
             }
         } catch (\Exception $e) {
             // Silently fail

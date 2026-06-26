@@ -33,7 +33,7 @@ class ContactController extends Controller
 
         $contact = Contact::create($data);
 
-        Mail::to(config('proprietaire.email'))->queue(new NouveauContact($contact));
+        Mail::to(config('proprietaire.email'))->send(new NouveauContact($contact));
 
         return ContactResource::make($contact);
     }
