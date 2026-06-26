@@ -20,7 +20,11 @@ class RessourceController extends Controller
         }
 
         if ($request->has('publique')) {
-            $query->where('est_publique', filter_var($request->publique, FILTER_VALIDATE_BOOLEAN));
+            if ($request->publique !== 'all') {
+                $query->where('est_publique', filter_var($request->publique, FILTER_VALIDATE_BOOLEAN));
+            }
+        } else {
+            $query->where('est_publique', true);
         }
 
         if ($request->has('type')) {

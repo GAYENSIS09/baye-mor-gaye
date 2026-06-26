@@ -48,7 +48,7 @@ export default function RessourcesDashboardPage() {
   const [search, setSearch] = useState('');
   const [domaineFilter, setDomaineFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
-  const params: Record<string, string> = { page: String(currentPage) };
+  const params: Record<string, string> = { page: String(currentPage), publique: 'all' };
   if (search) params.search = search;
   if (domaineFilter) params.domaine = domaineFilter;
   if (typeFilter) params.type = typeFilter;
@@ -485,21 +485,21 @@ export default function RessourcesDashboardPage() {
       <ConfirmDialog open={confirmDeleteMedia !== null} title="Supprimer le média" message="Ce fichier sera définitivement supprimé." destructive confirmLabel="Supprimer" onConfirm={() => { if (confirmDeleteMedia) handleDeleteMedia(confirmDeleteMedia); } } onCancel={() => setConfirmDeleteMedia(null)} />
 
       {viewMedia && (
-        <div className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4" onClick={() => setViewMedia(null)} role="dialog" aria-modal="true" aria-label={viewMedia.titre || 'Média'}>
-          <button onClick={() => setViewMedia(null)} className="absolute top-4 right-4 text-white/70 hover:text-white z-10 transition-colors" aria-label="Fermer">
-            <Icons.close className="w-8 h-8" />
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-200" onClick={() => setViewMedia(null)} role="dialog" aria-modal="true" aria-label={viewMedia.titre || 'Média'}>
+          <button onClick={() => setViewMedia(null)} className="absolute top-2 sm:top-4 right-2 sm:right-4 text-white hover:text-white/80 z-20 bg-black/50 hover:bg-black/70 backdrop-blur rounded-full p-2 sm:p-3 transition-all duration-200" aria-label="Fermer">
+            <Icons.close className="w-5 h-5 sm:w-7 sm:h-7" />
           </button>
-          <div className="relative w-full max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
+          <div className="relative w-full max-w-6xl max-h-[98vh] sm:max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
             {viewMedia.url.startsWith('http') && (viewMedia.url.match(/\.(jpg|jpeg|png|gif|webp|svg|avif|bmp)$/i) || viewMedia.url.startsWith('data:image/')) ? (
-              <div className="relative w-full h-[88vh]">
+              <div className="relative w-full h-[60dvh] sm:h-[88vh]">
                 <Image src={viewMedia.url} alt={viewMedia.titre || ''} fill className="object-contain" unoptimized />
               </div>
             ) : viewMedia.url.match(/\.(mp4|webm|ogg|mov)$/i) ? (
-              <video src={viewMedia.url} controls className="w-full h-[88vh] mx-auto rounded-lg" />
+              <video src={viewMedia.url} controls className="w-full h-[60dvh] sm:h-[88vh] mx-auto rounded-lg" />
             ) : (
-              <iframe src={viewMedia.url} className="w-full h-[88vh] rounded-lg" title={viewMedia.titre || 'Média'} />
+              <iframe src={viewMedia.url} className="w-full h-[60dvh] sm:h-[88vh] rounded-lg" title={viewMedia.titre || 'Média'} />
             )}
-            {viewMedia.titre && <p className="text-center text-sm text-white/60 mt-3 font-mono">{viewMedia.titre}</p>}
+            {viewMedia.titre && <p className="text-center text-sm text-white/60 mt-2 sm:mt-3 font-mono truncate px-2">{viewMedia.titre}</p>}
           </div>
         </div>
       )}
