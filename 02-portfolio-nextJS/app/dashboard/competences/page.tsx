@@ -237,8 +237,8 @@ export default function SkillsPage() {
                               <ActionButton size="sm" onClick={() => setEditingId(null)} variant="ghost">Annuler</ActionButton>
                             </div>
                           ) : (
-                            <div className="flex items-center">
-                              <div className="flex-1">
+                            <div className="flex items-center flex-wrap">
+                              <div className="flex-1 min-w-0">
                                 <CompetenceBar
                                   name={skill.nom}
                                   niveau={niveauActuel}

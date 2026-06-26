@@ -410,7 +410,7 @@ export default function RessourcesDashboardPage() {
 
                   {editingRessource === r.id && (
                     <CardContainer className="mt-2 p-4 border-acid/30">
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
                         <h4 className="text-xs font-mono text-muted uppercase tracking-wider">Médias attachés</h4>
                         <div className="flex items-center gap-2 flex-wrap">
                           <label className="flex items-center gap-1.5 cursor-pointer text-xs text-acid hover:text-acid/80 transition-colors font-mono">

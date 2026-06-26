@@ -109,7 +109,7 @@ export default function ProfileDashboardPage() {
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
           {saved && <p className="text-green-400 text-sm" role="alert">Profil mis à jour.</p>}
 
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center gap-4 mb-6 flex-wrap">
             {(photoUrl || utilisateur.photo) && (
               <div className="relative w-16 h-16 rounded-full overflow-hidden border border-[#222] shrink-0">
                 <MediaViewer src={photoUrl || getMediaUrl(utilisateur.photo) || ''} alt="" fill className="object-cover" />

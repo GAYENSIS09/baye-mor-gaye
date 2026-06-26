@@ -248,7 +248,7 @@ export default function EditProjetPage() {
           {uploading && <p className="text-xs text-muted mt-1">Upload en cours...</p>}
         </div>
         <div className="border-t border-[#222] pt-3">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
             <p className="text-xs font-mono text-muted uppercase tracking-wider">Médias attachés</p>
             <div className="flex items-center gap-2">
               <label className="flex items-center gap-1.5 cursor-pointer text-xs text-acid hover:text-acid/80 transition-colors font-mono">
@@ -325,7 +325,7 @@ export default function EditProjetPage() {
             <label htmlFor="vedette" className="text-sm text-off-white">En vedette</label>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           <button type="submit" disabled={isSubmitting}
             className="bg-acid text-black px-6 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
             {isSubmitting ? 'Enregistrement...' : 'Enregistrer'}

@@ -225,7 +225,7 @@ export default function NewProjetPage() {
             <input type="checkbox" id="en-vedette" {...register("est_en_vedette")} className="accent-acid" />
             <label htmlFor="en-vedette" className="text-sm text-off-white">Mettre en vedette</label>
           </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           <button type="submit" disabled={isSubmitting}
             className="bg-acid text-black px-6 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
             {isSubmitting ? 'Enregistrement...' : 'Creer'}

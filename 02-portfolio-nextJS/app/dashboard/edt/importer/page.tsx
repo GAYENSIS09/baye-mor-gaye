@@ -58,9 +58,9 @@ export default function ImporterEdtPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
         <h1 className="text-2xl font-bold text-off-white">Import IA</h1>
-        <Link href="/dashboard/edt" className="text-sm text-muted hover:text-off-white font-mono transition-colors">← Retour</Link>
+        <Link href="/dashboard/edt" className="text-sm text-muted hover:text-off-white font-mono transition-colors shrink-0">← Retour</Link>
       </div>
 
       <form onSubmit={handleImport} className="bg-[#111] p-6 rounded border border-[#222] space-y-4">
@@ -131,7 +131,7 @@ export default function ImporterEdtPage() {
           <h2 className="text-lg font-semibold text-off-white mb-3">Imports récents</h2>
           <div className="space-y-2">
             {conversions.slice(0, 5).map((c) => (
-              <div key={c.id} className="bg-[#111] p-3 rounded border border-[#222] flex items-center justify-between text-sm">
+              <div key={c.id} className="bg-[#111] p-3 rounded border border-[#222] flex items-center justify-between gap-3 text-sm flex-wrap">
                 <div>
                   <p className="text-off-white">{c.titre}</p>
                   <p className="text-xs text-muted">{new Date(c.created_at).toLocaleDateString('fr-FR')}</p>

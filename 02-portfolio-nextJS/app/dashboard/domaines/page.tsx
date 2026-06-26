@@ -123,12 +123,12 @@ export default function DomainsPage() {
         <div className="space-y-3">
           {domaines.map((d) => (
             <CardContainer key={d.id} className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-3 min-w-0">
                   {d.couleur && (
                     <span className="w-4 h-4 rounded-full inline-block shrink-0" style={{ backgroundColor: d.couleur }} />
                   )}
-                  <div>
+                  <div className="min-w-0">
                     {editingId === d.id ? (
                       <input ref={editRef} value={editValue} onChange={(e) => setEditValue(e.target.value)}
                         onBlur={() => saveEdit(d.id)} onKeyDown={(e) => {
@@ -141,7 +141,7 @@ export default function DomainsPage() {
                         {d.nom}
                       </button>
                     )}
-                    <p className="text-sm text-muted">{d.slug}</p>
+                    <p className="text-sm text-muted truncate">{d.slug}</p>
                     {d.description && <p className="text-sm text-muted">{d.description}</p>}
                   </div>
                 </div>

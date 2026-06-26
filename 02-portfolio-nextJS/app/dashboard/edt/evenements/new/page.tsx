@@ -99,7 +99,7 @@ function NewEvenementForm() {
           <input id="lieu" name="lieu" value={lieu} onChange={(e) => setLieu(e.target.value)} autoComplete="off"
             className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
         </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap">
             <div>
               <label htmlFor="statut" className="block text-sm font-medium text-off-white">Statut</label>
               <select id="statut" name="statut" value={statut} onChange={(e) => setStatut(e.target.value)}
@@ -121,7 +121,7 @@ function NewEvenementForm() {
             <label htmlFor="journee" className="text-sm text-off-white">Journee complete</label>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           <button type="submit" disabled={saving}
             className="bg-acid text-black px-6 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
             {saving ? 'Enregistrement...' : 'Creer'}

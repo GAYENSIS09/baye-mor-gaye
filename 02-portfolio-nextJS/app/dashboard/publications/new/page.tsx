@@ -186,7 +186,7 @@ export default function NewPublicationPage() {
           <input type="checkbox" id="publier" {...register("est_publie")} className="accent-acid" />
           <label htmlFor="publier" className="text-sm text-off-white">Publier immediatement</label>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           <button type="submit" disabled={isSubmitting}
             className="bg-acid text-black px-6 py-2 rounded hover:bg-acid/90 disabled:opacity-50 font-mono text-xs uppercase tracking-widest">
             {isSubmitting ? 'Enregistrement...' : 'Creer'}

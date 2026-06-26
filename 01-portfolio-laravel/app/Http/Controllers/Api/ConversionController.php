@@ -40,10 +40,7 @@ class ConversionController extends Controller
 
     public function update(UpdateConversionRequest $request, Conversion $conversion)
     {
-        if (!$conversion->evenement || !$conversion->evenement->emploiDuTemps) {
-            abort(403, 'Action non autorisée.');
-        }
-        $this->authorizeOwnershipOrFail($request, $conversion->evenement->emploiDuTemps);
+        $this->authorizeConversionAction($request, $conversion);
 
         $conversion->update($request->validated());
         return ConversionResource::make($conversion);
@@ -77,11 +74,16 @@ class ConversionController extends Controller
 
     public function destroy(Request $request, Conversion $conversion)
     {
+        $this->authorizeConversionAction($request, $conversion);
+        $conversion->delete();
+        return response()->noContent();
+    }
+
+    private function authorizeConversionAction(Request $request, Conversion $conversion): void
+    {
         if (!$conversion->evenement || !$conversion->evenement->emploiDuTemps) {
             abort(403, 'Action non autorisée.');
         }
         $this->authorizeOwnershipOrFail($request, $conversion->evenement->emploiDuTemps);
-        $conversion->delete();
-        return response()->noContent();
     }
 }

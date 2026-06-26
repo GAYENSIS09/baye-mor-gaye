@@ -116,7 +116,7 @@ export default function ProjetsDashboardPage() {
           <ResponsiveGrid columns={1} gap={4}>
             {projets.map((p) => (
               <CardContainer key={p.id} hover className="p-4">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
                   <div className="w-16 h-12 rounded overflow-hidden bg-[#222] shrink-0 relative">
                     {(() => {
                       const cover = p.image_couverture || p.medias?.find(m => m.type === 'image')?.chemin_fichier;
