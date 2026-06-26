@@ -22,15 +22,8 @@ class CommentaireApprouve extends Mailable
 
     public function content(): Content
     {
-        $author = $this->commentaire->auteur?->nom ?? 'Visiteur';
-        $body = "Bonjour {$author},\n\n"
-              . "Votre commentaire a été approuvé et est désormais visible publiquement.\n\n"
-              . "Votre commentaire :\n"
-              . "> {$this->commentaire->contenu}\n\n"
-              . "Merci pour votre contribution !";
         return new Content(
-            text: 'emails.plain',
-            with: ['body' => $body],
+            markdown: 'emails.commentaire.approuve',
         );
     }
 

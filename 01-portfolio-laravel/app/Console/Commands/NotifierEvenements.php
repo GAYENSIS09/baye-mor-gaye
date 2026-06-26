@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Mail\EvenementDu;
 use App\Models\Evenement;
 use App\Models\Proprietaire;
 use Illuminate\Console\Command;
@@ -34,26 +35,10 @@ class NotifierEvenements extends Command
         }
 
         foreach ($evenements as $evenement) {
-            $titre = $evenement->titre;
-            $desc = $evenement->description ?? '';
-            $debut = $evenement->date_debut?->format('d/m/Y H:i') ?? '—';
-            $fin = $evenement->date_fin?->format('d/m/Y H:i') ?? '—';
-            $lieu = $evenement->lieu ?? '—';
-            $edt = $evenement->emploiDuTemps?->titre ?? '—';
-
-            $body = "Événement : {$titre}\n\n{$desc}\n\nDébut : {$debut}\nFin : {$fin}\nLieu : {$lieu}\nEmploi du temps : {$edt}";
-
-            Mail::raw($body, function ($message) use ($email, $titre) {
-                $message->to($email)
-                        ->subject("Événement : {$titre}")
-                        ->from(
-                            config('mail.from.address', 'gayensis09@gmail.com'),
-                            config('mail.from.name', 'Baye Mor Gaye')
-                        );
-            });
+            Mail::to($email)->send(new EvenementDu($evenement));
 
             $evenement->update(['statut' => 'termine']);
-            $this->info("Notification envoyée et événement marqué terminé : {$titre}");
+            $this->info("Notification envoyée et événement marqué terminé : {$evenement->titre}");
 
             sleep(3);
         }

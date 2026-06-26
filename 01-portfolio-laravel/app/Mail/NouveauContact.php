@@ -22,11 +22,8 @@ class NouveauContact extends Mailable
 
     public function content(): Content
     {
-        $c = $this->contact;
-        $body = "Nouveau message de {$c->nom} ({$c->email})\n\n{$c->message}\n\nReçu le {$c->created_at->format('d/m/Y à H:i')}";
         return new Content(
-            text: 'emails.plain',
-            with: ['body' => $body],
+            markdown: 'emails.contact.nouveau',
         );
     }
 
