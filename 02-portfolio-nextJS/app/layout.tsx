@@ -116,7 +116,9 @@ export default async function RootLayout({
         )}
       </head>
       <body>
-        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[999] focus:px-4 focus:py-2 focus:bg-acid focus:text-black focus:rounded focus:font-mono focus:text-sm">
+        <a href="#main-content"
+          className="fixed bottom-4 right-4 z-[999] px-3 py-2 bg-acid/90 hover:bg-acid text-black text-xs font-mono uppercase tracking-widest rounded-full shadow-lg transition-all opacity-70 hover:opacity-100 md:opacity-0 md:focus:opacity-100"
+          style={{ viewTransitionName: 'skip-link' }}>
           Aller au contenu
         </a>
         <DebugProvider><QueryProvider><AuthProvider>

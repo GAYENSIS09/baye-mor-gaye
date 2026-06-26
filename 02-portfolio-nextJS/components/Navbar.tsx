@@ -105,10 +105,10 @@ export default function Navbar() {
           )}
         </div>
 
-        <button onClick={() => setOpen(!open)} className="md:hidden text-off-white" aria-label="Menu" aria-expanded={open}>
-          <span className={`block w-5 h-px bg-current mb-1.5 transition-transform ${open ? 'rotate-45 translate-y-[7px]' : ''}`} />
-          <span className={`block w-5 h-px bg-current transition-opacity ${open ? 'opacity-0' : ''}`} />
-          <span className={`block w-5 h-px bg-current mt-1.5 transition-transform ${open ? '-rotate-45 -translate-y-[7px]' : ''}`} />
+        <button onClick={() => setOpen(!open)} className="md:hidden p-1 text-off-white" aria-label="Menu" aria-expanded={open}>
+          <span className={`block w-4 h-[1.5px] bg-current mb-1 transition-transform ${open ? 'rotate-45 translate-y-[5.5px]' : ''}`} />
+          <span className={`block w-4 h-[1.5px] bg-current transition-opacity ${open ? 'opacity-0' : ''}`} />
+          <span className={`block w-4 h-[1.5px] bg-current mt-1 transition-transform ${open ? '-rotate-45 -translate-y-[5.5px]' : ''}`} />
         </button>
       </div>
 
