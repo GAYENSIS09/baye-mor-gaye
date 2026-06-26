@@ -51,6 +51,8 @@ class EnvoyerRappels extends Command
             ]);
 
             $this->info("Rappel envoyé : {$titre}");
+
+            sleep(3);
         }
 
         return Command::SUCCESS;

@@ -54,6 +54,8 @@ class NotifierEvenements extends Command
 
             $evenement->update(['statut' => 'termine']);
             $this->info("Notification envoyée et événement marqué terminé : {$titre}");
+
+            sleep(3);
         }
 
         return Command::SUCCESS;
