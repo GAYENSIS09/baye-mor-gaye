@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use App\Models\Commentaire;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 
 class CommentaireRejete extends Mailable
@@ -19,7 +20,7 @@ class CommentaireRejete extends Mailable
         );
     }
 
-    public function build(): self
+    public function content(): Content
     {
         $author = $this->commentaire->auteur?->nom ?? 'Visiteur';
         $body = "Bonjour {$author},\n\n"
@@ -28,7 +29,10 @@ class CommentaireRejete extends Mailable
               . "Votre commentaire :\n"
               . "> {$this->commentaire->contenu}\n\n"
               . "Nous vous remercions de votre compréhension.";
-        return $this->text('emails.plain', ['body' => $body]);
+        return new Content(
+            text: 'emails.plain',
+            with: ['body' => $body],
+        );
     }
 
     public function attachments(): array
