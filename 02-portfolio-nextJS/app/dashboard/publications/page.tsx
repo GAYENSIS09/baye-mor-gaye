@@ -152,7 +152,7 @@ export default function PublicationsDashboardPage() {
                       </p>
                     )}
                   </CardContent>
-                  <CardActions className="mt-0 pt-0 border-0 flex-shrink-0 ml-4">
+                  <CardActions className="mt-0 pt-0 border-0 flex-shrink-0">
                   <IconButton
                     onClick={() => togglePublier.mutate({ id: p.id, est_publie: !p.est_publie })}
                     icon={p.est_publie ? <Icons.folder className="w-4 h-4" /> : <Icons.external className="w-4 h-4" />}

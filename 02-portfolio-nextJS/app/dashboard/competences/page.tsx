@@ -220,11 +220,11 @@ export default function SkillsPage() {
                           {isEditing ? (
                             <div className="flex flex-wrap items-center gap-2 px-3 py-2">
                               <input value={editNom} onChange={(e) => setEditNom(e.target.value)}
-                                className="w-32 border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+                                className="w-full sm:w-32 border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
                               <input value={editCategorie} onChange={(e) => setEditCategorie(e.target.value)} placeholder="Catégorie"
-                                className="w-28 border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+                                className="w-full sm:w-28 border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
                               <input value={EditIcone} onChange={(e) => setEditIcone(e.target.value)} placeholder="Icône"
-                                className="w-20 border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+                                className="w-full sm:w-20 border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
                               <select value={editNiveau} onChange={(e) => setEditNiveau(e.target.value)}
                                 className="border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50">
                                 {NIVEAUX.map((n) => <option key={n} value={n}>{n}</option>)}

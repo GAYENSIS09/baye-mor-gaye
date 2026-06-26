@@ -147,7 +147,7 @@ export default function RappelsDashboardPage() {
                         {r.notifie_le && ` — Rappel le ${new Date(r.notifie_le).toLocaleDateString('fr-FR')} ${new Date(r.notifie_le).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`}
                       </p>
                     </div>
-                    <CardActions className="mt-0 pt-0 border-0 ml-4 shrink-0">
+                    <CardActions className="mt-0 pt-0 border-0 shrink-0">
                       <ActionButton variant="ghost" size="sm" onClick={() => startEdit(r)}>Modifier</ActionButton>
                       <ActionButton variant="danger" size="sm" onClick={() => setConfirmDelete(r.id)}>
                         <Icons.trash className="w-4 h-4" />

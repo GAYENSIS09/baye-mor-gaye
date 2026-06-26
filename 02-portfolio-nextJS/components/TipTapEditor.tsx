@@ -125,7 +125,7 @@ export default function TipTapEditor({ content, onChange, placeholder = 'Écrive
   if (!editor) return null;
 
   return (
-    <div className="border border-[#333] rounded overflow-hidden">
+    <div className="border border-[#333] rounded overflow-x-auto">
       <div className="flex flex-wrap gap-0.5 px-2 py-1.5 bg-[#222] border-b border-[#333]">
         <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive('bold')} title="Gras">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" /><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" /><path d="M6 4v16" /></svg>

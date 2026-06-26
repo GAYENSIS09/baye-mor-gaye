@@ -109,7 +109,7 @@ export default function NotificationsDashboardPage() {
                   {n.message && <CardDescription className="text-sm">{n.message}</CardDescription>}
                   <p className="text-xs text-muted mt-1">{new Date(n.created_at).toLocaleString('fr-FR')}</p>
                 </CardContent>
-                <CardActions className="mt-0 pt-0 border-0 ml-4 shrink-0">
+                <CardActions className="mt-0 pt-0 border-0 shrink-0">
                   {!n.est_lue && (
                     <ActionButton variant="ghost" size="sm" onClick={() => markAsRead(n.id)}>
                       Marquer lu

@@ -82,7 +82,7 @@ export default function ProjetsDashboardPage() {
       <div className="flex flex-wrap gap-2 mb-6">
         <input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
           placeholder="Rechercher par titre..."
-          className="flex-1 min-w-[200px] border border-[#333] rounded px-3 py-2 bg-transparent text-off-white placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+          className="flex-1 min-w-0 sm:min-w-[200px] border border-[#333] rounded px-3 py-2 bg-transparent text-off-white placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
         <select value={techFilter} onChange={(e) => { setTechFilter(e.target.value); setCurrentPage(1); }}
           className="bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
           <option value="">Toutes technos</option>
@@ -146,7 +146,7 @@ export default function ProjetsDashboardPage() {
                       </p>
                     )}
                   </CardContent>
-                  <CardActions className="mt-0 pt-0 border-0 flex-shrink-0 ml-4">
+                  <CardActions className="mt-0 pt-0 border-0 flex-shrink-0">
                     <IconButton
                       onClick={() => handleTogglePublier(p)}
                       icon={p.est_publie ? <Icons.folder className="w-4 h-4" /> : <Icons.external className="w-4 h-4" />}

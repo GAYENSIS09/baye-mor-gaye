@@ -241,7 +241,7 @@ export default function RessourcesDashboardPage() {
       <div className="flex flex-col sm:flex-row flex-wrap gap-2 mb-6">
         <input value={search} onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
           placeholder="Rechercher par titre..."
-          className="w-full sm:flex-1 min-w-[200px] border border-[#333] rounded px-3 py-2 bg-transparent text-off-white placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
+          className="w-full sm:flex-1 min-w-0 sm:min-w-[200px] border border-[#333] rounded px-3 py-2 bg-transparent text-off-white placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
         <select value={domaineFilter} onChange={(e) => { setDomaineFilter(e.target.value); setCurrentPage(1); }}
           className="w-full sm:w-auto bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
           <option value="">Tous domaines</option>
