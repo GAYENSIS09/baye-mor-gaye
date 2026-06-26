@@ -50,7 +50,7 @@ export function SectionHeader({
   const router = useRouter();
 
   return (
-    <header className="bg-[#111] border-b border-[#222] sticky top-0 z-40 mb-8">
+    <header className="bg-[#111] border-b border-[#222] sticky top-0 z-40 mb-8 overflow-x-hidden">
       <div className="max-w-6xl mx-auto px-4 py-3 md:py-4 space-y-3">
         {/* Breadcrumb */}
         {breadcrumb && breadcrumb.length > 0 && (

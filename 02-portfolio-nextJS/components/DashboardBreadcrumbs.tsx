@@ -56,8 +56,8 @@ export default function DashboardBreadcrumbs() {
   }
 
   return (
-    <nav aria-label="Fil d'Ariane" className="mb-4">
-      <ol className="flex items-center gap-1.5 text-xs font-mono text-muted" itemScope itemType="https://schema.org/BreadcrumbList">
+    <nav aria-label="Fil d'Ariane" className="mb-4 w-full max-w-full overflow-hidden">
+      <ol className="flex items-center gap-1.5 text-xs font-mono text-muted flex-wrap" itemScope itemType="https://schema.org/BreadcrumbList">
         {crumbs.map((crumb, i) => (
           <li key={crumb.href} itemProp="itemListElement" itemScope itemType="https://schema.org/ListItem" className="flex items-center gap-1.5">
             {i > 0 && (

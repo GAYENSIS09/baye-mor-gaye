@@ -67,7 +67,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           )}
 
           {/* Page content */}
-          <div className="flex-1 p-4 md:p-8 overflow-y-auto">
+          <div className="flex-1 p-4 md:p-8 overflow-y-auto overflow-x-hidden max-w-full">
             <DashboardBreadcrumbs />
             {children}
           </div>
