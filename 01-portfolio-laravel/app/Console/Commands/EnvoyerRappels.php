@@ -31,12 +31,19 @@ class EnvoyerRappels extends Command
         $email = $proprietaire?->utilisateur?->email ?? 'bayemor.gaye@ucad.edu.sn';
 
         foreach ($rappels as $rappel) {
-            Mail::to($email)->send(new RappelDu($rappel));
+            $updated = Rappel::where('id', $rappel->id)
+                ->where('est_notifie', false)
+                ->update([
+                    'est_notifie' => true,
+                    'notifie_le'  => now(),
+                ]);
 
-            $rappel->update([
-                'est_notifie' => true,
-                'notifie_le'  => now(),
-            ]);
+            if ($updated === 0) {
+                $this->warn("Rappel déjà traité : {$rappel->titre}");
+                continue;
+            }
+
+            Mail::to($email)->send(new RappelDu($rappel));
 
             $this->info("Rappel envoyé : {$rappel->titre}");
 

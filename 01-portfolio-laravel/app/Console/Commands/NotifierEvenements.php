@@ -35,9 +35,17 @@ class NotifierEvenements extends Command
         }
 
         foreach ($evenements as $evenement) {
+            $updated = Evenement::where('id', $evenement->id)
+                ->where('statut', 'confirme')
+                ->update(['statut' => 'termine']);
+
+            if ($updated === 0) {
+                $this->warn("Événement déjà traité : {$evenement->titre}");
+                continue;
+            }
+
             Mail::to($email)->send(new EvenementDu($evenement));
 
-            $evenement->update(['statut' => 'termine']);
             $this->info("Notification envoyée et événement marqué terminé : {$evenement->titre}");
 
             sleep(3);
