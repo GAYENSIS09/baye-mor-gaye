@@ -244,7 +244,7 @@ body {
 
   /* ── Form input utilities ── */
   .input-base {
-    @apply w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white
+    @apply w-full min-w-0 border border-[#333] rounded px-3 py-2 bg-transparent text-off-white
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50
            placeholder:text-muted text-sm;
   }

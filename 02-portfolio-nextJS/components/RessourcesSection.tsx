@@ -24,7 +24,7 @@ function PreviewModal({ resource, onClose }: { resource: Ressource; onClose: () 
   const previewUrl = firstMedia ? getMediaUrl(firstMedia.chemin_fichier) : null;
 
   useEffect(() => {
-    if (firstMedia && (firstMedia.type === 'lien' || firstMedia.type === 'youtube') && previewUrl) {
+    if (firstMedia && (firstMedia.type === 'lien' || firstMedia.type === 'youtube' || firstMedia.type === 'document') && previewUrl) {
       window.open(previewUrl, '_blank', 'noopener,noreferrer');
       onClose();
       return;
@@ -46,16 +46,16 @@ function PreviewModal({ resource, onClose }: { resource: Ressource; onClose: () 
   }, []);
 
   return (
-    <div ref={modalRef} className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4" onClick={onClose} role="dialog" aria-modal="true" aria-label={resource.titre}>
-      <button ref={closeRef} onClick={onClose} className="absolute top-4 right-4 text-white/70 hover:text-white z-10 transition-colors" aria-label="Fermer">
-        <Icons.close className="w-8 h-8" />
+    <div ref={modalRef} className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-2 md:p-4" onClick={onClose} role="dialog" aria-modal="true" aria-label={resource.titre}>
+      <button ref={closeRef} onClick={onClose} className="absolute top-2 right-2 md:top-4 md:right-4 text-white/50 hover:text-white z-10 transition-colors bg-black/40 rounded-full p-1.5" aria-label="Fermer">
+        <Icons.close className="w-5 h-5 md:w-6 md:h-6" />
       </button>
-      <div className="relative w-full max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full max-h-[95dvh] md:max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
         {previewUrl ? (
-          <MediaViewer src={previewUrl} alt={resource.titre} className="w-full h-[88vh] mx-auto rounded-lg" />
+          <MediaViewer src={previewUrl} alt={resource.titre} className="w-full h-[90dvh] md:h-[88vh] mx-auto rounded-lg" />
         ) : (
-          <div className="bg-[#111] border border-[#222] rounded-lg p-8 text-center">
-            <Icons.file className="w-16 h-16 mx-auto text-muted/50 mb-4" aria-hidden />
+          <div className="w-full min-w-0 bg-[#111] border border-[#222] rounded-lg p-6 md:p-8 text-center">
+            <Icons.file className="w-12 h-12 md:w-16 md:h-16 mx-auto text-muted/50 mb-4" aria-hidden />
             <h3 className="text-off-white text-lg font-semibold mb-2">{resource.titre}</h3>
             {resource.domaine && <DomaineBadge nom={resource.domaine.nom} couleur={resource.domaine.couleur} />}
             {resource.description && (
@@ -63,7 +63,7 @@ function PreviewModal({ resource, onClose }: { resource: Ressource; onClose: () 
             )}
           </div>
         )}
-        <p className="text-center text-sm text-white/60 mt-3 font-mono">{resource.titre}</p>
+        <p className="text-center text-xs md:text-sm text-white/60 mt-2 md:mt-3 font-mono truncate px-2">{resource.titre}</p>
       </div>
     </div>
   );

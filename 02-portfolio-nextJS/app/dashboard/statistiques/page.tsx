@@ -40,7 +40,7 @@ export default function StatistiquesDashboardPage() {
       <SectionHeader
         title="Statistiques"
         actions={
-          <div className="flex gap-1 bg-[#111] border border-[#222] rounded-lg p-1">
+          <div className="flex gap-1 w-full bg-[#111] border border-[#222] rounded-lg p-1">
             {PERIODES.map((p) => (
               <button key={p.value} onClick={() => setPeriode(p.value)}
                 className={`px-3 py-1.5 text-xs font-mono rounded-md transition-colors ${
@@ -59,7 +59,7 @@ export default function StatistiquesDashboardPage() {
         <div className="space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-[#111] p-4 rounded border border-[#222] space-y-2">
+              <div key={i} className="w-full bg-[#111] p-4 rounded border border-[#222] space-y-2">
                 <Skeleton className="h-3 w-16" />
                 <Skeleton className="h-8 w-12" />
               </div>
@@ -72,7 +72,7 @@ export default function StatistiquesDashboardPage() {
         <>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {cards.map((card) => (
-              <div key={card.label} className="bg-[#111] p-4 rounded border border-[#222]">
+              <div key={card.label} className="w-full bg-[#111] p-4 rounded border border-[#222]">
                 <p className="text-xs text-muted font-mono uppercase tracking-wider">{card.label}</p>
                 <p className="text-2xl font-bold mt-1 text-off-white">{card.value}</p>
               </div>
@@ -80,7 +80,7 @@ export default function StatistiquesDashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-[#111] p-6 rounded border border-[#222]">
+            <div className="w-full bg-[#111] p-6 rounded border border-[#222]">
               <h2 className="text-lg font-semibold text-off-white mb-4">Vues par jour</h2>
               {(stats?.vues_par_jour?.length ?? 0) > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
@@ -100,7 +100,7 @@ export default function StatistiquesDashboardPage() {
               )}
             </div>
 
-            <div className="bg-[#111] p-6 rounded border border-[#222]">
+            <div className="w-full bg-[#111] p-6 rounded border border-[#222]">
               <h2 className="text-lg font-semibold text-off-white mb-4">Répartition</h2>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={[
@@ -122,7 +122,7 @@ export default function StatistiquesDashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-[#111] p-6 rounded border border-[#222]">
+            <div className="w-full bg-[#111] p-6 rounded border border-[#222]">
               <h2 className="text-lg font-semibold text-off-white mb-4">Top publications</h2>
               {(stats?.top_publications?.length ?? 0) > 0 ? (
                 <div className="space-y-2">
@@ -145,7 +145,7 @@ export default function StatistiquesDashboardPage() {
               )}
             </div>
 
-            <div className="bg-[#111] p-6 rounded border border-[#222]">
+            <div className="w-full bg-[#111] p-6 rounded border border-[#222]">
               <h2 className="text-lg font-semibold text-off-white mb-4">Top projets</h2>
               {(stats?.top_projets?.length ?? 0) > 0 ? (
                 <div className="space-y-2">

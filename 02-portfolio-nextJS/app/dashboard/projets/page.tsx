@@ -84,12 +84,12 @@ export default function ProjetsDashboardPage() {
           placeholder="Rechercher par titre..."
           className="flex-1 min-w-0 sm:min-w-[200px] border border-[#333] rounded px-3 py-2 bg-transparent text-off-white placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
         <select value={techFilter} onChange={(e) => { setTechFilter(e.target.value); setCurrentPage(1); }}
-          className="bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
+          className="w-full min-w-0 bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
           <option value="">Toutes technos</option>
           {allTechs.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
         <select value={statutFilter} onChange={(e) => { setStatutFilter(e.target.value); setCurrentPage(1); }}
-          className="bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
+          className="w-full min-w-0 bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
           <option value="">Tous statuts</option>
           <option value="publie">Publié</option>
           <option value="brouillon">Brouillon</option>

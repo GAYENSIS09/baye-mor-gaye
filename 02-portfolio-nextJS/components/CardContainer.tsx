@@ -19,7 +19,7 @@ export function CardContainer({
   href,
   onClick,
 }: CardContainerProps) {
-  const baseClasses = 'rounded-2xl overflow-hidden flex flex-col h-full bg-[#111] border border-[#222]';
+  const baseClasses = 'w-full max-w-full min-w-0 rounded-2xl overflow-hidden flex flex-col h-full bg-[#111] border border-[#222]';
   const hoverClasses = hover ? 'transition-colors duration-300 hover:border-acid/40' : '';
   const linkClasses = (href || onClick) ? 'group' : '';
 

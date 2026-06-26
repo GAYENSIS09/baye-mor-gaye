@@ -59,7 +59,7 @@ export function LikeButton({ publicationId, projetId, initialLiked = false, init
         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-mono transition-all ${
           isLiked
             ? "bg-acid/10 text-acid border border-acid/30"
-            : "bg-[#111] text-muted border border-[#222] hover:border-acid/30 hover:text-off-white"
+            : "w-full min-w-0 bg-[#111] text-muted border border-[#222] hover:border-acid/30 hover:text-off-white"
         }`}
         aria-label={isLiked ? "Retirer le like" : "Like"}
       >

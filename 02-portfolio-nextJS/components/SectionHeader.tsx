@@ -125,7 +125,7 @@ export function SectionHeader({
           <div className="relative">
             <Icons.search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" aria-hidden />
             <input
-              type="search"
+              type="text"
               value={searchValue || ''}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder={searchPlaceholder || 'Rechercher...'}
@@ -147,14 +147,14 @@ export function SectionHeader({
         {/* Filters */}
         {filters && filters.length > 0 && onFilterChange && (
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            <div className="hidden md:flex gap-1.5 flex-wrap" role="tablist" aria-label="Filtres">
+            <div className="flex gap-1.5" role="tablist" aria-label="Filtres">
               {filters.map((f) => (
                 <button
                   key={f.value}
                   onClick={() => onFilterChange(f.value)}
                   role="tab"
                   aria-selected={activeFilter === f.value}
-                  className={`whitespace-nowrap font-mono text-xs uppercase tracking-widest transition-all duration-200 ${
+                  className={`whitespace-nowrap font-mono text-xs uppercase tracking-widest transition-all duration-200 shrink-0 ${
                     filterVariant === 'chips'
                       ? activeFilter === f.value
                         ? 'bg-acid text-black px-3 py-1 rounded-full'
@@ -167,21 +167,6 @@ export function SectionHeader({
                   {f.label}
                 </button>
               ))}
-            </div>
-
-            <div className="md:hidden w-full">
-              <select
-                value={activeFilter || ''}
-                onChange={(e) => onFilterChange(e.target.value)}
-                aria-label="Filtres"
-                className="w-full bg-[#222] border border-[#333] rounded-lg px-3 py-2 text-sm text-off-white font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50 transition-colors"
-              >
-                {filters.map((f) => (
-                  <option key={f.value} value={f.value} className="bg-[#111]">
-                    {f.label}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
         )}

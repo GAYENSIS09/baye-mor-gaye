@@ -111,7 +111,7 @@ export default function NewPublicationPage() {
     <div className="max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-6 text-off-white">Nouvelle publication</h1>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="bg-[#111] p-6 rounded border border-[#222] space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="w-full bg-[#111] p-6 rounded border border-[#222] space-y-4">
         <div>
           <label htmlFor="titre" className="block text-sm font-medium text-off-white">Titre</label>
           <input id="titre" {...register("titre")} autoComplete="off"

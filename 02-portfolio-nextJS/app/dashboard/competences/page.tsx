@@ -123,7 +123,7 @@ export default function SkillsPage() {
       />
 
       {showForm && (
-        <div className="bg-[#111] border border-[#222] rounded-lg p-4 mb-6">
+        <div className="w-full bg-[#111] border border-[#222] rounded-lg p-4 mb-6">
           <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3">
             <h3 className="font-body font-semibold text-off-white text-base">Nouvelle compétence</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -167,7 +167,7 @@ export default function SkillsPage() {
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="animate-pulse">
               <Skeleton className="h-4 w-24 rounded mb-4" />
-              <div className="bg-[#111] border border-[#222] rounded-lg overflow-hidden">
+              <div className="w-full bg-[#111] border border-[#222] rounded-lg overflow-hidden">
                 <div className="p-3 space-y-3">
                   {Array.from({ length: 3 }).map((_, j) => (
                     <Skeleton key={j} className="h-10 w-full rounded" />
@@ -211,7 +211,7 @@ export default function SkillsPage() {
                     <h3 className="font-mono text-xs text-acid uppercase tracking-widest">{group.categorie}</h3>
                     <span className="text-xs text-muted font-mono">{group.skills.length}</span>
                   </div>
-                  <div className="bg-[#111] border border-[#222] rounded-lg overflow-hidden divide-y divide-[#222]">
+                  <div className="w-full bg-[#111] border border-[#222] rounded-lg overflow-hidden divide-y divide-[#222]">
                     {group.skills.map((skill) => {
                       const niveauActuel = skill.niveaux[0]?.niveau || 'debutant';
                       const isEditing = editingId === skill.id;
@@ -226,7 +226,7 @@ export default function SkillsPage() {
                               <input value={EditIcone} onChange={(e) => setEditIcone(e.target.value)} placeholder="Icône"
                                 className="w-full sm:w-20 border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
                               <select value={editNiveau} onChange={(e) => setEditNiveau(e.target.value)}
-                                className="border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50">
+                                className="w-full border border-[#333] rounded px-2 py-1 bg-[#111] text-off-white text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50">
                                 {NIVEAUX.map((n) => <option key={n} value={n}>{n}</option>)}
                               </select>
                               <label className="flex items-center gap-1 text-xs text-muted cursor-pointer">

@@ -21,7 +21,7 @@ function ProfileSkeleton() {
         </div>
       </header>
       <main className="max-w-4xl mx-auto p-4 py-8 space-y-8 animate-pulse">
-        <div className="bg-[#111] rounded border border-[#222] p-6">
+        <div className="w-full min-w-0 bg-[#111] rounded border border-[#222] p-6">
           <div className="flex items-center gap-6 mb-6">
             <Skeleton className="w-24 h-24 rounded-full" />
             <div className="space-y-2">
@@ -38,13 +38,13 @@ function ProfileSkeleton() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-[#111] rounded border border-[#222] p-4">
+            <div key={i} className="w-full min-w-0 bg-[#111] rounded border border-[#222] p-4">
               <Skeleton className="h-3 w-16 mb-2" />
               <Skeleton className="h-8 w-12" />
             </div>
           ))}
         </div>
-        <div className="bg-[#111] rounded border border-[#222] p-6">
+        <div className="w-full min-w-0 bg-[#111] rounded border border-[#222] p-6">
           <Skeleton className="h-6 w-48 mb-4" />
           <div className="space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
@@ -118,7 +118,7 @@ function TimelineEntry({ children, date, isLast = false }: { children: React.Rea
 function ExperienceCard({ exp, onMediaOpen }: { exp: Experience; onMediaOpen?: (m: Media) => void }) {
   const period = `${new Date(exp.date_debut).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })} – ${exp.est_actuel ? 'Présent' : exp.date_fin ? new Date(exp.date_fin).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }) : 'Présent'}`;
   return (
-    <div className="bg-[#111] rounded-lg border border-[#222] p-4 hover:border-acid/20 transition-colors group">
+    <div className="w-full min-w-0 bg-[#111] rounded-lg border border-[#222] p-4 hover:border-acid/20 transition-colors group">
       <div className="flex gap-4">
         <QualificationMedia medias={exp.medias} onOpen={onMediaOpen} />
         <div className="flex-1 min-w-0">
@@ -137,7 +137,7 @@ function ExperienceCard({ exp, onMediaOpen }: { exp: Experience; onMediaOpen?: (
 function FormationCard({ formation, onMediaOpen }: { formation: Formation; onMediaOpen?: (m: Media) => void }) {
   const period = `${new Date(formation.date_debut).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })} – ${formation.date_fin ? new Date(formation.date_fin).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' }) : 'Présent'}`;
   return (
-    <div className="bg-[#111] rounded-lg border border-[#222] p-4 hover:border-acid/20 transition-colors group">
+    <div className="w-full min-w-0 bg-[#111] rounded-lg border border-[#222] p-4 hover:border-acid/20 transition-colors group">
       <div className="flex gap-4">
         <QualificationMedia medias={formation.medias} onOpen={onMediaOpen} />
         <div className="flex-1 min-w-0">
@@ -156,7 +156,7 @@ function FormationCard({ formation, onMediaOpen }: { formation: Formation; onMed
 function CertificationCard({ cert, onMediaOpen }: { cert: Certification; onMediaOpen?: (m: Media) => void }) {
   const date = new Date(cert.date_obtention).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
   return (
-    <div className="bg-[#111] rounded-lg border border-[#222] p-4 hover:border-acid/20 transition-colors group">
+    <div className="w-full min-w-0 bg-[#111] rounded-lg border border-[#222] p-4 hover:border-acid/20 transition-colors group">
       <div className="flex gap-4">
         <QualificationMedia medias={cert.medias} onOpen={onMediaOpen} />
         <div className="flex-1 min-w-0">
@@ -174,7 +174,7 @@ function CertificationCard({ cert, onMediaOpen }: { cert: Certification; onMedia
 
 function KpiCard({ label, value, suffix }: { label: string; value: number | string; suffix?: string }) {
   return (
-    <div className="bg-[#111] rounded-lg border border-[#222] p-4 text-center hover:border-acid/20 transition-colors">
+    <div className="w-full min-w-0 bg-[#111] rounded-lg border border-[#222] p-4 text-center hover:border-acid/20 transition-colors">
       <p className="text-2xl font-bold text-acid font-display">{value}{suffix}</p>
       <p className="text-xs text-muted font-mono uppercase tracking-wider mt-1">{label}</p>
     </div>
@@ -220,7 +220,7 @@ export default function ProfilPage() {
 
       <main className="max-w-4xl mx-auto p-4 py-8 space-y-8">
         {/* Profile card */}
-        <div className="bg-[#111] rounded-lg border border-[#222] p-6 md:p-8 animate-fade-in">
+        <div className="w-full min-w-0 bg-[#111] rounded-lg border border-[#222] p-6 md:p-8 animate-fade-in">
           <div className="flex flex-col md:flex-row items-start gap-6 mb-6">
             {profile.photo && (
               <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-2 border-acid/20 shrink-0">
@@ -298,7 +298,7 @@ export default function ProfilPage() {
         {/* Timeline: Experiences, Formations, Certifications */}
         <div className="space-y-8 animate-fade-up" style={{ animationDelay: '0.2s', opacity: 0 }}>
           {experiences.length > 0 && (
-            <div className="bg-[#111] rounded-lg border border-[#222] p-4 sm:p-6">
+            <div className="w-full min-w-0 bg-[#111] rounded-lg border border-[#222] p-4 sm:p-6">
               <div className="flex items-center gap-3 mb-6">
                 <Icons.briefcase className="w-5 h-5 text-acid" aria-hidden />
                 <h3 className="text-xl font-bold text-off-white">Expériences professionnelles</h3>
@@ -312,7 +312,7 @@ export default function ProfilPage() {
           )}
 
           {formations.length > 0 && (
-            <div className="bg-[#111] rounded-lg border border-[#222] p-4 sm:p-6">
+            <div className="w-full min-w-0 bg-[#111] rounded-lg border border-[#222] p-4 sm:p-6">
               <div className="flex items-center gap-3 mb-6">
                 <Icons.academic className="w-5 h-5 text-acid" aria-hidden />
                 <h3 className="text-xl font-bold text-off-white">Formations</h3>
@@ -326,7 +326,7 @@ export default function ProfilPage() {
           )}
 
           {certifications.length > 0 && (
-            <div className="bg-[#111] rounded-lg border border-[#222] p-4 sm:p-6">
+            <div className="w-full min-w-0 bg-[#111] rounded-lg border border-[#222] p-4 sm:p-6">
               <div className="flex items-center gap-3 mb-6">
                 <Icons.badge className="w-5 h-5 text-acid" aria-hidden />
                 <h3 className="text-xl font-bold text-off-white">Certifications</h3>

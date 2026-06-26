@@ -73,11 +73,11 @@ export default function MediaViewer({
       <object
         data={resolvedSrc}
         type="application/pdf"
-        className={`w-full h-[600px] ${className}`}
+        className={`w-full h-[80dvh] max-h-[600px] min-h-[400px] ${className}`}
       >
         <iframe
           src={resolvedSrc}
-          className={`w-full h-[600px] ${className}`}
+          className={`w-full h-[80dvh] max-h-[600px] min-h-[400px] ${className}`}
           title={alt || "PDF Viewer"}
         >
           <p>

@@ -84,7 +84,7 @@ function EditEvenementForm() {
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-6 text-off-white">Modifier evenement</h1>
-      <form onSubmit={handleSubmit} className="bg-[#111] p-6 rounded border border-[#222] space-y-4">
+      <form onSubmit={handleSubmit} className="w-full bg-[#111] p-6 rounded border border-[#222] space-y-4">
         <div>
           <label htmlFor="emploi-du-temps" className="block text-sm font-medium text-off-white">Emploi du temps</label>
           <select id="emploi-du-temps" name="emploi_du_temps_id" value={emploiDuTempsId} onChange={(e) => setEmploiDuTempsId(e.target.value)} required

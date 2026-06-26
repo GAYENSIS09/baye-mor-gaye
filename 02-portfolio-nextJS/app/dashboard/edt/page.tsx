@@ -209,7 +209,7 @@ export default function EdtDashboardPage() {
               const events = weekEvents.get(dateStr) || [];
               const isToday = day.toDateString() === new Date().toDateString();
               return (
-                <div key={i} className={`bg-[#111] rounded border border-[#222] p-3 ${isToday ? 'ring-1 ring-acid/50' : ''}`}>
+                <div key={i} className={`w-full min-w-0 bg-[#111] rounded border border-[#222] p-3 ${isToday ? 'ring-1 ring-acid/50' : ''}`}>
                   <div className="flex items-center gap-2 mb-2">
                     <p className="text-xs text-muted font-mono">{DAYS[i]}</p>
                     <p className={`text-sm font-mono ${isToday ? 'text-acid font-bold' : 'text-off-white'}`}>{day.getDate()}</p>
@@ -234,7 +234,7 @@ export default function EdtDashboardPage() {
           {/* EDT list */}
           <div className="space-y-4">
             {edts.map((edt) => (
-              <div key={edt.id} className="bg-[#111] rounded border border-[#222]">
+              <div key={edt.id} className="w-full bg-[#111] rounded border border-[#222]">
                 <div className="p-4 flex items-center justify-between border-b border-[#222]">
                   <div>
                     <div className="flex items-center gap-2">

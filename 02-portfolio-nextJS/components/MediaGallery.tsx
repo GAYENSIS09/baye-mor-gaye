@@ -68,11 +68,11 @@ function LightboxContent({ item, onClose }: { item: GalleryItem; onClose: () => 
   }, []);
 
   return (
-    <div ref={lightboxRef} className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-4" onClick={onClose} role="dialog" aria-modal="true" aria-label={item.titre || 'Média'}>
-      <button ref={closeRef} onClick={onClose} className="absolute top-4 right-4 text-white/70 hover:text-white z-10 transition-colors" aria-label="Fermer">
-        <Icons.close className="w-8 h-8" />
+    <div ref={lightboxRef} className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center p-2 md:p-4" onClick={onClose} role="dialog" aria-modal="true" aria-label={item.titre || 'Média'}>
+      <button ref={closeRef} onClick={onClose} className="absolute top-2 right-2 md:top-4 md:right-4 text-white/50 hover:text-white z-10 transition-colors bg-black/40 rounded-full p-1.5" aria-label="Fermer">
+        <Icons.close className="w-5 h-5 md:w-6 md:h-6" />
       </button>
-      <div className="relative w-full max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
+      <div className="relative w-full max-h-[95dvh] md:max-h-[95vh]" onClick={(e) => e.stopPropagation()}>
         {isVid && ytId ? (
           <div className="aspect-video rounded-lg overflow-hidden">
             <iframe
@@ -83,18 +83,18 @@ function LightboxContent({ item, onClose }: { item: GalleryItem; onClose: () => 
             />
           </div>
         ) : isVid ? (
-          <video src={getMediaUrl(item.url) ?? item.url} controls autoPlay className="w-full h-[88vh] mx-auto rounded-lg" />
+          <video src={getMediaUrl(item.url) ?? item.url} controls autoPlay className="w-full h-[90dvh] md:h-[88vh] mx-auto rounded-lg" />
         ) : isPdf ? (
-          <object data={getMediaUrl(item.url) ?? item.url} type="application/pdf" className="w-full h-[88vh] rounded-lg">
-            <iframe src={getMediaUrl(item.url) ?? item.url} className="w-full h-[88vh] rounded-lg" title={item.titre || 'PDF'}>
+          <object data={getMediaUrl(item.url) ?? item.url} type="application/pdf" className="w-full h-[80dvh] max-h-[600px] min-h-[400px] rounded-lg">
+            <iframe src={getMediaUrl(item.url) ?? item.url} className="w-full h-[80dvh] max-h-[600px] min-h-[400px] rounded-lg" title={item.titre || 'PDF'}>
               <p className="text-white/60 text-sm">Votre navigateur ne supporte pas l&apos;affichage des PDF.</p>
             </iframe>
           </object>
         ) : (
-          <img src={getMediaUrl(item.url) ?? item.url} alt={item.titre || ''} className="object-contain w-full h-[88vh] mx-auto rounded-lg" />
+          <img src={getMediaUrl(item.url) ?? item.url} alt={item.titre || ''} className="object-contain w-full h-[90dvh] md:h-[88vh] mx-auto rounded-lg" />
         )}
         {item.titre && (
-          <p className="text-center text-sm text-white/60 mt-3 font-mono">{item.titre}</p>
+          <p className="text-center text-xs md:text-sm text-white/60 mt-2 md:mt-3 font-mono truncate px-2">{item.titre}</p>
         )}
       </div>
     </div>

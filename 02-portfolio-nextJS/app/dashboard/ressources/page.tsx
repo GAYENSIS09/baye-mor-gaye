@@ -243,12 +243,12 @@ export default function RessourcesDashboardPage() {
           placeholder="Rechercher par titre..."
           className="w-full sm:flex-1 min-w-0 sm:min-w-[200px] border border-[#333] rounded px-3 py-2 bg-transparent text-off-white placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />
         <select value={domaineFilter} onChange={(e) => { setDomaineFilter(e.target.value); setCurrentPage(1); }}
-          className="w-full sm:w-auto bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
+          className="w-full min-w-0 sm:w-auto bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
           <option value="">Tous domaines</option>
           {domaines.map((d) => <option key={d.id} value={d.id}>{d.nom}</option>)}
         </select>
         <select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }}
-          className="w-full sm:w-auto bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
+          className="w-full min-w-0 sm:w-auto bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
           <option value="">Tous types</option>
           {Object.entries(MEDIA_TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>

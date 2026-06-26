@@ -79,17 +79,17 @@ export default function PublicationsDashboardPage() {
 
       <div className="flex flex-wrap gap-2 mb-6">
         <select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }}
-          className="bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
+          className="w-full min-w-0 bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
           <option value="">Tous types</option>
           {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
         <select value={domaineFilter} onChange={(e) => { setDomaineFilter(e.target.value); setCurrentPage(1); }}
-          className="bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
+          className="w-full min-w-0 bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
           <option value="">Tous domaines</option>
           {domaines.map((d) => <option key={d.id} value={d.slug || d.id}>{d.nom}</option>)}
         </select>
         <select value={statutFilter} onChange={(e) => { setStatutFilter(e.target.value); setCurrentPage(1); }}
-          className="bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
+          className="w-full min-w-0 bg-[#111] border border-[#222] rounded px-3 py-2 text-sm text-off-white focus-visible:outline-none">
           <option value="">Tous statuts</option>
           <option value="publie">Publié</option>
           <option value="brouillon">Brouillon</option>

@@ -136,7 +136,7 @@ export default function CertificationsPage() {
       />
 
       {showForm && (
-        <div className="bg-[#111] border border-[#222] rounded-lg p-4 mb-6">
+        <div className="w-full bg-[#111] border border-[#222] rounded-lg p-4 mb-6">
           <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3">
             <h3 className="font-body font-semibold text-off-white text-base">{editId ? 'Modifier' : 'Nouvelle'} certification</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

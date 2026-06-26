@@ -44,7 +44,7 @@ export default function CommentSection({ entityType, entityId, comments }: Comme
       <h2 className="text-xl font-bold mb-6 text-off-white">Commentaires ({approved.length})</h2>
 
       {utilisateur ? (
-        <form onSubmit={handleComment} className="bg-[#111] p-4 rounded border border-[#222] mb-6">
+        <form onSubmit={handleComment} className="w-full min-w-0 bg-[#111] p-4 rounded border border-[#222] mb-6">
           <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="Votre commentaire..." required rows={3}
             className="input-base mb-2" />
           <ActionButton type="submit" disabled={commentMutation.isPending} variant="primary">
@@ -52,7 +52,7 @@ export default function CommentSection({ entityType, entityId, comments }: Comme
           </ActionButton>
         </form>
       ) : (
-        <div className="bg-[#111] p-4 rounded border border-[#222] mb-6 text-center">
+        <div className="w-full min-w-0 bg-[#111] p-4 rounded border border-[#222] mb-6 text-center">
           <p className="text-muted text-sm">
             <Link href="/login" className="text-acid hover:underline">Connectez-vous</Link> pour commenter
           </p>
@@ -61,7 +61,7 @@ export default function CommentSection({ entityType, entityId, comments }: Comme
 
       <div className="space-y-3">
         {approved.map((c) => (
-          <div key={c.id} className="bg-[#111] p-4 rounded border border-[#222]">
+          <div key={c.id} className="w-full min-w-0 bg-[#111] p-4 rounded border border-[#222]">
             <div className="flex items-center gap-2 mb-1">
               <span className="w-7 h-7 rounded-full bg-acid/20 text-acid flex items-center justify-center text-xs font-bold">
                 {c.auteur.nom.charAt(0).toUpperCase()}

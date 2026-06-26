@@ -25,7 +25,7 @@ function PublicationRow({ pub }: { pub: Publication }) {
 
   return (
     <Link href={`/publications/${pub.slug}`}
-      className="group bg-[#111] p-4 sm:p-5 rounded-lg border border-[#222] hover:border-acid/30 transition-all block">
+      className="group w-full min-w-0 bg-[#111] p-4 sm:p-5 rounded-lg border border-[#222] hover:border-acid/30 transition-all block">
       <div className="flex items-start gap-4">
         {coverSrc && (
           <div className="hidden sm:block w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 relative">
@@ -114,7 +114,7 @@ export default function PublicationsPage() {
         ) : isLoading ? (
           <div className="grid gap-4">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="bg-[#111] p-4 rounded border border-[#222]">
+              <div key={i} className="w-full min-w-0 bg-[#111] p-4 rounded border border-[#222]">
                 <div className="flex items-center gap-2 mb-3">
                   <Skeleton className="h-4 w-16" />
                   <Skeleton className="h-4 w-24" />

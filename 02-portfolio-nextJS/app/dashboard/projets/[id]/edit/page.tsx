@@ -187,7 +187,7 @@ export default function EditProjetPage() {
   return (
     <div className="max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold mb-6 text-off-white">Modifier le projet</h1>
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="bg-[#111] p-6 rounded border border-[#222] space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="w-full bg-[#111] p-6 rounded border border-[#222] space-y-4">
         <div>
           <label className="block text-sm font-medium text-off-white">Titre</label>
           <input {...register("titre")}

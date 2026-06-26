@@ -208,7 +208,7 @@ export default function TipTapEditor({ content, onChange, placeholder = 'Écrive
         </div>
       )}
 
-      <EditorContent editor={editor} className="bg-[#111]" />
+      <EditorContent editor={editor} className="w-full bg-[#111]" />
 
       {linkModal && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={() => setLinkModal(false)}>

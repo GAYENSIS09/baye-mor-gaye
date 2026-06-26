@@ -92,7 +92,7 @@ export default function RappelsDashboardPage() {
       />
 
       {showForm && (
-        <form onSubmit={handleSubmit(handleCreate)} noValidate className="bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
+        <form onSubmit={handleSubmit(handleCreate)} noValidate className="w-full bg-[#111] p-4 rounded border border-[#222] mb-6 space-y-3">
           <div>
             <input {...register("titre")} placeholder="Titre" required autoComplete="off"
               className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acid/50" />

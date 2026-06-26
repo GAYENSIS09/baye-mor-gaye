@@ -62,7 +62,7 @@ export default function CompetencesSection() {
             {grouped.map((group) => (
               <div key={group.categorie}>
                 <h3 className="font-mono text-xs text-acid uppercase tracking-widest mb-4">{group.categorie}</h3>
-                <div className="bg-[#111] border border-[#222] rounded-lg overflow-hidden">
+                <div className="w-full min-w-0 bg-[#111] border border-[#222] rounded-lg overflow-hidden">
                   {group.skills.map((skill) => {
                     const niveau = skill.niveaux?.[0]?.niveau || "debutant";
                     return (

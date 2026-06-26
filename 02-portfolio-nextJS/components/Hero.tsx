@@ -54,22 +54,22 @@ function ProprietaireBio({ bio }: { bio: string }) {
 
 function ProprietaireLinks({ linkedin, github, siteweb }: { linkedin?: string | null; github?: string | null; siteweb?: string | null }) {
   return (
-    <div className="flex gap-3">
+    <div className="flex flex-wrap gap-3">
       {linkedin && (
         <a href={linkedin} target="_blank" rel="noopener noreferrer"
-          className="px-6 py-3 bg-acid text-black text-sm font-mono uppercase tracking-widest rounded-full hover:bg-acid-dim transition-colors">
+          className="flex-1 sm:flex-none text-center px-6 py-3 bg-acid text-black text-sm font-mono uppercase tracking-widest rounded-full hover:bg-acid-dim transition-colors">
           LinkedIn →
         </a>
       )}
       {github && (
         <a href={github} target="_blank" rel="noopener noreferrer"
-          className="px-6 py-3 border border-[#333] text-off-white text-sm font-mono uppercase tracking-widest rounded-full hover:border-acid hover:text-acid transition-all">
+          className="flex-1 sm:flex-none text-center px-6 py-3 border border-[#333] text-off-white text-sm font-mono uppercase tracking-widest rounded-full hover:border-acid hover:text-acid transition-all">
           GitHub
         </a>
       )}
       {siteweb && (
         <a href={siteweb} target="_blank" rel="noopener noreferrer"
-          className="px-6 py-3 border border-[#333] text-off-white text-sm font-mono uppercase tracking-widest rounded-full hover:border-acid hover:text-acid transition-all">
+          className="flex-1 sm:flex-none text-center px-6 py-3 border border-[#333] text-off-white text-sm font-mono uppercase tracking-widest rounded-full hover:border-acid hover:text-acid transition-all">
           Site
         </a>
       )}
@@ -85,7 +85,7 @@ function ProprietaireLocalisation({ localisation }: { localisation?: string | nu
 function HeroCTA() {
   return (
     <a href="#experience"
-      className="px-6 py-3 border border-[#333] text-off-white text-sm font-mono uppercase tracking-widest rounded-full hover:border-acid hover:text-acid transition-all">
+      className="flex-1 sm:flex-none text-center px-6 py-3 border border-[#333] text-off-white text-sm font-mono uppercase tracking-widest rounded-full hover:border-acid hover:text-acid transition-all">
       Voir mon parcours
     </a>
   );

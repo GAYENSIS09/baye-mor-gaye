@@ -63,7 +63,7 @@ export default function ImporterEdtPage() {
         <Link href="/dashboard/edt" className="text-sm text-muted hover:text-off-white font-mono transition-colors shrink-0">← Retour</Link>
       </div>
 
-      <form onSubmit={handleImport} className="bg-[#111] p-6 rounded border border-[#222] space-y-4">
+      <form onSubmit={handleImport} className="w-full bg-[#111] p-6 rounded border border-[#222] space-y-4">
         <p className="text-sm text-muted">
           Importez une image d'emploi du temps. L'IA (Ollama / llava) extraira automatiquement les événements.
         </p>
@@ -95,7 +95,7 @@ export default function ImporterEdtPage() {
       </form>
 
       {result && (
-        <div className="bg-[#111] p-6 rounded border border-[#222] mt-6 space-y-4">
+        <div className="w-full bg-[#111] p-6 rounded border border-[#222] mt-6 space-y-4">
           <h2 className="text-lg font-semibold text-off-white">Résultat de l'analyse</h2>
           <p className="text-xs text-muted font-mono">
             Modèle : {String(result.modele_utilise || 'Ollama')} — Confiance : {result.confiance ? `${(Number(result.confiance) * 100).toFixed(0)}%` : 'N/A'}
@@ -131,7 +131,7 @@ export default function ImporterEdtPage() {
           <h2 className="text-lg font-semibold text-off-white mb-3">Imports récents</h2>
           <div className="space-y-2">
             {conversions.slice(0, 5).map((c) => (
-              <div key={c.id} className="bg-[#111] p-3 rounded border border-[#222] flex items-center justify-between gap-3 text-sm flex-wrap">
+              <div key={c.id} className="w-full bg-[#111] p-3 rounded border border-[#222] flex items-center justify-between gap-3 text-sm flex-wrap">
                 <div>
                   <p className="text-off-white">{c.titre}</p>
                   <p className="text-xs text-muted">{new Date(c.created_at).toLocaleDateString('fr-FR')}</p>
