@@ -78,6 +78,7 @@ project.tar.gz
 # Temp scripts
 fix_*.py
 update-*.py
+tmp_*
 
 # Misc
 .claude/
