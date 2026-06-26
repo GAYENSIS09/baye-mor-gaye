@@ -35,7 +35,7 @@ class NotifierEvenements extends Command
         }
 
         foreach ($evenements as $evenement) {
-            Mail::to($email)->queue(new EvenementDu($evenement));
+            Mail::to($email)->send(new EvenementDu($evenement));
             $evenement->update(['statut' => 'termine']);
             $this->info("Notification envoyée et événement marqué terminé : {$evenement->titre}");
         }

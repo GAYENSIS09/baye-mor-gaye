@@ -84,12 +84,17 @@ services:
     tty: true
     stdin_open: true
     environment:
-      APP_ENV: local
+      APP_ENV: ${APP_ENV:-local}
       APP_KEY: ${APP_KEY}
-      DB_CONNECTION: ${DB_CONNECTION:-sqlite}
-      DB_DATABASE: ${DB_DATABASE:-database/portfolio.sqlite}
-      CACHE_STORE: ${CACHE_STORE:-database}
-      FILESYSTEM_DISK: ${FILESYSTEM_DISK:-local}
+      APP_URL: ${APP_URL:-http://localhost:8000}
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: portfolio
+      DB_USERNAME: portfolio
+      DB_PASSWORD: portfolio
+      CACHE_STORE: database
+      FILESYSTEM_DISK: local
       QUEUE_CONNECTION: ${QUEUE_CONNECTION:-sync}
       MAIL_MAILER: ${MAIL_MAILER:-smtp}
       MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
