@@ -10,15 +10,16 @@ use Illuminate\Support\Facades\Mail;
 class EnvoyerRappels extends Command
 {
     protected $signature = 'rappels:envoyer';
-    protected $description = 'Envoie les rappels dont la date est passée et qui ne sont pas encore notifiés';
+    protected $description = 'Notifie des rappels confirmés dont la date est dans le délai configuré, puis les marque comme notifiés';
 
     public function handle(): int
     {
+        $proprietaire = Proprietaire::with('utilisateur')->first();
+        $delay = $proprietaire->notification_delay_minutes ?? 15;
+
         $rappels = Rappel::where('est_notifie', false)
-            ->where(function ($q) {
-                $q->where('notifie_le', '<=', now())
-                  ->orWhereNull('notifie_le');
-            })
+            ->whereNotNull('notifie_le')
+            ->whereBetween('notifie_le', [now(), now()->addMinutes($delay)])
             ->get();
 
         if ($rappels->isEmpty()) {
@@ -26,7 +27,6 @@ class EnvoyerRappels extends Command
             return Command::SUCCESS;
         }
 
-        $proprietaire = Proprietaire::with('utilisateur')->first();
         $email = $proprietaire?->utilisateur?->email ?? 'bayemor.gaye@ucad.edu.sn';
 
         foreach ($rappels as $rappel) {
