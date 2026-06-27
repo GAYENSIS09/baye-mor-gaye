@@ -95,7 +95,7 @@ export function SectionHeader({
           )}
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
               {number && (
                 <span className="font-mono text-acid text-xs uppercase tracking-widest shrink-0">
                   {number}
