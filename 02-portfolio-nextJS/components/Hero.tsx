@@ -150,7 +150,7 @@ export default function Hero() {
 
             <div className="mt-8 flex flex-col md:flex-row md:items-end md:justify-between gap-10 sm:gap-6 animate-fade-up" style={{ animationDelay: "0.4s", opacity: 0 }}>
               <ProprietaireBio bio={bio || ''} />
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-8 sm:gap-4">
                 <HeroCTA />
                 <ProprietaireLinks linkedin={profile?.url_linkedin} github={profile?.url_github} siteweb={profile?.site_web} />
               </div>
