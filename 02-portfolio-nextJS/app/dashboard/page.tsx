@@ -105,7 +105,7 @@ export default function DashboardPage() {
       <ResponsiveGrid columns={2} gap={6}>
         {/* VuesSemaine */}
         <CardContainer className="p-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-1">
             <CardTitle className="text-lg">Vues cette semaine</CardTitle>
             <Link href="/dashboard/statistiques" className="text-xs text-muted hover:text-acid font-mono transition-colors">
               Voir plus →
@@ -129,7 +129,7 @@ export default function DashboardPage() {
 
         {/* CommentairesEnAttente */}
         <CardContainer className="p-6">
-          <CardTitle className="text-lg flex items-center gap-2">
+          <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
             Commentaires en attente
             {enAttente.length > 0 && (
               <span className="text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-full font-mono">{enAttente.length}</span>

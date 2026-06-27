@@ -118,7 +118,7 @@ export default async function RootLayout({
       <body>
         <DebugProvider><QueryProvider><AuthProvider>
           <Navbar />
-          <div id="main-content" className="pt-14">{children}</div>
+          <div className="pt-14 overflow-x-hidden max-w-full">{children}</div>
         </AuthProvider></QueryProvider></DebugProvider>
       </body>
     </html>

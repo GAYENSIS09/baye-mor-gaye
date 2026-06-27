@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="min-h-screen bg-off-black flex">
         <DashboardSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <main className="flex-1 min-h-screen flex flex-col" id="main-content" role="main">
+        <main className="flex-1 min-h-screen flex flex-col"  role="main">
           {/* Mobile header */}
           <div className="lg:hidden flex items-center justify-between p-4 border-b border-[#222]">
             <button

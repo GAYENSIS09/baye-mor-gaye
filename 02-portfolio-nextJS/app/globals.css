@@ -254,4 +254,34 @@ body {
   .label-base {
     @apply block text-sm font-medium text-off-white mb-1;
   }
+
+ 
+
+  @media (max-width: 640px) {
+    .card-content,
+    .CardContent,
+    [class*="CardContent"],
+    .p-4,
+    .p-5,
+    .p-6,
+    .px-4,
+    .px-5,
+    .px-6,
+    .py-4,
+    .py-5,
+    .py-6 {
+      padding: 0.75rem !important;
+    }
+    .p-8,
+    .px-8,
+    .py-8 {
+      padding: 1rem !important;
+    }
+    .max-w-5xl,
+    .max-w-4xl,
+    .max-w-3xl {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+  }
 }

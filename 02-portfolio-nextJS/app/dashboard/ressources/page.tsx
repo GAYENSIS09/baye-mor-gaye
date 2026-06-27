@@ -257,7 +257,7 @@ export default function RessourcesDashboardPage() {
       {(editingRessource || showCreateForm) && (
         <CardContainer className="p-4 mb-6">
           <form onSubmit={form.handleSubmit(onSubmit)} noValidate className="space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-1">
               <h3 className="text-sm font-mono text-muted uppercase tracking-wider">
                 {editingRessource ? 'Modifier la ressource' : 'Nouvelle ressource'}
               </h3>

@@ -674,7 +674,7 @@
   'proprietaire' => 
   array (
     'nom' => 'Baye Mor Gaye',
-    'email' => 'contact@baye-mor-gaye.dev',
+    'email' => 'bayemor.gaye@ucad.edu.sn',
     'password' => 'password',
     'photo' => 'photos/168032110.jpg',
     'titre_professionnel' => 'AI & Software Engineer',
@@ -682,7 +682,7 @@
     'localisation' => 'Dakar, Sénégal',
     'site_web' => 'https://baye-mor-gaye.dev',
     'url_linkedin' => 'https://linkedin.com/in/gayensis09',
-    'url_github' => 'https://github.com/baye-mor-gaye',
+    'url_github' => 'https://github.com/GAYENSIS09/',
   ),
   'queue' => 
   array (

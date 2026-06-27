@@ -92,7 +92,7 @@ export default function CommentairesDashboardPage() {
           {comments.map((c) => (
             <CardContainer key={c.id} className="p-4">
               <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   {c.auteur?.photo ? (
                     <div className="relative w-6 h-6 rounded-full overflow-hidden">
                       <MediaViewer src={getMediaUrl(c.auteur.photo) || ''} alt="" fill className="object-cover" />

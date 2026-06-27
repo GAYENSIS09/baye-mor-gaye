@@ -315,7 +315,7 @@ export default function EditProjetPage() {
               className="w-full border border-[#333] rounded px-3 py-2 bg-transparent text-off-white" />
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <input type="checkbox" id="publier" {...register("est_publie")} className="accent-acid" />
             <label htmlFor="publier" className="text-sm text-off-white">Publier</label>

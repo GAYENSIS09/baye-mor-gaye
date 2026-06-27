@@ -138,7 +138,7 @@ export default function SkillsPage() {
                 <input id="skills-icone" {...register("icone")} placeholder="Icône (emoji ou URL)" autoComplete="off" className="input-base" />
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <div>
                 <select id="skills-niveau" {...register("niveau")} className="input-base">
                   {NIVEAUX.map((n) => <option key={n} value={n}>{n}</option>)}
@@ -207,7 +207,7 @@ export default function SkillsPage() {
             <div className="space-y-8">
               {grouped.map((group) => (
                 <div key={group.categorie}>
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-3 flex-wrap gap-1">
                     <h3 className="font-mono text-xs text-acid uppercase tracking-widest">{group.categorie}</h3>
                     <span className="text-xs text-muted font-mono">{group.skills.length}</span>
                   </div>

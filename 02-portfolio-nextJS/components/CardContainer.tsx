@@ -171,7 +171,7 @@ interface CardActionsProps {
 
 export function CardActions({ children, className = '' }: CardActionsProps) {
   return (
-    <div className={`flex items-center gap-2 mt-4 pt-3 border-t border-[#222] ${className}`}>
+    <div className={`flex items-center gap-2 flex-wrap mt-4 pt-3 border-t border-[#222] ${className}`}>
       {children}
     </div>
   );

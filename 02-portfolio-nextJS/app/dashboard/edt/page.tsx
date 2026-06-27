@@ -101,9 +101,9 @@ export default function EdtDashboardPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
         <h1 className="text-2xl font-bold text-off-white">Emploi du temps</h1>
-        <div className="flex gap-2 max-sm:flex-col max-sm:w-full">
+        <div className="flex gap-2 max-sm:flex-col">
           <button onClick={() => setShowForm(!showForm)}
             className="bg-acid text-black px-4 py-2 rounded hover:bg-acid/90 font-mono text-xs uppercase tracking-widest max-sm:w-full">
             {showForm ? 'Annuler' : 'Nouvel EDT'}
@@ -152,7 +152,7 @@ export default function EdtDashboardPage() {
       )}
 
       {/* Week navigation */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
         <button onClick={() => { const d = new Date(weekStart); d.setDate(d.getDate() - 7); setWeekStart(d); }}
           className="text-sm text-muted hover:text-off-white font-mono transition-colors" aria-label="Semaine précédente">
           <span className="hidden md:inline">← Semaine précédente</span>
@@ -235,9 +235,9 @@ export default function EdtDashboardPage() {
           <div className="space-y-4">
             {edts.map((edt) => (
               <div key={edt.id} className="w-full bg-[#111] rounded border border-[#222]">
-                <div className="p-4 flex items-center justify-between border-b border-[#222]">
-                  <div>
-                    <div className="flex items-center gap-2">
+                <div className="p-4 flex items-center justify-between border-b border-[#222] flex-wrap gap-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h2 className="font-semibold text-off-white">{edt.titre}</h2>
                       <span className="text-xs bg-[#222] text-muted px-2 py-0.5 rounded">{edt.type}</span>
                       <span className={`text-xs px-2 py-0.5 rounded ${edt.est_actif ? 'bg-green-900/20 text-green-400' : 'bg-[#222] text-muted'}`}>
@@ -246,7 +246,7 @@ export default function EdtDashboardPage() {
                     </div>
                     {edt.description && <p className="text-sm text-muted">{edt.description}</p>}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <button onClick={() => toggleEdt.mutateAsync({ id: edt.id, est_actif: !edt.est_actif })}
                       className="text-sm text-acid hover:text-acid/80">{edt.est_actif ? 'Désactiver' : 'Activer'}</button>
                     <button onClick={() => setConfirmDelete(edt.id)}
@@ -254,8 +254,8 @@ export default function EdtDashboardPage() {
                   </div>
                 </div>
                 <div className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between mb-2 flex-wrap gap-1">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="text-sm font-semibold text-muted uppercase tracking-wider">Événements</h3>
                       <Link href="/dashboard/edt/importer" className="text-xs text-acid/70 hover:text-acid font-mono transition-colors">
                         Import IA
@@ -278,7 +278,7 @@ export default function EdtDashboardPage() {
                             </span>
                             {e.lieu && <span className="text-muted shrink-0">· {e.lieu}</span>}
                           </div>
-                          <div className="flex items-center gap-2 sm:ml-2">
+                          <div className="flex items-center gap-2 sm:ml-2 flex-wrap">
                             <span className={`text-xs px-2 py-0.5 rounded ${
                               e.statut === 'confirme' ? 'bg-green-900/20 text-green-400' :
                               e.statut === 'termine' ? 'bg-acid/10 text-acid' :

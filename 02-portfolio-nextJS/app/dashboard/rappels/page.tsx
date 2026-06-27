@@ -135,9 +135,9 @@ export default function RappelsDashboardPage() {
                     </ActionBar>
                   </div>
                 ) : (
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between flex-wrap gap-2">
                     <div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <CardTitle className="text-base">{r.titre}</CardTitle>
                         {r.est_notifie && <StatusBadge variant="success" size="sm">Notifié</StatusBadge>}
                       </div>
