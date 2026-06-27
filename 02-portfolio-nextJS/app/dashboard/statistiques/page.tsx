@@ -40,10 +40,10 @@ export default function StatistiquesDashboardPage() {
       <SectionHeader
         title="Statistiques"
         actions={
-          <div className="flex gap-1 w-full bg-[#111] border border-[#222] rounded-lg p-1">
+          <div className="flex gap-1 bg-[#111] border border-[#222] rounded-lg p-1 flex-wrap">
             {PERIODES.map((p) => (
               <button key={p.value} onClick={() => setPeriode(p.value)}
-                className={`px-3 py-1.5 text-xs font-mono rounded-md transition-colors ${
+                className={`px-2 sm:px-3 py-1.5 text-[10px] sm:text-xs font-mono rounded-md transition-colors ${
                   periode === p.value
                     ? 'bg-acid text-black font-semibold'
                     : 'text-muted hover:text-off-white'
@@ -73,7 +73,7 @@ export default function StatistiquesDashboardPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {cards.map((card) => (
               <div key={card.label} className="w-full bg-[#111] p-4 rounded border border-[#222]">
-                <p className="text-xs text-muted font-mono uppercase tracking-wider">{card.label}</p>
+                <p className="text-xs text-muted font-mono uppercase tracking-wider truncate">{card.label}</p>
                 <p className="text-2xl font-bold mt-1 text-off-white">{card.value}</p>
               </div>
             ))}
@@ -127,7 +127,7 @@ export default function StatistiquesDashboardPage() {
               {(stats?.top_publications?.length ?? 0) > 0 ? (
                 <div className="space-y-2">
                   {stats!.top_publications.map((p, i) => (
-                    <div key={p.id} className="flex items-center gap-3 p-2 rounded hover:bg-[#1a1a1a]">
+                    <div key={p.id} className="flex items-center gap-3 p-2 rounded hover:bg-[#1a1a1a] flex-wrap">
                       <span className="text-xs font-mono text-muted w-5">{i + 1}.</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-off-white truncate">{p.titre}</p>
@@ -150,7 +150,7 @@ export default function StatistiquesDashboardPage() {
               {(stats?.top_projets?.length ?? 0) > 0 ? (
                 <div className="space-y-2">
                   {stats!.top_projets.map((p, i) => (
-                    <div key={p.id} className="flex items-center gap-3 p-2 rounded hover:bg-[#1a1a1a]">
+                    <div key={p.id} className="flex items-center gap-3 p-2 rounded hover:bg-[#1a1a1a] flex-wrap">
                       <span className="text-xs font-mono text-muted w-5">{i + 1}.</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-off-white truncate">{p.titre}</p>
