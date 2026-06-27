@@ -36,7 +36,7 @@ function ProprietaireTitre({ prenom, nom }: { prenom: string; nom: string }) {
     <h1
       ref={titleRef}
       className="font-display text-[12vw] md:text-[8vw] lg:text-[7rem] leading-[0.85]
-                 text-white uppercase tracking-tight will-change-transform"
+                 text-white uppercase tracking-tighter sm:tracking-tight will-change-transform"
       style={{ animationDelay: "0.1s" }}
     >
       {prenom}
@@ -48,7 +48,7 @@ function ProprietaireTitre({ prenom, nom }: { prenom: string; nom: string }) {
 
 function ProprietaireBio({ bio }: { bio: string }) {
   return (
-    <p className="text-muted text-lg md:text-xl max-w-md leading-relaxed">{bio}</p>
+    <p className="text-muted text-lg md:text-xl max-w-[28ch] sm:max-w-md leading-[1.6] sm:leading-relaxed">{bio}</p>
   );
 }
 
@@ -85,7 +85,7 @@ function ProprietaireLocalisation({ localisation }: { localisation?: string | nu
 function HeroCTA() {
   return (
     <a href="#experience"
-      className="flex-1 sm:flex-none text-center px-6 py-3 border border-[#333] text-off-white text-sm font-mono uppercase tracking-widest rounded-full hover:border-acid hover:text-acid transition-all">
+      className="w-full sm:w-auto text-center px-6 py-3 border border-[#333] text-off-white text-sm font-mono uppercase tracking-widest rounded-full hover:border-acid hover:text-acid transition-all">
       Voir mon parcours
     </a>
   );
@@ -103,7 +103,7 @@ export default function Hero() {
   const photo = profile?.photo;
 
   return (
-    <section className="relative min-h-screen flex flex-col justify-end pb-16 md:pb-20 px-4 md:px-6 overflow-hidden">
+    <section className="relative min-h-screen flex flex-col sm:justify-end pb-16 md:pb-20 px-4 md:px-6 overflow-hidden">
       <div aria-hidden className="absolute top-1/4 right-[-10%] w-[300px] md:w-[500px] h-[300px] md:h-[500px] rounded-full bg-acid/5 blur-[80px] md:blur-[120px] pointer-events-none" />
       <div aria-hidden className="absolute bottom-0 left-[-5%] w-[200px] md:w-[300px] h-[200px] md:h-[300px] rounded-full bg-acid/3 blur-[60px] md:blur-[80px] pointer-events-none" />
 
@@ -118,7 +118,7 @@ export default function Hero() {
               </div>
             </div>
             <div className="h-6 w-full max-w-xs bg-[#222] rounded" />
-            <div className="flex flex-wrap gap-3">
+    <div className="flex flex-wrap gap-3">
               <div className="h-10 w-32 bg-[#222] rounded-full" />
               <div className="h-10 w-28 bg-[#222] rounded-full" />
             </div>
@@ -129,15 +129,17 @@ export default function Hero() {
           </div>
         ) : (
           <>
-            <div className="absolute top-24 right-4 md:right-12 max-w-[80vw] md:max-w-[50vw] flex flex-col items-end gap-2 animate-fade-in">
+            <div className="sm:absolute sm:top-24 sm:right-4 sm:md:right-12 sm:max-w-[50vw] flex flex-col items-start sm:items-end gap-2 mb-6 sm:mb-0 animate-fade-in">
               <span className="tag">{titre}</span>
-              <ProprietaireLocalisation localisation={localisation} />
-              <span className="font-mono text-xs text-muted">
+              {localisation && (
+                <span className="font-mono text-[10px] sm:text-xs text-muted/60 sm:text-muted">{localisation}</span>
+              )}
+              <span className="font-mono text-[10px] sm:text-xs text-muted/60 sm:text-muted">
                 {profile?.updated_at ? new Date(profile.updated_at).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }) : ""}
               </span>
             </div>
 
-            <div className="flex flex-row items-center gap-4 md:gap-8 mb-8">
+            <div className="flex flex-row items-center gap-6 md:gap-8 mb-0 sm:mb-8">
               <div className="shrink-0">
                 <ProprietaireAvatar photo={getMediaUrl(photo)} nom={profile?.nom || ""} />
               </div>
@@ -146,9 +148,9 @@ export default function Hero() {
               </div>
             </div>
 
-            <div className="mt-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6 animate-fade-up" style={{ animationDelay: "0.4s", opacity: 0 }}>
+            <div className="mt-8 flex flex-col md:flex-row md:items-end md:justify-between gap-10 sm:gap-6 animate-fade-up" style={{ animationDelay: "0.4s", opacity: 0 }}>
               <ProprietaireBio bio={bio || ''} />
-              <div className="flex gap-4 flex-wrap">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <HeroCTA />
                 <ProprietaireLinks linkedin={profile?.url_linkedin} github={profile?.url_github} siteweb={profile?.site_web} />
               </div>
